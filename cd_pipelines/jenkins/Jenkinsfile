@@ -1,0 +1,236 @@
+pipeline {
+  agent any
+  options { skipStagesAfterUnstable() }
+  environment {
+    // BDD Framework Specific Variables
+    BDDAPIProto = "https"
+    BDDAPIEndpoint = "BDDFramework/rest/v"
+    BDDAPIVersion = 1
+
+    // CICD Probe Specific Variables
+    CICDProbeProto = "https"
+    CICDProbeAPIEndpoint = "CI_CDProbe/rest/v"
+    CICDProbeAPIVersion = 1
+
+    // LifeTime Specific Variables
+    LifeTimeAPIProto = "https"
+    LifeTimeAPIEndpoint = "lifetimeapi/rest/v"
+    LifeTimeAPIVersion = "${params.LTApiVersion}" // This will depend on the infrastructure that is running
+
+    // Artifacts Specific Variables
+    ArtifactsFolder = "artifacts"
+
+    // Environments Specific Variables
+    // These should be customized per infrastructure
+    LifeTimeEnvironmentURL = "${params.LTUrl}"
+    DevelopmentEnvironment = "${params.DevEnv}"
+    RegressionEnvironment = "${params.RegEnv}"
+    AcceptanceEnvironment = "${params.QAEnv}"
+    PreProductionEnvironment = "${params.PpEnv}"
+    ProductionEnvironment = "${params.PrdEnv}"
+
+    // Applications Specific Variables
+    // These should be customized per app(s) you want to automate on the pipeline
+    ApplicationScope = "${params.AppScope}"
+    ApplicationScopeWithTests = "${env.ApplicationScope},${params.AppWithTests}"
+    
+    // Authentication Specific Variables
+    AuthorizationToken = credentials('IntranetLifeTimeServiceAccountToken')
+  }
+  stages {
+    stage('Install Python Dependencies and create Artifact directory') {
+      steps {
+        echo "Create Artifacts Folder"
+        powershell "mkdir ${env.ArtifactsFolder}"
+        // Only the virtual environment needs to be installed at the system level
+        echo "Install Python Virtual environments"
+        powershell 'pip install -q -I virtualenv'
+        // Install the rest of the dependencies at the environment level and not the system level
+        withPythonEnv('python') {
+          echo "Install Python requirements"
+          powershell 'pip install -q -I -r .\\cd_pipelines\\jenkins\\requirements.txt'
+        }
+      }
+    }
+    stage('Get Latest Applications and Environments from LifeTime') {
+      steps {
+        withPythonEnv('python') {
+          echo 'Retrieving latest application tags from Development environment...'
+          powershell 'python .\\outsystems\\pipeline\\fetch_lifetime_data.py'
+        }
+      }
+      post {
+        always {
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "*.cache", onlyIfSuccessful: true
+          }
+        }
+      }
+    }
+    stage('Deploy tags to Regression Environment') {
+      environment {
+        // Environment where the latest versions of the apps currently are
+        SourceEnvironment = "${env.DevelopmentEnvironment}"
+        // Environment where you want to publish the apps
+        TargetEnvironment = "${env.RegressionEnvironment}"
+        // Apps you want to deploy
+        ApplicationsToDeploy = "${env.ApplicationScopeWithTests}"
+      }
+      steps {
+        withPythonEnv('python') {
+          echo 'Deploying latest application tags to Regression...'
+          powershell 'python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py'
+        } 
+      }
+      post {
+        always {
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
+          }
+        }
+        failure {
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "DeploymentConflicts"
+          }
+        }
+      }
+    }
+    stage('Run Regression tests on the Regression Environment') {
+      environment {    
+        // Slack Specific Variables
+        SlackHook = credentials('slack-hook')
+        SlackChannel = "${params.SlackChannel}"
+        // Regression environment name
+        EnvironmentName = "${env.RegressionEnvironment}"
+        // Apps to run tests on
+        ApplicationsToDeploy = "${env.ApplicationScopeWithTests}"
+      }
+      steps {
+        withPythonEnv('python') {
+          echo 'Generating URLs for BDD testing...'
+          powershell 'python .\\outsystems\\pipeline\\generate_unit_testing_assembly.py'
+          echo "Testing the URLs and generating the JUnit results XML..."
+          powershell(script: 'python .\\outsystems\\pipeline\\evaluate_test_results.py', returnStatus: true)
+        }
+      }
+      post {
+        always {
+          withPythonEnv('python') {
+            echo "Publishing JUnit test results..."
+            junit(testResults: "${env.ArtifactsFolder}\\junit-result.xml", allowEmptyResults: true)
+            echo "Sending notifcations to slack..."
+            powershell 'python .\\custom_pipeline\\slack\\send_test_results_to_slack.py'
+          }
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
+          }
+        }
+      }
+    }
+    stage('Deploy to Quality Assurance Environment') {
+      environment {
+        // Environment where the latest versions of the apps currently are
+        SourceEnvironment = "${env.RegressionEnvironment}"
+        // Environment where you want to publish the apps
+        TargetEnvironment = "${env.AcceptanceEnvironment}"
+        // Apps you want to deploy
+        ApplicationsToDeploy = "${env.ApplicationScope}"
+      }
+      steps {
+        // Wrap the confirm in a timeout to avoid hanging Jenkins forever
+        timeout(time:1, unit:'DAYS') {
+          input 'Deploy changes to Acceptance?'
+        }
+        withPythonEnv('python') {
+          echo 'Deploying latest application tags to Acceptance...'
+          powershell 'python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py'
+        }
+      }
+      post {
+        always {
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
+          }
+        }
+        failure {
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "DeploymentConflicts"
+          }
+        }
+      }
+    }
+    stage('Confirm push to Pre-Production and Production') {
+      steps {
+        // Wrap the confirm in a timeout to avoid hanging Jenkins forever
+        timeout(time:1, unit:'DAYS') {
+          input 'Accept changes and deploy to Pre- and Production?'
+        }
+      }
+    }
+    stage('Deploy to Pre-Production Environment') {
+      environment {
+        // Environment where the latest versions of the apps currently are
+        SourceEnvironment = "${env.AcceptanceEnvironment}"
+        // Environment where you want to publish the apps
+        TargetEnvironment = "${env.PreProductionEnvironment}"
+        // Apps you want to deploy
+        ApplicationsToDeploy = "${env.ApplicationScope}"
+      }
+      steps {
+        withPythonEnv('python') {
+          echo 'Deploying latest application tags to Pre-Production...'
+          powershell 'python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py'
+        }
+      }
+      post {
+        always {
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
+          }
+        }
+        failure {
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "DeploymentConflicts"
+          }
+        }
+      }
+    }
+    stage('Deploy to Production Environment') {
+      environment {
+        // Environment where the latest versions of the apps currently are
+        SourceEnvironment = "${env.PreProductionEnvironment}"
+        // Environment where you want to publish the apps
+        TargetEnvironment = "${env.ProductionEnvironment}"
+        // Apps you want to deploy
+        ApplicationsToDeploy = "${env.ApplicationScope}"
+      }
+      steps {
+        sleep 60 // TODO: Replace by polling script that checks whenever the sync in PRE is finished
+        withPythonEnv('python') {
+          echo 'Deploying latest application tags to Production...'
+          powershell 'python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py'
+        }
+      }
+      post {
+        always {
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
+          }
+        }
+        failure {
+          dir ("${env.ArtifactsFolder}") {
+            archiveArtifacts artifacts: "DeploymentConflicts"
+          }
+        }
+      }
+    }
+  }
+  post {
+    always { 
+      echo 'Deleting artifacts folder content...'
+      dir ("${env.ArtifactsFolder}") {
+        deleteDir()
+      }
+    }
+  }
+}

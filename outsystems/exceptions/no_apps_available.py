@@ -1,0 +1,2 @@
+class NoAppsAvailableError(Exception):
+  pass

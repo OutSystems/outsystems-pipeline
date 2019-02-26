@@ -1,0 +1,2 @@
+class ImpossibleApplyActionDeploymentError(Exception):
+  pass

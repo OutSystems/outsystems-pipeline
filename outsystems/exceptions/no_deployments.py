@@ -1,0 +1,2 @@
+class NoDeploymentsError(Exception):
+  pass
