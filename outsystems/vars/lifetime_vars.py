@@ -1,10 +1,7 @@
-# Python Modules
-import os
-
 # Base LT Variables
-LIFETIME_HTTP_PROTO = os.environ['LifeTimeAPIProto']
-LIFETIME_API_ENDPOINT = os.environ['LifeTimeAPIEndpoint']
-LIFETIME_API_VERSION = int(os.environ['LifeTimeAPIVersion'])
+LIFETIME_HTTP_PROTO = "https"
+LIFETIME_API_ENDPOINT = "lifetimeapi/rest"
+LIFETIME_API_VERSION = 2
 
 # Applications Endpoint Variables
 # Application list specific
