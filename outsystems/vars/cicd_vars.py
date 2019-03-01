@@ -1,6 +1,3 @@
-# Python Modules
-import os
-
 # Base CICD Probe Variables
 PROBE_HTTP_PROTO = "https"
 PROBE_API_ENDPOINT = "CI_CDProbe/rest"
