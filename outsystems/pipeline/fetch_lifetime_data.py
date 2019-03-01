@@ -33,7 +33,7 @@ if __name__ == "__main__":
   parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"")
   parser.add_argument("-u", "--lt_url", type=str, help="URL for LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
   parser.add_argument("-t", "--lt_token", type=str, help="Token for LifeTime API calls.")
-  parser.add_argument("-v", "--lt_api_version", type=int, help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Example: 2")
+  parser.add_argument("-v", "--lt_api_version", type=int, help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2")
   parser.add_argument("-e", "--lt_endpoint", type=str, help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
 
   args = parser.parse_args()

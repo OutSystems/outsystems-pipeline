@@ -151,12 +151,12 @@ if __name__ == "__main__":
   parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"")
   parser.add_argument("-u", "--lt_url", type=str, help="URL for LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
   parser.add_argument("-t", "--lt_token", type=str, help="Token for LifeTime API calls.")
-  parser.add_argument("-v", "--lt_api_version", type=int, help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Example: 2")
+  parser.add_argument("-v", "--lt_api_version", type=int, help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2")
   parser.add_argument("-e", "--lt_endpoint", type=str, help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
   parser.add_argument("-s", "--source_env", type=str, help="Name, as displayed in LifeTime, of the source environment where the apps are.")
   parser.add_argument("-d", "--destination_env", type=str, help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps.")
   parser.add_argument("-l", "--app_list", type=str, help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
-  parser.add_argument("-m", "--deploy_msg", type=str, help="Message you want to show on the deployment plans in LifeTime. Example: \"Automated deploy using OS Pipelines\".")  
+  parser.add_argument("-m", "--deploy_msg", type=str, help="Message you want to show on the deployment plans in LifeTime. Default: \"Automated deploy using OS Pipelines\".")  
   
   args = parser.parse_args()
   # Parse the artifact directory
