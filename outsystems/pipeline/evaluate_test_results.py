@@ -1,9 +1,5 @@
 # Python Modules
-import unittest
-import json
-import os
-import xmlrunner
-import sys
+import unittest, json, os, xmlrunner, sys, argparse
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -12,23 +8,17 @@ if "WORKSPACE" in os.environ:
   sys.path.append(os.environ['WORKSPACE'])
 
 # Custom Modules
+# Functions
 from outsystems.file_helpers.file import load_data
-from outsystems.vars.file_vars import ARTIFACT_FOLDER, BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE, JUNIT_TEST_RESULTS_FILE
 from outsystems.bdd_framework.bdd_runner import run_bdd_test
+# Variables
+from outsystems.vars.file_vars import ARTIFACT_FOLDER, BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE, JUNIT_TEST_RESULTS_FILE
+from outsystems.vars.bdd_vars import BDD_HTTP_PROTO, BDD_API_VERSION, BDD_API_ENDPOINT
 
 ############################################################## VARS ##############################################################
-
 # Set script local variables
 test_urls = [] # will contain the test urls for the BDD framework (loaded from a mapping file)
-
-############################################################## SCRIPT ##############################################################
-
-# Load the test endpoints
-filename = "{}\\{}".format(BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)
-test_urls = load_data(filename)
-
 ########################################################### TEST CLASS ###########################################################
-
 # Generator class that will create a unit test for each entry of the test results and print out a XML in tests/python-tests/*.xml
 class TestsContainer(unittest.TestCase):
   longMessage = True
@@ -47,7 +37,21 @@ def run_bdd_tests(description, url):
     self.assertTrue(json_obj["SuiteSuccess"], format_error_report(json_obj))
   return test
 
+############################################################## SCRIPT ##############################################################
 if __name__ == '__main__':
+  # Argument menu / parsing
+  parser = argparse.ArgumentParser()
+  parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"")
+  args = parser.parse_args()
+  # Parse the artifact directory
+  # Assumes the default dir = Artifacts
+  artifact_dir = ARTIFACT_FOLDER
+  if args.artifacts: artifact_dir = args.artifacts
+
+  # Load the test endpoints
+  filename = "{}\\{}".format(BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)
+  test_urls = load_data(artifact_dir, filename)
+
   for test in test_urls:
     # Changes the qualified name to <var>
     TestsContainer.__qualname__= test["TestSuite"]
@@ -57,6 +61,3 @@ if __name__ == '__main__':
   filename = "{}/{}".format(ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE)
   with open(filename, 'wb') as output:
     unittest.main(testRunner=xmlrunner.XMLTestRunner(output=output),failfast=False, buffer=False, catchbreak=False)
-
-
-

@@ -11,28 +11,25 @@ if "WORKSPACE" in os.environ:
 from outsystems.vars.file_vars import ARTIFACT_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 
-#from outsystems.lifetime.lifetime_applications import get_applications
-#from outsystems.lifetime.lifetime_environments import get_environments
-
-############################################################## VARS ##############################################################
-
-# Set script local variables from environment
-# LT url 
-#lt_url = os.environ['LifeTimeEnvironmentURL']
-# LT Token for authentication
-#lt_token = os.environ['AuthorizationToken']
+from outsystems.lifetime.lifetime_base import build_lt_endpoint
+from outsystems.lifetime.lifetime_environments import get_environments
+from outsystems.lifetime.lifetime_applications import get_applications
 
 ############################################################## SCRIPT ##############################################################
-def main(artifact_dir : str, lt_http_proto :str, lt_url :str, lt_api_endpoint :str, lt_api_version :int, lt_token :str ):
+def main( artifact_dir : str, lt_http_proto :str, lt_url :str, lt_api_endpoint :str, lt_api_version :int, lt_token :str ):
+  # Builds the LifeTime endpoint
+  lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
+  
   # Get Environments
-#  get_environments(lt_url, lt_token)
+  get_environments(artifact_dir, lt_endpoint, lt_token )
   print("OS Environments data retrieved successfully.")
   # Get Applications without extra data
-#  get_applications(lt_url, lt_token, False)
+  get_applications(artifact_dir, lt_endpoint, lt_token, False)
   print("OS Applications data retrieved successfully.")
 
 if __name__ == "__main__":
-  parser=argparse.ArgumentParser()
+  # Argument menu / parsing
+  parser = argparse.ArgumentParser()
   parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"")
   parser.add_argument("-u", "--lt_url", type=str, help="URL for LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
   parser.add_argument("-t", "--lt_token", type=str, help="Token for LifeTime API calls.")
@@ -72,4 +69,5 @@ if __name__ == "__main__":
     print("You need to set the LifeTime Token or else you won't be able to authenticate.")
     exit(1)
     
+  # Calls the main script
   main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token)
