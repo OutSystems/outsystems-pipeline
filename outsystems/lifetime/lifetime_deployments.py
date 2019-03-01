@@ -2,10 +2,20 @@
 import json
 
 # Custom Modules
-from outsystems.lifetime.lifetime_base import build_lt_endpoint, send_get_request, send_post_request, send_delete_request
+# Exceptions
+from outsystems.exceptions.invalid_parameters import InvalidParametersError
+from outsystems.exceptions.no_deployments import NoDeploymentsError
+from outsystems.exceptions.invalid_parameters import InvalidParametersError
+from outsystems.exceptions.not_enough_permissions import NotEnoughPermissionsError
+from outsystems.exceptions.server_error import ServerError
+from outsystems.exceptions.environment_not_found import EnvironmentNotFoundError
+from outsystems.exceptions.impossible_action_deployment import ImpossibleApplyActionDeploymentError
+# Functions
+from outsystems.lifetime.lifetime_base import send_get_request, send_post_request, send_delete_request
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.file_helpers.file import store_data
-from outsystems.vars.lifetime_vars import LIFETIME_API_VERSION, DEPLOYMENTS_ENDPOINT, DEPLOYMENT_STATUS_ENDPOINT, \
+# Variables
+from outsystems.vars.lifetime_vars import DEPLOYMENTS_ENDPOINT, DEPLOYMENT_STATUS_ENDPOINT, \
   DEPLOYMENT_START_ENDPOINT, DEPLOYMENT_CONTINUE_ENDPOINT, DEPLOYMENTS_SUCCESS_CODE, DEPLOYMENTS_EMPTY_CODE, \
   DEPLOYMENTS_INVALID_CODE, DEPLOYMENTS_NO_PERMISSION_CODE, DEPLOYMENTS_FAILED_CODE, DEPLOYMENT_GET_SUCCESS_CODE, \
   DEPLOYMENT_GET_NO_PERMISSION_CODE, DEPLOYMENT_GET_NO_DEPLOYMENT_CODE, DEPLOYMENT_GET_FAILED_CODE, \
@@ -15,25 +25,17 @@ from outsystems.vars.lifetime_vars import LIFETIME_API_VERSION, DEPLOYMENTS_ENDP
   DEPLOYMENT_DELETE_FAILED_CODE, DEPLOYMENT_ACTION_SUCCESS_CODE, DEPLOYMENT_ACTION_IMPOSSIBLE_CODE, DEPLOYMENT_ACTION_NO_PERMISSION_CODE, \
   DEPLOYMENT_ACTION_NO_DEPLOYMENT_CODE, DEPLOYMENT_ACTION_FAILED_CODE, DEPLOYMENT_PLAN_V1_API_OPS, DEPLOYMENT_PLAN_V2_API_OPS
 from outsystems.vars.file_vars import DEPLOYMENTS_FILE, DEPLOYMENT_FILE, DEPLOYMENT_FOLDER, DEPLOYMENT_STATUS_FILE
-from outsystems.exceptions.invalid_parameters import InvalidParametersError
-from outsystems.exceptions.no_deployments import NoDeploymentsError
-from outsystems.exceptions.invalid_parameters import InvalidParametersError
-from outsystems.exceptions.not_enough_permissions import NotEnoughPermissionsError
-from outsystems.exceptions.server_error import ServerError
-from outsystems.exceptions.environment_not_found import EnvironmentNotFoundError
-from outsystems.exceptions.impossible_action_deployment import ImpossibleApplyActionDeploymentError
 
 # Returns a list of deployments ordered by creation date, from newest to oldest.
-def get_deployments(lt_url :str, auth_token :str, date :str):
-  # Builds the endpoint for LT and parameters for the api call
-  endpoint = build_lt_endpoint(lt_url)
+def get_deployments(artifact_dir :str, endpoint :str, auth_token :str, date :str):
+  # Builds the parameters for the api call
   params = {"MinDate": date}
   # Sends the request
   response = send_get_request(endpoint, auth_token, DEPLOYMENTS_ENDPOINT , params)
   status_code = int(response["http_status"])
   if status_code == DEPLOYMENTS_SUCCESS_CODE:
     # Stores the result
-    store_data(DEPLOYMENTS_FILE, response["response"])
+    store_data(artifact_dir, DEPLOYMENTS_FILE, response["response"])
     return response["response"]
   elif status_code == DEPLOYMENTS_EMPTY_CODE:
     raise NoDeploymentsError("There are no deployments starting on {} until now. Details: {}".format(date, response["response"]))
@@ -49,9 +51,8 @@ def get_deployments(lt_url :str, auth_token :str, date :str):
 # Returns the details of a given deployment, validating if there are any conflicts. 
 # The returned information contains the applications included in the deployment plan and 
 # the possible conflicts that can arise from the deployment of the selected applications.
-def get_deployment_info(lt_url :str, auth_token :str, deployment_key :str):
-  # Builds the endpoint for LT and the API call
-  endpoint = build_lt_endpoint(lt_url)
+def get_deployment_info(artifact_dir :str, endpoint :str, auth_token :str, deployment_key :str):
+  # Builds the API call
   query = "{}/{}".format(DEPLOYMENTS_ENDPOINT, deployment_key)
   # Sends the request
   response = send_get_request(endpoint, auth_token, query, None)
@@ -59,7 +60,7 @@ def get_deployment_info(lt_url :str, auth_token :str, deployment_key :str):
   if status_code == DEPLOYMENT_GET_SUCCESS_CODE:
     # Stores the result
     filename = "{}\\{}{}".format(DEPLOYMENT_FOLDER, deployment_key, DEPLOYMENT_FILE)
-    store_data(filename, response["response"])
+    store_data(artifact_dir, filename, response["response"])
     return response["response"]
   elif status_code == DEPLOYMENT_GET_NO_PERMISSION_CODE:
     raise NotEnoughPermissionsError("You don't have enough permissions to see the details of that deployment. Details: {}".format(response["response"]))
@@ -71,9 +72,8 @@ def get_deployment_info(lt_url :str, auth_token :str, deployment_key :str):
     raise NotImplementedError("There was an error. Response from server: {}".format(response))
 
 # Returns the details of a given deployment execution, including the deployment status and messages.
-def get_deployment_status(lt_url :str, auth_token :str, deployment_key :str):
-  # Builds the endpoint for LT and the API call
-  endpoint = build_lt_endpoint(lt_url)
+def get_deployment_status(artifact_dir :str, endpoint :str, auth_token :str, deployment_key :str):
+  # Builds the API call
   query = "{}/{}/{}".format(DEPLOYMENTS_ENDPOINT, deployment_key, DEPLOYMENT_STATUS_ENDPOINT)
   # Sends the request
   response = send_get_request(endpoint, auth_token, query, None)
@@ -81,7 +81,7 @@ def get_deployment_status(lt_url :str, auth_token :str, deployment_key :str):
   if status_code == DEPLOYMENT_STATUS_SUCCESS_CODE:
     # Stores the result
     filename = "{}\\{}{}".format(DEPLOYMENT_FOLDER, deployment_key, DEPLOYMENT_STATUS_FILE)
-    store_data(filename, response["response"])
+    store_data(artifact_dir, filename, response["response"])
     return response["response"]
   elif status_code == DEPLOYMENT_STATUS_NO_PERMISSION_CODE:
     raise NotEnoughPermissionsError("You don't have enough permissions to see the details of that deployment. Details: {}".format(response["response"])) 
@@ -95,10 +95,9 @@ def get_deployment_status(lt_url :str, auth_token :str, deployment_key :str):
 # Creates a deployment to a target environment. 
 # An optional list of applications to include in the deployment can be specified. 
 # The input is a subset of deployment object.
-def send_deployment(lt_url :str, auth_token :str, app_keys :list, dep_note :str, source_env :str, dest_env :str):
-  # Builds the endpoint for LT
-  endpoint = build_lt_endpoint(lt_url)
-  deployment_request = _create_deployment_plan(lt_url, auth_token, app_keys, dep_note, source_env, dest_env)
+def send_deployment(artifact_dir :str, endpoint :str, auth_token :str, lt_api_version :int, app_keys :list, dep_note :str, source_env :str, dest_env :str):
+  # builds the deployment plan
+  deployment_request = _create_deployment_plan(artifact_dir, endpoint, lt_api_version, auth_token, app_keys, dep_note, source_env, dest_env)
   # Sends the request
   response = send_post_request(endpoint, auth_token, DEPLOYMENTS_ENDPOINT, deployment_request)
   status_code = int(response["http_status"])
@@ -116,9 +115,8 @@ def send_deployment(lt_url :str, auth_token :str, app_keys :list, dep_note :str,
     raise NotImplementedError("There was an error. Response from server: {}".format(response))
 
 # Discards a deployment, if possible. Only deployments whose state is “saved” can be deleted.
-def delete_deployment(lt_url :str, auth_token :str, deployment_key :str):
-  # Builds the endpoint for LT and the API call
-  endpoint = build_lt_endpoint(lt_url)
+def delete_deployment(endpoint :str, auth_token :str, deployment_key :str):
+  # Builds the API call
   query = "{}/{}".format(DEPLOYMENTS_ENDPOINT, deployment_key)
   # Sends the request
   response = send_delete_request(endpoint, auth_token, query)
@@ -139,12 +137,11 @@ def delete_deployment(lt_url :str, auth_token :str, deployment_key :str):
 # Executes the start command in a specified deployment. 
 # The initiation of a deployment plan will check if it's valid. 
 # The applications to redeploy, if applicable, will also be included in the deployment plan.
-def start_deployment(lt_url: str, auth_token :str, deployment_key :str, **kwargs):
+def start_deployment(endpoint: str, auth_token :str, deployment_key :str, **kwargs):
   redeploy  = False
   if "redeploy_outdated" not in kwargs:
     redeploy = True
-  # Builds the endpoint for LT and the API call
-  endpoint = build_lt_endpoint(lt_url)
+  # Builds the API call
   query = "{}/{}/{}".format(DEPLOYMENTS_ENDPOINT, deployment_key, DEPLOYMENT_START_ENDPOINT)
   # If the parameter to redeploy outdated has a value, that must be included in the call
   if not redeploy:
@@ -166,9 +163,8 @@ def start_deployment(lt_url: str, auth_token :str, deployment_key :str, **kwargs
     raise NotImplementedError("There was an error. Response from server: {}".format(response))
 
 # Executes the continue command in a specified deployment. 
-def continue_deployment(lt_url: str, auth_token :str, deployment_key :str):
-  # Builds the endpoint for LT and the API call
-  endpoint = build_lt_endpoint(lt_url)
+def continue_deployment(endpoint: str, auth_token :str, deployment_key :str):
+  # Builds the API call
   query = "{}/{}/{}".format(DEPLOYMENTS_ENDPOINT, deployment_key, DEPLOYMENT_CONTINUE_ENDPOINT)
   # Sends the request
   response = send_post_request(endpoint, auth_token, query, None)
@@ -187,14 +183,14 @@ def continue_deployment(lt_url: str, auth_token :str, deployment_key :str):
     raise NotImplementedError("There was an error. Response from server: {}".format(response))
 
 ########################################## PRIVATE METHODS ##########################################
-def _create_deployment_plan(lt_url :str, auth_token :str, app_keys :str, dep_note :str, source_env :str, dest_env :str):
-  if LIFETIME_API_VERSION == 1:
+def _create_deployment_plan(artifact_dir :str, endpoint :str, lt_api_version :int, auth_token :str, app_keys :str, dep_note :str, source_env :str, dest_env :str):
+  if lt_api_version == 1:
     api_var_name = DEPLOYMENT_PLAN_V1_API_OPS
-  elif LIFETIME_API_VERSION == 2:
+  elif lt_api_version == 2:
     api_var_name = DEPLOYMENT_PLAN_V2_API_OPS
   else:
-    raise NotImplementedError("Unsupported API version for LifeTime: used {}".format(LIFETIME_API_VERSION))
-  source_env_key = get_environment_key(lt_url, auth_token, source_env)
-  dest_env_key = get_environment_key(lt_url, auth_token, dest_env)  
+    raise NotImplementedError("Unsupported API version for LifeTime: used {}".format(lt_api_version))
+  source_env_key = get_environment_key(artifact_dir, endpoint, auth_token, source_env)
+  dest_env_key = get_environment_key(artifact_dir, endpoint, auth_token, dest_env)  
   deployment_request = {api_var_name: app_keys, "Notes": dep_note, "SourceEnvironmentKey": source_env_key, "TargetEnvironmentKey": dest_env_key}
   return json.dumps(deployment_request)

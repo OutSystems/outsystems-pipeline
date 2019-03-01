@@ -1,15 +1,14 @@
 # Python Modules
-import requests
-import json
+import requests, json
 
 # Custom Modules
+# Exceptions
 from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
-from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 
 # Method that builds the LifeTime endpoint based on the LT host
-def build_lt_endpoint(lt_url :str):
+def build_lt_endpoint(lt_http_proto :str, lt_url :str, lt_api_endpoint :str, lt_api_version :int):
   # Builds the endpoint for LT and returns it
-  return "{}://{}/{}{}".format(LIFETIME_HTTP_PROTO, lt_url, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION) 
+  return "{}://{}/{}/v{}".format(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version) 
 
 # Sends a GET request to LT, with url_params
 def send_get_request(lt_api :str, token :str, api_endpoint :str, url_params :str):
