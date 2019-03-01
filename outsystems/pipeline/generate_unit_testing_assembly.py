@@ -79,11 +79,11 @@ if __name__ == "__main__":
 
   parser.add_argument("--cicd_probe_env", type=str, help="URL for CICD Probe, without the API endpoint. Example: \"https://<host>\"")
   parser.add_argument("--cicd_probe_api", type=str, help="(optional) Used to set the API endpoint for CICD Probe, without the version. Default: \"CI_CDProbe/rest\"")
-  parser.add_argument("--cicd_probe_version", type=int, help="CICD Probe API version number. Default: 1")
+  parser.add_argument("--cicd_probe_version", type=int, help="(optional) CICD Probe API version number. Default: 1")
 
   parser.add_argument("--bdd_framework_env", type=str, help="URL for BDD Framework, without the API endpoint. Example: \"https://<host>\"")
   parser.add_argument("--bdd_framework_api", type=str, help="(optional) Used to set the API endpoint for BDD Framework, without the version. Default: \"BDDFramework/rest\"")
-  parser.add_argument("--bdd_framework_version", type=int, help="BDD Framework API version number. Default: 1")
+  parser.add_argument("--bdd_framework_version", type=int, help="(optional) BDD Framework API version number. Default: 1")
 
   args = parser.parse_args()
 
