@@ -32,6 +32,9 @@ test_urls = [] # will contain the urls for the BDD framework
 def main(artifact_dir :str, apps :list, bdd_http_proto :str, bdd_url :str, bdd_api_endpoint :str, bdd_version :int, \
   cicd_http_proto :str, cicd_url :str, cicd_api_endpoint :str, cicd_version :int):
   
+  # use the script variables
+  global bdd_test, bdd_modules, test_names, test_list, test_urls
+
   probe_endpoint = build_probe_endpoint(cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)
   bdd_endpoint = build_bdd_endpoint(bdd_http_proto, bdd_url, bdd_api_endpoint, bdd_version)
 
@@ -71,7 +74,6 @@ def main(artifact_dir :str, apps :list, bdd_http_proto :str, bdd_url :str, bdd_a
   store_data(artifact_dir, filename, test_urls)
 
 # end of main()
-
 
 if __name__ == "__main__":
   # Argument menu / parsing

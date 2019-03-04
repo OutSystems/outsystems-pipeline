@@ -33,6 +33,10 @@ to_deploy_app_keys = [] # will contain the app keys for the apps tagged
 
 ############################################################## SCRIPT ##############################################################
 def main(artifact_dir :str, lt_http_proto :str, lt_url :str, lt_api_endpoint :str, lt_api_version :int, lt_token :str, source_env :str, dest_env :str, apps :list, dep_note :str):
+  
+  # use the script variables
+  global app_data_list, app_keys, to_deploy_app_keys
+  
   # Builds the LifeTime endpoint
   lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
 
