@@ -10,7 +10,7 @@ from outsystems.vars.bdd_vars import BDD_TEST_RUNNER_ENDPOINT
 # Method that builds the BDD Framework endpoint based on the environment host
 def build_bdd_endpoint(bdd_http_proto :str, bdd_url :str, bdd_api_endpoint :str, bdd_api_version :int):
   # Builds the endpoint for BDD Framework and returns it
-  return "{}://{}/{}{}".format(bdd_http_proto, bdd_url, bdd_api_endpoint, bdd_api_version) 
+  return "{}://{}/{}/v{}".format(bdd_http_proto, bdd_url, bdd_api_endpoint, bdd_api_version) 
 
 # Method that builds the BDD Framework test endpoint based on the environment host, application and test name
 def build_bdd_test_endpoint(bdd_endpoint :str, espace_name :str, webscreen_name :str):
