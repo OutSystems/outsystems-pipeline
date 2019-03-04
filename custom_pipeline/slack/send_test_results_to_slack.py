@@ -15,7 +15,7 @@ from outsystems.vars.file_vars import ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE
 
 ############################################################## SCRIPT ##############################################################
 def main(artifact_dir :str, slack_hook :str, slack_channels :list, job_name :str, job_url :str):
-  filename = "{}\\{}".format(artifact_dir, JUNIT_TEST_RESULTS_FILE)
+  filename = os.path.join(artifact_dir, JUNIT_TEST_RESULTS_FILE)
   _, tr = xunitparser.parse(open(filename))
 
   message = "*{}* BDD tests run.\n*{}* errors found.".format(tr.testsRun, len(tr.failures))
