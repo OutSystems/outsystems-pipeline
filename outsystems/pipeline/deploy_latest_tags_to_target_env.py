@@ -105,7 +105,7 @@ def main(artifact_dir :str, lt_http_proto :str, lt_url :str, lt_api_endpoint :st
   
   # LT is free to deploy
   # Send the deployment plan and grab the key
-  dep_plan_key = send_deployment(artifact_dir, lt_endpoint, lt_api_version, lt_token, app_keys, dep_note, source_env, dest_env)
+  dep_plan_key = send_deployment(artifact_dir, lt_endpoint, lt_token, lt_api_version, app_keys, dep_note, source_env, dest_env)
   print("Deployment plan {} created successfully.".format(dep_plan_key))
 
   # Check if created deployment plan has conflicts
