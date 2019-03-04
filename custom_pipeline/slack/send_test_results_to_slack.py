@@ -81,7 +81,7 @@ if __name__ == "__main__":
   slack_channels = args.slack_channel.split(',')
   # Parse Pipeline Type
   # Assumes the default Jenkins
-  pipeline_type = "jenkins"
+  pipeline_type = ""
   if args.pipeline: pipeline_type = args.pipeline
   # Parse Job Name
   job_name = args.job_name
