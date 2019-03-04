@@ -40,7 +40,7 @@ def get_applications(artifact_dir :str, endpoint :str, auth_token :str, extra_da
 # Returns the details of a given application.
 def get_application_data(artifact_dir :str, endpoint :str, auth_token :str, extra_data :bool, **kwargs):
   # Tuple with (AppName, AppKey): app_info[0] = AppName; app_info[1] = AppKey
-  app_info = _get_application_info(endpoint, auth_token, **kwargs)
+  app_info = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
   query = "{}/{}".format(APPLICATIONS_ENDPOINT, app_info[1])
   params = {"IncludeModules": extra_data, "IncludeEnvStatus": extra_data}
   # Sends the request
