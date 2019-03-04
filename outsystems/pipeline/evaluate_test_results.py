@@ -45,7 +45,9 @@ if __name__ == '__main__':
   # Parse the artifact directory
   # Assumes the default dir = Artifacts
   artifact_dir = ARTIFACT_FOLDER
-  if args.artifacts: artifact_dir = args.artifacts
+  if args.artifacts: 
+    artifact_dir = args.artifacts
+    sys.argv = sys.argv[:-2] # Workaround to clear the args to avoid messing with the unittest.main()
 
   # Load the test endpoints
   filename = "{}\\{}".format(BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)
