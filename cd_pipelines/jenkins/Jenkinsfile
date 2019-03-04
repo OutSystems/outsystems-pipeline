@@ -47,7 +47,7 @@ pipeline {
         // Environment where you want to publish the apps
         TargetEnvironment = "${params.RegEnv}"
         // Apps you want to deploy
-        ApplicationsToDeploy = "${env.ApplicationScope},${params.AppWithTests}"
+        ApplicationsToDeploy = "${params.AppScope},${params.AppWithTests}"
       }
       steps {
         withPythonEnv('python') {
@@ -75,7 +75,7 @@ pipeline {
         // CICD Probe Specific Variables
         CICDProbeUrl = "${params.ProbeUrl}"
         // Apps to run tests on
-        ApplicationsToTest = "${env.ApplicationScope},${params.AppWithTests}"
+        ApplicationsToTest = "${params.AppScope},${params.AppWithTests}"
         // Slack Specific Variables
         SlackHook = credentials('slack-hook')
         SlackChannel = "${params.SlackChannel}"
