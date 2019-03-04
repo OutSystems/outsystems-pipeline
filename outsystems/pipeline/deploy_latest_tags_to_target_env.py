@@ -8,7 +8,7 @@ from time import sleep
 #if "WORKSPACE" in os.environ:
 #  sys.path.append(os.environ['WORKSPACE'])
 #else: # Else just add the project dir
-sys.path.append(os.getcwd())
+#sys.path.append(os.getcwd())
 
 # Custom Modules
 # Functions
