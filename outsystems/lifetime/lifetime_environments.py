@@ -39,7 +39,7 @@ def get_environment_app_version(artifact_dir :str, endpoint :str, auth_token :st
   # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
   app_tuple = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
   # Tuple with (EnvName, EnvKey): env_tuple[0] = EnvName; env_tuple[1] = EnvKey
-  env_tuple = _get_environment_info(endpoint, auth_token, **kwargs)
+  env_tuple = _get_environment_info(artifact_dir, endpoint, auth_token, **kwargs)
   # Builds the query and arguments for the call to the API
   query = "{}/{}/{}/{}".format(ENVIRONMENTS_ENDPOINT, env_tuple[1], ENVIRONMENT_APPLICATIONS_ENDPOINT, app_tuple[1])
   arguments = {"IncludeEnvStatus": extra_data, "IncludeModules": extra_data}
