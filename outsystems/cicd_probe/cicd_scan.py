@@ -1,3 +1,6 @@
+# Python Modules
+import os
+
 # Custom Modules
 # Functions
 from outsystems.cicd_probe.cicd_base import send_probe_get_request
@@ -15,7 +18,8 @@ def scan_bdd_test_endpoint(artifact_dir :str, endpoint :str, application_name :s
   status_code = response["http_status"]
   if status_code == PROBE_SCAN_SUCCESS_CODE:
     # Stores the result
-    filename = "{}\\{}{}".format(PROBE_FOLDER, application_name, PROBE_APPLICATION_SCAN_FILE)
+    filename = "{}{}".format(application_name, PROBE_APPLICATION_SCAN_FILE)
+    filename = os.path.join(PROBE_FOLDER, filename)
     store_data(artifact_dir, filename, response["response"])
     return response["response"]
   else:
