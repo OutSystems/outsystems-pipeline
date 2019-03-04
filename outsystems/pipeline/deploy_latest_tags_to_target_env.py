@@ -5,10 +5,10 @@ from time import sleep
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
 # Jenkins exposes the workspace directory through env.
-if "WORKSPACE" in os.environ:
-  sys.path.append(os.environ['WORKSPACE'])
-else: # Else just add the project dir
-  sys.path.append(os.getcwd())
+#if "WORKSPACE" in os.environ:
+#  sys.path.append(os.environ['WORKSPACE'])
+#else: # Else just add the project dir
+sys.path.append(os.getcwd())
 
 # Custom Modules
 # Functions
