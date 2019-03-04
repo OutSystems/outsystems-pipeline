@@ -37,7 +37,7 @@ def get_environment_key(artifact_dir :str, endpoint :str, auth_token :str, envir
 # Returns information about the running version of the specified application in a given environment.
 def get_environment_app_version(artifact_dir :str, endpoint :str, auth_token :str, extra_data :bool, **kwargs):
   # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
-  app_tuple = _get_application_info(endpoint, auth_token, **kwargs)
+  app_tuple = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
   # Tuple with (EnvName, EnvKey): env_tuple[0] = EnvName; env_tuple[1] = EnvKey
   env_tuple = _get_environment_info(endpoint, auth_token, **kwargs)
   # Builds the query and arguments for the call to the API
