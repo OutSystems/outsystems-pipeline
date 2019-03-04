@@ -63,7 +63,7 @@ def get_application_data(artifact_dir :str, endpoint :str, auth_token :str, extr
 # Returns a list of versions of a given application.
 def get_application_versions(artifact_dir :str, endpoint :str, auth_token :str, number_of_versions :int, **kwargs):
   # Tuple with (AppName, AppKey): app_info[0] = AppName; app_info[1] = AppKey
-  app_info = _get_application_info(endpoint, auth_token, **kwargs)
+  app_info = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
   query = "{}/{}/{}".format(APPLICATIONS_ENDPOINT, app_info[1], APPLICATION_VERSIONS_ENDPOINT)
   # Sends the request
   response = send_get_request(endpoint, auth_token,query,{"MaximumVersionsToReturn": number_of_versions})
