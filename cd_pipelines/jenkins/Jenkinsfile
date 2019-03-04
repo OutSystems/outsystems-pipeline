@@ -20,8 +20,6 @@ pipeline {
         powershell 'pip install -q -I virtualenv'
         // Install the rest of the dependencies at the environment level and not the system level
         withPythonEnv('python') {
-          echo "Set PYTHONPATH to current directory"
-          powershell "set PYTHONPATH=."
           echo "Install Python requirements"
           powershell 'pip install -q -I -r .\\cd_pipelines\\jenkins\\requirements.txt'
         }
