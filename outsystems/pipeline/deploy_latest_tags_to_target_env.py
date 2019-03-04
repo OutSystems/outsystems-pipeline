@@ -11,6 +11,8 @@ else: # Else just add the project dir
   sys.path.append(os.getcwd())
 
 # Custom Modules
+# Exceptions
+from outsystems.exceptions.no_deployments import NoDeploymentsError
 # Functions
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.file_helpers.file import store_data
@@ -83,7 +85,11 @@ def main(artifact_dir :str, lt_http_proto :str, lt_url :str, lt_api_endpoint :st
   while True:
     # Get list of deployments ordered by creation date (from newest to oldest).
     date = datetime.date.today()
-    deployments = get_deployments(artifact_dir, lt_endpoint, lt_token, date)
+    try:
+      deployments = get_deployments(artifact_dir, lt_endpoint, lt_token, date)
+    except NoDeploymentsError:
+      # There are no deployments so LT is free
+      break 
     if deployments != {}:
       for deployment in deployments:
         # Check status for each retrieved deployment record
@@ -96,7 +102,7 @@ def main(artifact_dir :str, lt_http_proto :str, lt_url :str, lt_api_endpoint :st
           wait_counter += SLEEP_PERIOD_IN_SECS
           print("{} secs have passed while waiting for ongoing deployment to end...".format(wait_counter))
     break
-
+  
   # LT is free to deploy
   # Send the deployment plan and grab the key
   dep_plan_key = send_deployment(artifact_dir, lt_endpoint, lt_api_version, lt_token, app_keys, dep_note, source_env, dest_env)
