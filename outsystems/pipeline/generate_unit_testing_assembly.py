@@ -38,7 +38,7 @@ def main(artifact_dir :str, apps :list, bdd_http_proto :str, bdd_url :str, bdd_a
   # Query the CICD probe
   for app in apps:
     # Removes whitespaces in the beginning and end of the string
-    app_name = app_name.strip()
+    app = app.strip()
     response = scan_bdd_test_endpoint(artifact_dir, probe_endpoint, app)
     if(len(response) == 0):
       continue # It has no test suites, continue the loop
