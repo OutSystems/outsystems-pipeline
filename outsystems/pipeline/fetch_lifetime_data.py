@@ -5,8 +5,8 @@ import os, sys, argparse
 # Set the path to include the outsystems module
 # Jenkins exposes the workspace directory through env.
 if "WORKSPACE" in os.environ:
-  print("Jenkins workaround")
   sys.path.append(os.environ['WORKSPACE'])
+  print("Jenkins workaround. Path: {}".format(sys.path))
 else: # Else just add the project dir
   sys.path.append(os.getcwd())
 
