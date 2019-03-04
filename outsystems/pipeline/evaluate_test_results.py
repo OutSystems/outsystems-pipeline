@@ -17,9 +17,6 @@ from outsystems.bdd_framework.bdd_runner import run_bdd_test
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE, JUNIT_TEST_RESULTS_FILE
 from outsystems.vars.bdd_vars import BDD_HTTP_PROTO, BDD_API_VERSION, BDD_API_ENDPOINT
 
-############################################################## VARS ##############################################################
-# Set script local variables
-test_urls = [] # will contain the test urls for the BDD framework (loaded from a mapping file)
 ########################################################### TEST CLASS ###########################################################
 # Generator class that will create a unit test for each entry of the test results and print out a XML in tests/python-tests/*.xml
 class TestsContainer(unittest.TestCase):
