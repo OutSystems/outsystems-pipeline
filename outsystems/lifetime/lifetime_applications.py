@@ -1,3 +1,6 @@
+# Python Modules
+import os
+
 # Custom Modules
 # Exceptions
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
@@ -48,7 +51,8 @@ def get_application_data(artifact_dir :str, endpoint :str, auth_token :str, extr
   status_code = int(response["http_status"])
   if status_code == APPLICATION_SUCCESS_CODE:
     # Stores the result
-    filename = "{}\\{}{}".format(APPLICATION_FOLDER, app_info[0], APPLICATION_FILE)
+    filename = "{}{}".format(app_info[0], APPLICATION_FILE)
+    filename = os.path.join(APPLICATION_FOLDER, filename)
     store_data(artifact_dir, filename, response["response"])
     return response["response"]
   elif status_code == APPLICATION_FLAG_FAILED_CODE:
@@ -70,7 +74,8 @@ def get_application_versions(artifact_dir :str, endpoint :str, auth_token :str, 
   status_code = int(response["http_status"])
   if status_code == APPLICATION_VERSION_SUCCESS_CODE:
     # Stores the result
-    filename = "{}\\{}{}".format(APPLICATION_FOLDER, app_info[0], APPLICATION_VERSIONS_FILE)
+    filename = "{}{}".format(app_info[0], APPLICATION_VERSIONS_FILE)
+    filename = os.path.join(APPLICATION_FOLDER, filename)
     store_data(artifact_dir, filename, response["response"])
     return response["response"]
   elif status_code == APPLICATION_VERSION_INVALID_CODE:

@@ -70,7 +70,7 @@ def main(artifact_dir :str, apps :list, bdd_http_proto :str, bdd_url :str, bdd_a
         test_urls.append({"TestSuite": bdd["EspaceName"],"Name": webscreen["Name"],"URL": test_endpoint})
 
   # Save the test results in a file for later processing
-  filename = "{}\\{}".format(BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)
+  filename = os.path.join(BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)
   store_data(artifact_dir, filename, test_urls)
 
 # end of main()

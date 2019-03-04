@@ -1,5 +1,5 @@
 # Python Modules
-import json
+import json, os
 
 # Custom Modules
 # Exceptions
@@ -59,7 +59,8 @@ def get_deployment_info(artifact_dir :str, endpoint :str, auth_token :str, deplo
   status_code = int(response["http_status"])
   if status_code == DEPLOYMENT_GET_SUCCESS_CODE:
     # Stores the result
-    filename = "{}\\{}{}".format(DEPLOYMENT_FOLDER, deployment_key, DEPLOYMENT_FILE)
+    filename = "{}{}".format(deployment_key, DEPLOYMENT_FILE)
+    filename = os.path.join(DEPLOYMENT_FOLDER, filename)
     store_data(artifact_dir, filename, response["response"])
     return response["response"]
   elif status_code == DEPLOYMENT_GET_NO_PERMISSION_CODE:
@@ -80,7 +81,8 @@ def get_deployment_status(artifact_dir :str, endpoint :str, auth_token :str, dep
   status_code = int(response["http_status"])
   if status_code == DEPLOYMENT_STATUS_SUCCESS_CODE:
     # Stores the result
-    filename = "{}\\{}{}".format(DEPLOYMENT_FOLDER, deployment_key, DEPLOYMENT_STATUS_FILE)
+    filename = "{}{}".format(deployment_key, DEPLOYMENT_STATUS_FILE)
+    filename = os.path.join(DEPLOYMENT_FOLDER, filename)
     store_data(artifact_dir, filename, response["response"])
     return response["response"]
   elif status_code == DEPLOYMENT_STATUS_NO_PERMISSION_CODE:

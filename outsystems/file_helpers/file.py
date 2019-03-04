@@ -2,7 +2,7 @@
 import json, os
 
 def store_data(artifact_dir :str, filename :str, data :str):
-  filename = artifact_dir + '\\' + filename
+  filename = os.path.join(artifact_dir, filename)
   # Remove the spaces in the filename
   filename = filename.replace(" ", "_")
   # Makes sure that, if a directory is in the filename, that directory exists
@@ -14,17 +14,17 @@ def load_data(artifact_dir :str, filename :str):
   # Remove the spaces in the filename
   filename = filename.replace(" ", "_")
   if check_file(artifact_dir, filename):
-    filename = artifact_dir + '\\' + filename
+    filename = os.path.join(artifact_dir, filename)
     with open(filename, 'r') as infile:
       return json.load(infile)
   raise FileNotFoundError("The file with filename {} does not exist.".format(filename))
 
 def check_file(artifact_dir :str, filename :str):
-  filename = artifact_dir + '\\' + filename
+  filename = os.path.join(artifact_dir, filename)
   return os.path.isfile(filename)
 
 def clear_cache(artifact_dir :str, filename :str):
   if not check_file(artifact_dir, filename):
     return
-  filename = artifact_dir + '\\' + filename
+  filename = os.path.join(artifact_dir, filename)
   os.remove(filename)

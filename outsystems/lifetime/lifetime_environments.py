@@ -1,3 +1,6 @@
+# Python Modules
+import os
+
 # Custom Modules
 # Exceptions
 from outsystems.exceptions.invalid_parameters import InvalidParametersError
@@ -48,7 +51,8 @@ def get_environment_app_version(artifact_dir :str, endpoint :str, auth_token :st
   status_code = int(response["http_status"])
   if status_code == ENVIRONMENT_APP_SUCCESS_CODE:
     # Stores the result
-    filename = "{}\\{}.{}{}".format(ENVIRONMENT_FOLDER, env_tuple[0], app_tuple[0], ENVIRONMENT_APPLICATION_FILE)
+    filename = "{}.{}{}".format(env_tuple[0], app_tuple[0], ENVIRONMENT_APPLICATION_FILE)
+    filename = os.path.join(ENVIRONMENT_FOLDER, filename)
     store_data(artifact_dir, filename, response["response"])
     return response["response"]
   elif status_code == ENVIRONMENT_APP_NOT_STATUS_CODE:
