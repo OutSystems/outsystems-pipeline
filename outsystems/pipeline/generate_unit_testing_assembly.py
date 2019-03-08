@@ -78,76 +78,55 @@ def main(artifact_dir :str, apps :list, bdd_http_proto :str, bdd_url :str, bdd_a
 if __name__ == "__main__":
   # Argument menu / parsing
   parser = argparse.ArgumentParser()
-  parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"")
-  parser.add_argument("-l", "--app_list", type=str, help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
+  parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
+  parser.add_argument("-l", "--app_list", type=str, help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"", required=True)
 
-  parser.add_argument("--cicd_probe_env", type=str, help="URL for CICD Probe, without the API endpoint. Example: \"https://<host>\"")
-  parser.add_argument("--cicd_probe_api", type=str, help="(optional) Used to set the API endpoint for CICD Probe, without the version. Default: \"CI_CDProbe/rest\"")
-  parser.add_argument("--cicd_probe_version", type=int, help="(optional) CICD Probe API version number. Default: 1")
+  parser.add_argument("--cicd_probe_env", type=str, help="URL for CICD Probe, without the API endpoint. Example: \"https://<host>\"", required=True)
+  parser.add_argument("--cicd_probe_api", type=str, help="(optional) Used to set the API endpoint for CICD Probe, without the version. Default: \"CI_CDProbe/rest\"", default=PROBE_API_ENDPOINT)
+  parser.add_argument("--cicd_probe_version", type=int, help="(optional) CICD Probe API version number. Default: 1", default=PROBE_API_VERSION)
 
-  parser.add_argument("--bdd_framework_env", type=str, help="URL for BDD Framework, without the API endpoint. Example: \"https://<host>\"")
-  parser.add_argument("--bdd_framework_api", type=str, help="(optional) Used to set the API endpoint for BDD Framework, without the version. Default: \"BDDFramework/rest\"")
-  parser.add_argument("--bdd_framework_version", type=int, help="(optional) BDD Framework API version number. Default: 1")
+  parser.add_argument("--bdd_framework_env", type=str, help="URL for BDD Framework, without the API endpoint. Example: \"https://<host>\"", required=True)
+  parser.add_argument("--bdd_framework_api", type=str, help="(optional) Used to set the API endpoint for BDD Framework, without the version. Default: \"BDDFramework/rest\"", default=BDD_API_ENDPOINT)
+  parser.add_argument("--bdd_framework_version", type=int, help="(optional) BDD Framework API version number. Default: 1", default=BDD_API_VERSION)
 
   args = parser.parse_args()
 
   # Parse the artifact directory
-  # Assumes the default dir = Artifacts
-  artifact_dir = ARTIFACT_FOLDER
-  if args.artifacts: artifact_dir = args.artifacts
+  artifact_dir = args.artifacts
   # Parse App list
   _apps = args.app_list
-  if not _apps:
-    print("You need to set the apps you want to deploy.")
-    exit(1)
   apps = _apps.split(',')
 
   # Parse the BDD API endpoint
-  # Assumes the default endpoint = "BDDFramework/rest"
-  bdd_api_endpoint = BDD_API_ENDPOINT
-  if args.bdd_framework_api: bdd_api_endpoint = args.bdd_framework_api
+  bdd_api_endpoint = args.bdd_framework_api
   # Parse the BDD Url and split the BDD hostname from the HTTP protocol
   # Assumes the default HTTP protocol = "https"
   bdd_http_proto = BDD_HTTP_PROTO
   bdd_url = args.bdd_framework_env
-  if bdd_url:
-    if bdd_url.startswith("http://"): 
-      bdd_http_proto = "http"
-      bdd_url = bdd_url.replace("http://","")
-    else:
-      bdd_url = bdd_url.replace("https://","")
-    if bdd_url.endswith("/"): bdd_url = bdd_url[:-1]
+  if bdd_url.startswith("http://"): 
+    bdd_http_proto = "http"
+    bdd_url = bdd_url.replace("http://","")
   else:
-    print("You need to set the BDD Framework URL.")
-    exit(1)
+    bdd_url = bdd_url.replace("https://","")
+  if bdd_url.endswith("/"): bdd_url = bdd_url[:-1]
   # Parse BDD API Version
-  # Assumes the default version = 1
-  bdd_version = BDD_API_VERSION
-  if args.bdd_framework_version: bdd_version = args.bdd_framework_version
+  bdd_version = args.bdd_framework_version
 
   # Parse the CICD Probe API endpoint
-  # Assumes the default endpoint = "CI_CDProbe/rest"
-  cicd_api_endpoint = PROBE_API_ENDPOINT
-  if args.cicd_probe_api: cicd_api_endpoint = args.cicd_probe_api
+  cicd_api_endpoint = args.cicd_probe_api
   # Parse the CICD Probe Url and split the CICD Probe hostname from the HTTP protocol
   # Assumes the default HTTP protocol = "https"
   cicd_http_proto = PROBE_HTTP_PROTO
   cicd_url = args.cicd_probe_env
-  if cicd_url:
-    if cicd_url.startswith("http://"): 
-      cicd_http_proto = "http"
-      cicd_url = cicd_url.replace("http://","")
-    else:
-      cicd_url = cicd_url.replace("https://","")
-    if cicd_url.endswith("/"): cicd_url = cicd_url[:-1]
+  if cicd_url.startswith("http://"): 
+    cicd_http_proto = "http"
+    cicd_url = cicd_url.replace("http://","")
   else:
-    print("You need to set the CICD Probe URL.")
-    exit(1)
+    cicd_url = cicd_url.replace("https://","")
+  if cicd_url.endswith("/"): cicd_url = cicd_url[:-1]
   # Parse CICD Probe API Version
-  # Assumes the default version = 1
-  cicd_version = PROBE_API_VERSION
-  if args.cicd_probe_version: cicd_version = args.cicd_probe_version
-
+  cicd_version = args.cicd_probe_version
+  
   # Calls the main script
   main(artifact_dir, apps, bdd_http_proto, bdd_url, bdd_api_endpoint, bdd_version, \
     cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)

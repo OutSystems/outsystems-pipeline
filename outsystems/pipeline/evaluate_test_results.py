@@ -40,14 +40,13 @@ def run_bdd_tests(description, url):
 if __name__ == '__main__':
   # Argument menu / parsing
   parser = argparse.ArgumentParser()
-  parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"")
+  parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
   args = parser.parse_args()
   # Parse the artifact directory
   # Assumes the default dir = Artifacts
-  artifact_dir = ARTIFACT_FOLDER
-  if args.artifacts: 
-    artifact_dir = args.artifacts
-    sys.argv = sys.argv[:-2] # Workaround to clear the args to avoid messing with the unittest.main()
+  artifact_dir = args.artifacts
+  if len(sys.argv) == 3: # Workaround to clear the args to avoid messing with the unittest.main()
+    sys.argv = sys.argv[:-2] 
 
   # Load the test endpoints
   filename = os.path.join(BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)

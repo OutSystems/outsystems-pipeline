@@ -64,28 +64,26 @@ def main(artifact_dir :str, slack_hook :str, slack_channels :list, pipeline_type
 if __name__ == "__main__":
   # Argument menu / parsing
   parser = argparse.ArgumentParser()
-  parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"")
-  parser.add_argument("--slack_hook", type=str, help="Slack hook URL for API calls. Example: \"https://hooks.slack.com/services/<id>/<id>/<id>\"")
-  parser.add_argument("--slack_channel", type=str, help="Comma separeted list with slack channel names. Example: \"Channel1,Channel-2\"")
-  parser.add_argument("--pipeline", type=str, help="Sets the pipeline type. Currently supported values: \"azure\" or \"jenkins\". Default: \"jenkins\"")
-  parser.add_argument("--job_name", type=str, help="Name of the Job that will show up on the notification.")
-  parser.add_argument("--job_dashboard_url", type=str, help="URL for the run dashboard that will show up on the notification.")
+  parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
+  parser.add_argument("--slack_hook", type=str, help="Slack hook URL for API calls. Example: \"https://hooks.slack.com/services/<id>/<id>/<id>\"", required=True)
+  parser.add_argument("--slack_channel", type=str, help="Comma separeted list with slack channel names. Example: \"Channel1,Channel-2\"", required=True)
+  parser.add_argument("--pipeline", type=str, help="Sets the pipeline type. Currently supported values: \"azure\" or \"jenkins\". Default: \"jenkins\"", default="")
+  parser.add_argument("--job_name", type=str, help="Name of the Job that will show up on the notification.", required=True)
+  parser.add_argument("--job_dashboard_url", type=str, help="URL for the run dashboard that will show up on the notification.", required=True)
   args = parser.parse_args()
+  
   # Parse the artifact directory
-  # Assumes the default dir = Artifacts
-  artifact_dir = ARTIFACT_FOLDER
-  if args.artifacts: artifact_dir = args.artifacts
+  artifact_dir = args.artifacts
   # Parse Slack Hook
   slack_hook = args.slack_hook
   # Parse Slack Channel list
   slack_channels = args.slack_channel.split(',')
   # Parse Pipeline Type
-  # Assumes the default Jenkins
-  pipeline_type = ""
-  if args.pipeline: pipeline_type = args.pipeline
+  pipeline_type = args.pipeline
   # Parse Job Name
   job_name = args.job_name
   # Parse Job Dashboard URL
   job_url = args.job_dashboard_url
+
   # Calls the main script
   main(artifact_dir, slack_hook, slack_channels, pipeline_type, job_name, job_url)
