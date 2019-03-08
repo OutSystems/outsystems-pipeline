@@ -7,3 +7,5 @@ temp_file
 tests/python-tests/*.xml
 .vscode
 Artifacts
+.idea/*
+venv/*
