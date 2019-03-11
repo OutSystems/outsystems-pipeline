@@ -35,6 +35,11 @@ The Jenkinsfile being used should be under cd_pipelines > jenkins > Jenkinsfile.
 
 When you're ready, save the pipeline.
 
+
+## Azure DevOps Pipeline Setup
+
+TODO
+
 ## OutSystems Platform Setup
 
 You'll need to install the following applications on your OutSystems environment:
