@@ -1,4 +1,4 @@
-# OutSystems Regression Testing Pipeline
+# OutSystems Regression Testing Pipeline [![Build Status](https://dev.azure.com/os-pipeline/OutSystems-Pipeline/_apis/build/status/OutSystems.outsystems-pipeline?branchName=master)](https://dev.azure.com/os-pipeline/OutSystems-Pipeline/_build/latest?definitionId=1&branchName=master)
 
 Open source project to enable continuous testing using OutSystems.
 
