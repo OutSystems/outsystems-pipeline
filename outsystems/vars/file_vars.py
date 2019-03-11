@@ -1,8 +1,5 @@
-# Python Modules
-import os
-
 # Directory Vars
-ARTIFACT_FOLDER = os.environ['ArtifactsFolder']
+ARTIFACT_FOLDER = "Artifacts"
 
 # Applications vars
 APPLICATIONS_FILE = "applications.cache"

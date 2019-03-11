@@ -1,10 +1,7 @@
-# Python Modules
-import os
-
 # Base CICD Probe Variables
-BDD_HTTP_PROTO = os.environ['BDDAPIProto']
-BDD_API_ENDPOINT = os.environ['BDDAPIEndpoint']
-BDD_API_VERSION = int(os.environ['BDDAPIVersion'])
+BDD_HTTP_PROTO = "https"
+BDD_API_ENDPOINT = "BDDFramework/rest"
+BDD_API_VERSION = 1
 
 # Test Runner Endpoint Variables
 BDD_TEST_RUNNER_ENDPOINT = "BDDTestRunner"

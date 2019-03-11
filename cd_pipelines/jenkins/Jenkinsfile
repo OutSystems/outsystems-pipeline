@@ -2,40 +2,17 @@ pipeline {
   agent any
   options { skipStagesAfterUnstable() }
   environment {
-    // BDD Framework Specific Variables
-    BDDAPIProto = "https"
-    BDDAPIEndpoint = "BDDFramework/rest/v"
-    BDDAPIVersion = 1
-
-    // CICD Probe Specific Variables
-    CICDProbeProto = "https"
-    CICDProbeAPIEndpoint = "CI_CDProbe/rest/v"
-    CICDProbeAPIVersion = 1
-
-    // LifeTime Specific Variables
-    LifeTimeAPIProto = "https"
-    LifeTimeAPIEndpoint = "lifetimeapi/rest/v"
-    LifeTimeAPIVersion = "${params.LTApiVersion}" // This will depend on the infrastructure that is running
-
     // Artifacts Specific Variables
-    ArtifactsFolder = "artifacts"
-
-    // Environments Specific Variables
-    // These should be customized per infrastructure
+    ArtifactsFolder = "Artifacts"
+    // LifeTime Specific Variables
     LifeTimeEnvironmentURL = "${params.LTUrl}"
-    DevelopmentEnvironment = "${params.DevEnv}"
-    RegressionEnvironment = "${params.RegEnv}"
-    AcceptanceEnvironment = "${params.QAEnv}"
-    PreProductionEnvironment = "${params.PpEnv}"
-    ProductionEnvironment = "${params.PrdEnv}"
-
-    // Applications Specific Variables
-    // These should be customized per app(s) you want to automate on the pipeline
-    ApplicationScope = "${params.AppScope}"
-    ApplicationScopeWithTests = "${env.ApplicationScope},${params.AppWithTests}"
-    
+    LifeTimeAPIVersion = "${params.LTApiVersion}"
     // Authentication Specific Variables
     AuthorizationToken = credentials('IntranetLifeTimeServiceAccountToken')
+    // App list with the test apps
+    ApplicationsWithTests = "${params.AppScope},${params.AppWithTests}"
+    // Slack Specific Variables
+    SlackHook = credentials('slack-hook')
   }
   stages {
     stage('Install Python Dependencies and create Artifact directory') {
@@ -56,7 +33,7 @@ pipeline {
       steps {
         withPythonEnv('python') {
           echo 'Retrieving latest application tags from Development environment...'
-          powershell 'python .\\outsystems\\pipeline\\fetch_lifetime_data.py'
+          powershell "python .\\outsystems\\pipeline\\fetch_lifetime_data.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}"
         }
       }
       post {
@@ -68,18 +45,10 @@ pipeline {
       }
     }
     stage('Deploy tags to Regression Environment') {
-      environment {
-        // Environment where the latest versions of the apps currently are
-        SourceEnvironment = "${env.DevelopmentEnvironment}"
-        // Environment where you want to publish the apps
-        TargetEnvironment = "${env.RegressionEnvironment}"
-        // Apps you want to deploy
-        ApplicationsToDeploy = "${env.ApplicationScopeWithTests}"
-      }
       steps {
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Regression...'
-          powershell 'python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py'
+          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${params.DevEnv}\" --destination_env \"${params.RegEnv}\" --app_list \"${env.ApplicationsWithTests}\""
         } 
       }
       post {
@@ -96,21 +65,12 @@ pipeline {
       }
     }
     stage('Run Regression tests on the Regression Environment') {
-      environment {    
-        // Slack Specific Variables
-        SlackHook = credentials('slack-hook')
-        SlackChannel = "${params.SlackChannel}"
-        // Regression environment name
-        EnvironmentName = "${env.RegressionEnvironment}"
-        // Apps to run tests on
-        ApplicationsToDeploy = "${env.ApplicationScopeWithTests}"
-      }
       steps {
         withPythonEnv('python') {
           echo 'Generating URLs for BDD testing...'
-          powershell 'python .\\outsystems\\pipeline\\generate_unit_testing_assembly.py'
+          powershell "python .\\outsystems\\pipeline\\generate_unit_testing_assembly.py --artifacts \"${env.ArtifactsFolder}\" --app_list \"${env.ApplicationsWithTests}\" --cicd_probe_env ${params.ProbeUrl} --bdd_framework_env ${params.BddUrl}"
           echo "Testing the URLs and generating the JUnit results XML..."
-          powershell(script: 'python .\\outsystems\\pipeline\\evaluate_test_results.py', returnStatus: true)
+          powershell(script: "python .\\outsystems\\pipeline\\evaluate_test_results.py --artifacts \"${env.ArtifactsFolder}\"", returnStatus: true)
         }
       }
       post {
@@ -119,7 +79,7 @@ pipeline {
             echo "Publishing JUnit test results..."
             junit(testResults: "${env.ArtifactsFolder}\\junit-result.xml", allowEmptyResults: true)
             echo "Sending notifcations to slack..."
-            powershell 'python .\\custom_pipeline\\slack\\send_test_results_to_slack.py'
+            powershell "python .\\custom_pipeline\\slack\\send_test_results_to_slack.py --artifacts \"${env.ArtifactsFolder}\" --slack_hook ${env.SlackHook} --slack_channel \"${params.SlackChannel}\" --job_name \"${env.JOB_NAME}\" --job_dashboard_url ${env.RUN_DISPLAY_URL}"
           }
           dir ("${env.ArtifactsFolder}") {
             archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
@@ -128,14 +88,6 @@ pipeline {
       }
     }
     stage('Deploy to Quality Assurance Environment') {
-      environment {
-        // Environment where the latest versions of the apps currently are
-        SourceEnvironment = "${env.RegressionEnvironment}"
-        // Environment where you want to publish the apps
-        TargetEnvironment = "${env.AcceptanceEnvironment}"
-        // Apps you want to deploy
-        ApplicationsToDeploy = "${env.ApplicationScope}"
-      }
       steps {
         // Wrap the confirm in a timeout to avoid hanging Jenkins forever
         timeout(time:1, unit:'DAYS') {
@@ -143,7 +95,7 @@ pipeline {
         }
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Acceptance...'
-          powershell 'python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py'
+          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${params.RegEnv}\" --destination_env \"${params.QAEnv}\" --app_list \"${params.AppScope}\""
         }
       }
       post {
@@ -168,18 +120,10 @@ pipeline {
       }
     }
     stage('Deploy to Pre-Production Environment') {
-      environment {
-        // Environment where the latest versions of the apps currently are
-        SourceEnvironment = "${env.AcceptanceEnvironment}"
-        // Environment where you want to publish the apps
-        TargetEnvironment = "${env.PreProductionEnvironment}"
-        // Apps you want to deploy
-        ApplicationsToDeploy = "${env.ApplicationScope}"
-      }
       steps {
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Pre-Production...'
-          powershell 'python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py'
+          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${params.QAEnv}\" --destination_env \"${params.PpEnv}\" --app_list \"${params.AppScope}\""
         }
       }
       post {
@@ -196,19 +140,11 @@ pipeline {
       }
     }
     stage('Deploy to Production Environment') {
-      environment {
-        // Environment where the latest versions of the apps currently are
-        SourceEnvironment = "${env.PreProductionEnvironment}"
-        // Environment where you want to publish the apps
-        TargetEnvironment = "${env.ProductionEnvironment}"
-        // Apps you want to deploy
-        ApplicationsToDeploy = "${env.ApplicationScope}"
-      }
       steps {
         sleep 60 // TODO: Replace by polling script that checks whenever the sync in PRE is finished
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Production...'
-          powershell 'python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py'
+          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${params.PpEnv}\" --destination_env \"${params.PrdEnv}\" --app_list \"${params.AppScope}\""
         }
       }
       post {

@@ -1,15 +1,21 @@
 # Python Modules
-import requests
-import json
+import requests, json
 
 # Custom Modules
+# Exceptions
 from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
-from outsystems.vars.bdd_vars import BDD_HTTP_PROTO, BDD_API_ENDPOINT, BDD_API_VERSION
+# Variables
+from outsystems.vars.bdd_vars import BDD_TEST_RUNNER_ENDPOINT
 
 # Method that builds the BDD Framework endpoint based on the environment host
-def build_bdd_endpoint(env_url :str):
+def build_bdd_endpoint(bdd_http_proto :str, bdd_url :str, bdd_api_endpoint :str, bdd_api_version :int):
   # Builds the endpoint for BDD Framework and returns it
-  return "{}://{}/{}{}".format(BDD_HTTP_PROTO, env_url, BDD_API_ENDPOINT, BDD_API_VERSION) 
+  return "{}://{}/{}/v{}".format(bdd_http_proto, bdd_url, bdd_api_endpoint, bdd_api_version) 
+
+# Method that builds the BDD Framework test endpoint based on the environment host, application and test name
+def build_bdd_test_endpoint(bdd_endpoint :str, espace_name :str, webscreen_name :str):
+  # Builds the endpoint for BDD Framework and returns it
+  return "{}/{}/{}/{}".format(bdd_endpoint, BDD_TEST_RUNNER_ENDPOINT, espace_name, webscreen_name) 
 
 # Runs the test on the BDD Framework app
 def send_bdd_get_request(bdd_api :str, bdd_endpoint :str, url_params :str):

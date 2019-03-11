@@ -1,10 +1,7 @@
-# Python Modules
-import os
-
 # Base LT Variables
-LIFETIME_HTTP_PROTO = os.environ['LifeTimeAPIProto']
-LIFETIME_API_ENDPOINT = os.environ['LifeTimeAPIEndpoint']
-LIFETIME_API_VERSION = int(os.environ['LifeTimeAPIVersion'])
+LIFETIME_HTTP_PROTO = "https"
+LIFETIME_API_ENDPOINT = "lifetimeapi/rest"
+LIFETIME_API_VERSION = 2
 
 # Applications Endpoint Variables
 # Application list specific
@@ -34,6 +31,7 @@ DEPLOYMENTS_EMPTY_CODE = 204
 DEPLOYMENTS_INVALID_CODE = 400
 DEPLOYMENTS_NO_PERMISSION_CODE = 403
 DEPLOYMENTS_FAILED_CODE = 500
+DEPLOYMENT_MESSAGE = "Automated deploy via OutSystems Pipeline" 
 # Deployment creation specific
 DEPLOYMENT_PLAN_V1_API_OPS = "ApplicationVersionKeys"
 DEPLOYMENT_PLAN_V2_API_OPS = "ApplicationOperations"

@@ -1,13 +1,8 @@
 # Python Modules
-import json
-import os
-import errno
+import json, os
 
-# Custom Modules
-from outsystems.vars.file_vars import ARTIFACT_FOLDER
-
-def store_data(filename :str, data :str):
-  filename = ARTIFACT_FOLDER + '\\' + filename
+def store_data(artifact_dir :str, filename :str, data :str):
+  filename = os.path.join(artifact_dir, filename)
   # Remove the spaces in the filename
   filename = filename.replace(" ", "_")
   # Makes sure that, if a directory is in the filename, that directory exists
@@ -15,21 +10,21 @@ def store_data(filename :str, data :str):
   with open(filename, 'w') as outfile:
     json.dump(data, outfile, indent=4)
 
-def load_data(filename :str):
+def load_data(artifact_dir :str, filename :str):
   # Remove the spaces in the filename
   filename = filename.replace(" ", "_")
-  if check_file(filename):
-    filename = ARTIFACT_FOLDER + '\\' + filename
+  if check_file(artifact_dir, filename):
+    filename = os.path.join(artifact_dir, filename)
     with open(filename, 'r') as infile:
       return json.load(infile)
   raise FileNotFoundError("The file with filename {} does not exist.".format(filename))
 
-def check_file(filename :str):
-  filename = ARTIFACT_FOLDER + '\\' + filename
+def check_file(artifact_dir :str, filename :str):
+  filename = os.path.join(artifact_dir, filename)
   return os.path.isfile(filename)
 
-def clear_cache(filename :str):
-  if not check_file(filename):
+def clear_cache(artifact_dir :str, filename :str):
+  if not check_file(artifact_dir, filename):
     return
-  filename = ARTIFACT_FOLDER + '\\' + filename
+  filename = os.path.join(artifact_dir, filename)
   os.remove(filename)
