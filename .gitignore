@@ -9,3 +9,4 @@ tests/python-tests/*.xml
 Artifacts
 .idea/*
 venv/*
+junit
