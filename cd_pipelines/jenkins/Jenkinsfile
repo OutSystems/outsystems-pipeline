@@ -8,7 +8,7 @@ pipeline {
     LifeTimeEnvironmentURL = "${params.LTUrl}"
     LifeTimeAPIVersion = "${params.LTApiVersion}"
     // Authentication Specific Variables
-    AuthorizationToken = credentials('IntranetLifeTimeServiceAccountToken')
+    AuthorizationToken = "${params.LTToken}"
     // App list with the test apps
     ApplicationsWithTests = "${params.AppScope},${params.AppWithTests}"
     // Slack Specific Variables
