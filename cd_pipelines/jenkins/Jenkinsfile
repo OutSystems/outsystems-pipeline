@@ -8,7 +8,7 @@ pipeline {
     LifeTimeEnvironmentURL = "${params.LTUrl}"
     LifeTimeAPIVersion = "${params.LTApiVersion}"
     // Authentication Specific Variables
-    AuthorizationToken = "${params.LTToken}"
+    AuthorizationToken = credentials("${params.LTToken}")
     // App list with the test apps
     ApplicationsWithTests = "${params.AppScope},${params.AppWithTests}"
     // Slack Specific Variables
@@ -32,7 +32,6 @@ pipeline {
     stage('Get Latest Applications and Environments from LifeTime') {
       steps {
         withPythonEnv('python') {
-          echo "${env.AuthorizationToken}"
           echo 'Retrieving latest application tags from Development environment...'
           powershell "python .\\outsystems\\pipeline\\fetch_lifetime_data.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}"
         }
