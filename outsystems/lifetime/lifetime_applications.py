@@ -9,7 +9,7 @@ from outsystems.exceptions.no_apps_available import NoAppsAvailableError
 from outsystems.exceptions.server_error import ServerError
 from outsystems.exceptions.not_enough_permissions import NotEnoughPermissionsError
 from outsystems.exceptions.environment_not_found import EnvironmentNotFoundError
-from outsystems.exceptions.app_varsion_error import AppVersionsError
+from outsystems.exceptions.app_version_error import AppVersionsError
 # Functions
 from outsystems.file_helpers.file import store_data, load_data, clear_cache
 from outsystems.lifetime.lifetime_base import send_get_request
