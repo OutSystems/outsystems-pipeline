@@ -25,9 +25,12 @@ class TestsContainer(unittest.TestCase):
 def format_error_report(error_obj):
   if error_obj["SuiteSuccess"]:
     return ""
-  description = "\n\nBDD Test Suite failed {} scenarios (in {})\n".format(error_obj["FailedScenarios"],error_obj["SuccessfulScenarios"])
-  for failure in error_obj["FailureReports"]:
-    description += failure
+  if not error_obj["ErrorMessage"]:
+    description = "\n\nBDD Test Suite failed {} scenarios (in {})\n".format(error_obj["FailedScenarios"],error_obj["SuccessfulScenarios"])
+    for failure in error_obj["FailureReports"]:
+      description += failure
+  else:
+    description = "\n\nAn error was found in the unit test.\n\nError: {}\n".format(error_obj["ErrorMessage"])
   return description
 
 def run_bdd_tests(description, url):
