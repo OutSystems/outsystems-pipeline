@@ -25,7 +25,7 @@ jobs:
       versionSpec: '$(python.version)'
       architecture: 'x64'
 
-  - script: python -m pip install --upgrade pip && pip install -r cd_pipelines/azure_devops/requirements.txt
+  - script: python -m pip install --upgrade pip && pip install -r build_requirements.txt
     displayName: 'Install dependencies'
 
   - script: |
