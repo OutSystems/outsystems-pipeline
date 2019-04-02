@@ -4,6 +4,7 @@ if [[ $# -lt 4 ]] ; then
   echo -e '\nNot enough parameters! You need to set the necessary parameters:\n'
   echo -e '-e <python environment name> \t\t Python environment name, in order to use your pip dependencies.'
   echo -e '-a <dir name> \t\t\t\t Artifacts directory used for cache files between pipeline scripts.'
+  echo -e '\n\nusage: ./install_dependencies.sh -e <python environment name> -a <artifacts dir>'
   exit 1
 fi
 

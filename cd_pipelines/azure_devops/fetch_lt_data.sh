@@ -7,6 +7,7 @@ if [[ $# -lt 10 ]] ; then
   echo -e '-u <url> \t\t\t\t URL for the environment containing the LifeTime. You dont need to set the API endpoint.'
   echo -e '-t <token> \t\t\t\t API Token for the LifeTime service account.'
   echo -e '-v <int> \t\t\t\t LifeTime API version number.'
+  echo -e '\n\nusage: ./fetch_lt_data.sh -e <python environment name> -a <artifacts dir> -u <url> -t <token> -v <int>'
   exit 1
 fi
 
