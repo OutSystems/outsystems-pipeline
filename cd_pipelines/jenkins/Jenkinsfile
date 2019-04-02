@@ -25,7 +25,7 @@ pipeline {
         // Install the rest of the dependencies at the environment level and not the system level
         withPythonEnv('python') {
           echo "Install Python requirements"
-          powershell 'pip install -q -I -r .\\cd_pipelines\\jenkins\\requirements.txt'
+          powershell 'pip install -q -I -r .\\cd_pipelines\\requirements.txt'
         }
       }
     }

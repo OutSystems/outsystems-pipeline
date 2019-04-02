@@ -27,7 +27,7 @@ echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
 echo "Install Python requirements"
-pip3 install -q -I -r cd_pipelines/jenkins/requirements.txt
+pip3 install -q -I -r cd_pipelines/requirements.txt
 
 echo "Leave the Virtual Environment for now"
 deactivate
