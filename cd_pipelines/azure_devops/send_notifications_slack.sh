@@ -9,7 +9,7 @@ if [[ $# -lt 14 ]] ; then
   echo -e '-p <type> \t\t\t\t Pipeline type. Current Types: azure, jenkins.'
   echo -e '-j <job name> \t\t\t\t Job name you want to show on the notification. Example: Main app name.'
   echo -e '-d <url> \t\t\t\t URL for the dashboard.'
-  echo -e '\n\nusage: ./build_test_endpoints.sh -e <python environment name> -a <artifacts dir> -s <slack hook> -c <slack channel list> -p <pipeline type> -j <job name> -d <dashboard url>'
+  echo -e '\n\nusage: ./send_notifications_slack.sh -e <python environment name> -a <artifacts dir> -s <slack hook> -c <slack channel list> -p <pipeline type> -j <job name> -d <dashboard url>'
   exit 1
 fi
 
