@@ -27,8 +27,6 @@ do
   esac
 done
 
-echo "Slack Hook: $slack_hook"
-
 echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
