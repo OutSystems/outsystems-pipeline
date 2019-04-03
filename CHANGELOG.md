@@ -7,6 +7,21 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## April 3rd, 2019
+
+### Azure DevOps support (beta)
+
+In order to be as flexible and agnostic as possible, we decided to start building some quick start scripts for other CD engines besides Jenkins. The first one to be integrated is Azure DevOps. In this release we added some supporting scripts that you can add to your Azure DevOps pipeline. At this point in time, Azure DevOps still doesn't support pipeline as code but, when it does, we will also provide a sample.
+
+### No more Environment Variables
+
+All the scripts were refactored to be able to be used through parameters. This will help when we move to the Python module, allowing you to call the module functions directly by passing the necessary parameters. It should allow for easier use since you no longer have to "figure out" the environment variables. You can also integrate in your existing scripts quite easily.
+
+#### Bug fixes
+
+* Fixed bug where the test message would not have information when the test failed due to a bug in the unit test itself. It should now display those errors.
+* Fix for WinError 5 when trying to install pip packages on Windows.
+
 ## March 11th, 2019
 
 ### Paramater refactoring
