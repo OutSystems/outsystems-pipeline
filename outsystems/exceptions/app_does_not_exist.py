@@ -1,2 +1,2 @@
 class AppDoesNotExistError(Exception):
-  pass
+    pass

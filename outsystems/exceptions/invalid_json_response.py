@@ -1,2 +1,2 @@
 class InvalidJsonResponseError(Exception):
-  pass
+    pass

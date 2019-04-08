@@ -1,2 +1,2 @@
 class InvalidParametersError(Exception):
-  pass
+    pass

@@ -1,2 +1,2 @@
 class NotEnoughPermissionsError(Exception):
-  pass
+    pass

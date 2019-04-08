@@ -1,2 +1,2 @@
 class AppVersionsError(Exception):
-  pass
+    pass

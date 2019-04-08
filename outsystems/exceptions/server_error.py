@@ -1,2 +1,2 @@
 class ServerError(Exception):
-  pass
+    pass
