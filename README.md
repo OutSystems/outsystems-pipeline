@@ -18,7 +18,7 @@ Select **This project is parameterized**. Since the Jenkinsfile, that supports t
 * **AppScope**: Name of the App(s) without the tests, to deploy. If you add more than one, use a comma to separate them. *Example:* App1,App2 With Spaces,App3_With_Underscores. Select the type **String**
 * **AppWithTests**: Name of the App(s) with the tests, to deploy. If you add more than one, use a comma to separate them. *Example:* App1,App2 With Spaces,App3_With_Underscores. Select the type **String**
 * **LTApiVersion**: LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Select the type **String**
-* **LTUrl**: URL for LifeTime, without the API endpoint and the trailing slash and the HTTPS protocol (https://). Select the type **String**
+* **LTUrl**: URL for LifeTime, without the API endpoint and the trailing slash and the HTTPS protocol (`https://`). Select the type **String**
 * **LTToken**: Token that you'll use to interact with LifeTime's API. It should be created, on LifeTime, as a Service Account and given enough priviledges to deploy the code until production. Select type **Secret Text**
 * **DevEnv**: Name of the development environment, as shown in LifeTime. Select the type **String**
 * **RegEnv**: Name of the regression environment, as shown in LifeTime. Select the type **String**
@@ -26,14 +26,14 @@ Select **This project is parameterized**. Since the Jenkinsfile, that supports t
 * **PpEnv**: Name of the pre-production environment, as shown in LifeTime. Select the type **String**
 * **PrdEnv**: Name of the production environment, as shown in LifeTime. Select the type **String**
 * **SlackChannel**: (Optional if you use the slack plugin) Name of the Slack Channel(s) you wish to send notifications. For multiple channels, use a comma-separated list. *Example:* Channel1,Channel-2. Select the type **String**
-* **ProbeUrl**: URL of the environment, without the API part, of the CICD Probe (e.g. https://<regression_hostname>). Select the type **String**
-* **BddUrl**: URL of the environment, without the API part, of the BDD Framework (e.g. https://<regression_hostname>). Select the type **String**
+* **ProbeUrl**: URL of the environment, without the API part, of the CICD Probe (e.g. `https://<regression_hostname>`). Select the type **String**
+* **BddUrl**: URL of the environment, without the API part, of the BDD Framework (e.g. `https://<regression_hostname>`). Select the type **String**
 
 Then select **Trigger builds remotely (e.g., from scripts)**. This will allow you to queue a job remotely, through the Trigger plugin on LifeTime. A box will appear for you to insert the token. Remember that token since you will have to use it on the LifeTime Trigger plugin.
 
 Finally, you'll have to set which pipeline file to load (the Jenkinsfile). Since the Jenkinsfile is part of the source code, you just need to point to the same GitHub repo. Select **Pipeline script from SCM**, then **Git** as your SCM. In the Repository URL, set the **project url**. The URL must have the git protocol forced (using git@), followed by the link to the .git without the protocol (https or ssh). Example: git@github.com:OutSystems/outsystems-pipeline.git
 
-The credentials must be inserted on Jenkins beforehand (or you have to click on the Add button). You must generate a Keypair for the GIT repo in question. For GitHub, go here: <https://github.com/OutSystems/outsystems-pipeline/settings/> keys (or https://github.com/\<ORG\>/\<ProjectName\>/settings/keys )
+The credentials must be inserted on Jenkins beforehand (or you have to click on the Add button). You must generate a Keypair for the GIT repo in question. For GitHub, go to `https://github.com/\<ORG\>/\<ProjectName\>/settings/keys`.
 
 If you're using this repo as a source for the pipeline code, the sample Jenkinsfile should be under cd_pipelines > jenkins > Jenkinsfile. If you're using the Python Package, you can point it to your own Jenkinsfile. Use the Jenkinsfile on this repository as a point of reference.
 
@@ -42,8 +42,7 @@ When you're ready, save the pipeline.
 ## Azure DevOps Pipeline Setup
 
 **Beta - Subject to change**
-
-To create a pipeline on Azure DevOps, you can use the scripts defined under **cd_pipelines > azure_devops**. You can use either Linux or Windows as your agents. If you use Linux, use the *.sh scripts, if you use Windows use the *.ps1 scripts. 
+To create a pipeline on Azure DevOps, you can use the scripts defined under **cd_pipelines > azure_devops**. You can use either Linux or Windows as your agents. If you use Linux, use the *.sh scripts, if you use Windows use the *.ps1 scripts.
 
 In order to run it on Azure DevOps you'll create either **Bash** tasks (for Linux) or **PowerShell** tasks (for Windows).
 
@@ -56,8 +55,8 @@ The following variables are to be set for the Release Scope:
 * **AppScope**: Name of the App(s) without the tests, to deploy. If you add more than one, use a comma to separate them. *Example:* App1,App2 With Spaces,App3_With_Underscores.
 * **AppWithTests**: Name of the App(s) without the tests, to deploy. If you add more than one, use a comma to separate them. *Example:* App1,App2 With Spaces,App3_With_Underscores.
 * **ArtifactsFolder**: Name of the Artifacts folder, where the pipeline will store the cache files between Jobs.
-* **BDDFrameworkURL**: URL of the environment, without the API part, of the BDD Framework (e.g. https://<regression_hostname>).
-* **CICDProbeURL**: URL of the environment, without the API part, of the CICD Probe (e.g. https://<regression_hostname>).
+* **BDDFrameworkURL**: URL of the environment, without the API part, of the BDD Framework (e.g. `https://<regression_hostname>`).
+* **CICDProbeURL**: URL of the environment, without the API part, of the CICD Probe (e.g. `https://<regression_hostname>`).
 * **DashBoardUrl**: (Optional if you use the slack plugin) URL for the dashboard link you'll receive in the slack notification.
 * **DeployMsg**: Message that will be written on the deployment plan in LifeTime.
 * **DevEnv**: Name of the development environment, as shown in LifeTime.
@@ -68,7 +67,7 @@ The following variables are to be set for the Release Scope:
 * **JobName**: (Optional if you use the slack plugin) Name of the Pipeline you're deploying.
 * **LTAPIVersion**: LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2.
 * **LTToken**: Token that you'll use to interact with LifeTime's API. It should be created, on LifeTime, as a Service Account and given enough priviledges to deploy the code until production. **Important**: Set this as a secret type, to avoid having it shown on the logs.
-* **LTURL**: URL for LifeTime, without the API endpoint and the trailing slash and the HTTPS protocol (https://).
+* **LTURL**: URL for LifeTime, without the API endpoint and the trailing slash and the HTTPS protocol (`https://`).
 * **PipelineType**: (Optional if you use the slack plugin) Since this Azure DevOps, set it as *azure*.
 * **PythonEnvName**: Name of the Python Environment where the pipeline dependencies will be installed. Example: OSPipeline
 * **SlackChannels**: (Optional if you use the slack plugin) Name of the Slack Channel(s) you wish to send notifications. For multiple channels, use a comma-separated list. *Example:* Channel1,Channel-2.
