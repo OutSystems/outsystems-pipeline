@@ -195,6 +195,7 @@ Since Azure DevOps' Python tasks don't support Python Environments, we need to w
     * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
 
 **Important**
+
 You should clone the folder *cd_pipelines* > *azure_devops* to your local repository. You can clone it to GitHub or Azure DevOps repository. If you're using GitHub, you'll need to create a connection to GitHub on Azure DevOps.
 The Release pipeline artifact will be the direct connection to the repository. Since you don't need to compile code, you don't need a Build Pipeline. 
 If you use more than one artifact make sure that the artifact with the pipeline scripts is the **primary** artifact!
