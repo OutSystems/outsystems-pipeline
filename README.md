@@ -73,6 +73,127 @@ The following variables are to be set for the Release Scope:
 * **SlackChannels**: (Optional if you use the slack plugin) Name of the Slack Channel(s) you wish to send notifications. For multiple channels, use a comma-separated list. *Example:* Channel1,Channel-2.
 * **SlackHook**: (Optional if you use the slack plugin) Slack hook to make API calls. **Important**: Set this as a secret type, to avoid having it shown on the logs.
 
+The division between Environments is up to you (at this moment) but we suggest a division similar to the Jenkins one:
+
+* Install Python Dependencies and create Artifact directory
+* Get Latest Applications and Environments from LifeTime
+* Deploy tags to Regression Environment
+* Run Regression tests on the Regression Environment
+* Deploy tags to Quality Assurance Environment
+* Deploy tags to PP Environment
+* Deploy tags to PRD Environment
+
+Since Azure DevOps' Python tasks don't support Python Environments, we need to wrap our Python calls in scripts. The following Jobs will need to be setup on the pipeline:
+
+* Install Python Dependencies and create Artifact directory
+  * One Job with either one Linux agent pool or Windows Agent pool
+  * One task (either **Bash** for Linux agents or **PowerShell** for Windows agents)
+  * Linux:
+    * Script path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/install_dependencies.sh`
+    * Arguments: `-e "$(PythonEnvName)" -a "$(ArtifactsFolder)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * Windows:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/install_dependencies.ps1`
+    * Arguments: `-PythonEnv "$(PythonEnvName)" -ArtifactDir "$(ArtifactsFolder)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+* Get Latest Applications and Environments from LifeTime
+  * One Job with either one Linux agent pool or Windows Agent pool
+  * One task (either **Bash** for Linux agents or **PowerShell** for Windows agents)
+  * Linux:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/fetch_lt_data.sh`
+    * Arguments: `-e "$(PythonEnvName)" -a "$(ArtifactsFolder)" -u $(LTURL) -t $(LTToken) -v $(LTAPIVersion)`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * Windows:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/fetch_lt_data.ps1`
+    * Arguments: `-PythonEnv "$(PythonEnvName)" -ArtifactDir "$(ArtifactsFolder)" -LifeTimeUrl $(LTURL) -LifeTimeToken $(LTToken) -LifeTimeApi $(LTAPIVersion)`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+* Deploy tags to Regression Environment
+  * One Job with either one Linux agent pool or Windows Agent pool
+  * One task (either **Bash** for Linux agents or **PowerShell** for Windows agents)
+  * Linux:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/deploy_apps_to_env.sh`
+    * Arguments: `-e "$(PythonEnvName)" -a "$(ArtifactsFolder)" -u $(LTURL) -t $(LTToken) -v $(LTAPIVersion) -s "$(DevEnv)" -d "$(RegEnv)" -l "$(AppScope),$(AppWithTests)" -m "$(DeployMsg)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * Windows:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/deploy_apps_to_env.ps1`
+    * Arguments: `-PythonEnv "$(PythonEnvName)" -ArtifactDir "$(ArtifactsFolder)" -LifeTimeUrl $(LTURL) -LifeTimeToken $(LTToken) -LifeTimeApi $(LTAPIVersion) -SourceEnv "$(DevEnv)" -DestEnv "$(RegEnv)" -AppList "$(AppScope),$(AppWithTests)" -DeployMsg "$(DeployMsg)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+* Run Regression tests on the Regression Environment
+  * One Job with either one Linux agent pool or Windows Agent pool
+  * One task (either **Bash** for Linux agents or **PowerShell** for Windows agents)
+  * Linux:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/build_test_endpoints.sh`
+    * Arguments: `-e "$(PythonEnvName)" -a "$(ArtifactsFolder)" -l "$(AppWithTests)" -c $(CICDProbeURL) -b $(BDDFrameworkURL)`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * Windows:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/build_test_endpoints.ps1`
+    * Arguments: `-PythonEnv "$(PythonEnvName)" -ArtifactDir "$(ArtifactsFolder)" -AppList "$(AppWithTests)" -BddUrl $(BDDFrameworkURL) -CicdUrl $(CICDProbeURL)`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * One task (either **Bash** for Linux agents or **PowerShell** for Windows agents)
+  * Linux:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/running_test_endpoints.sh`
+    * Arguments: `-e "$(PythonEnvName)" -a "$(ArtifactsFolder)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * Windows:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/running_test_endpoints.ps1`
+    * Arguments: `-PythonEnv "$(PythonEnvName)" -ArtifactDir "$(ArtifactsFolder)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * One task: **Publish Test Results**
+    * Test result format: `JUnit`
+    * Test results files: `**/junit-result.xml`
+    * Search Folder: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/$(ArtifactsFolder)`
+    * Fail if there are test failures: `true`
+  * (Optional if you use the slack plugin) One task (either **Bash** for Linux agents or **PowerShell** for Windows agents)
+  * Linux:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/send_notifications_slack.sh`
+    * Arguments: `-e "$(PythonEnvName)" -a "$(ArtifactsFolder)" -s $(SlackHook) -c "$(SlackChannels)" -p "$(PipelineType)" -j "$(JobName)" -d $(DashBoardUrl)`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * Windows:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/send_notifications_slack.ps1`
+    * Arguments: `-PythonEnv "$(PythonEnvName)" -ArtifactDir "$(ArtifactsFolder)" -SlackHook $(SlackHook) -SlackChannels "$(SlackChannels)" -PipelineType "$(PipelineType)" -JobName "$(JobName)" -DashboardUrl $(DashBoardUrl)`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+* Deploy tags to Quality Assurance Environment
+  * One Agentless Job
+  * One task: **Manual Intervention**
+    * Instructions: `Do you approve deployment to QA?`
+    * Notify Users: `<user list>`
+  * One Job with either one Linux agent pool or Windows Agent pool
+  * One task (either **Bash** for Linux agents or **PowerShell** for Windows agents)
+  * Linux:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/deploy_apps_to_env.sh`
+    * Arguments: `-e "$(PythonEnvName)" -a "$(ArtifactsFolder)" -u $(LTURL) -t $(LTToken) -v $(LTAPIVersion) -s "$(RegEnv)" -d "$(QAEnv)" -l "$(AppScope),$(AppWithTests)" -m "$(DeployMsg)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * Windows:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/deploy_apps_to_env.ps1`
+    * Arguments: `-PythonEnv "$(PythonEnvName)" -ArtifactDir "$(ArtifactsFolder)" -LifeTimeUrl $(LTURL) -LifeTimeToken $(LTToken) -LifeTimeApi $(LTAPIVersion) -SourceEnv "$(RegEnv)" -DestEnv "$(QAEnv)" -AppList "$(AppScope),$(AppWithTests)" -DeployMsg "$(DeployMsg)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+* Deploy tags to PP Environment
+  * One Agentless Job
+  * One task: **Manual Intervention**
+    * Instructions: `Do you approve deployment to PP and Production?`
+    * Notify Users: `<user list>`
+  * One Job with either one Linux agent pool or Windows Agent pool
+  * One task (either **Bash** for Linux agents or **PowerShell** for Windows agents)
+  * Linux:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/deploy_apps_to_env.sh`
+    * Arguments: `-e "$(PythonEnvName)" -a "$(ArtifactsFolder)" -u $(LTURL) -t $(LTToken) -v $(LTAPIVersion) -s "$(QAEnv)" -d "$(PPEnv)" -l "$(AppScope),$(AppWithTests)" -m "$(DeployMsg)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * Windows:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/deploy_apps_to_env.ps1`
+    * Arguments: `-PythonEnv "$(PythonEnvName)" -ArtifactDir "$(ArtifactsFolder)" -LifeTimeUrl $(LTURL) -LifeTimeToken $(LTToken) -LifeTimeApi $(LTAPIVersion) -SourceEnv "$(QAEnv)" -DestEnv "$(PPEnv)" -AppList "$(AppScope),$(AppWithTests)" -DeployMsg "$(DeployMsg)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+* Deploy tags to PRD Environment
+  * One Job with either one Linux agent pool or Windows Agent pool
+  * One task (either **Bash** for Linux agents or **PowerShell** for Windows agents)
+  * Linux:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/deploy_apps_to_env.sh`
+    * Arguments: `-e "$(PythonEnvName)" -a "$(ArtifactsFolder)" -u $(LTURL) -t $(LTToken) -v $(LTAPIVersion) -s "$(PPEnv)" -d "$(PRDEnv)" -l "$(AppScope),$(AppWithTests)" -m "$(DeployMsg)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+  * Windows:
+    * Script Path: `$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)/cd_pipelines/azure_devops/deploy_apps_to_env.ps1`
+    * Arguments: `-PythonEnv "$(PythonEnvName)" -ArtifactDir "$(ArtifactsFolder)" -LifeTimeUrl $(LTURL) -LifeTimeToken $(LTToken) -LifeTimeApi $(LTAPIVersion) -SourceEnv "$(PPEnv)" -DestEnv "$(PRDEnv)" -AppList "$(AppScope),$(AppWithTests)" -DeployMsg "$(DeployMsg)"`
+    * Working Directory: `$(Release.PrimaryArtifactSourceAlias)`
+
 ## OutSystems Platform Setup
 
 You'll need to install the following applications on your OutSystems environment:
