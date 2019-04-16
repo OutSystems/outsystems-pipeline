@@ -58,8 +58,10 @@ def main(artifact_dir: str, apps: list, bdd_http_proto: str, bdd_url: str, bdd_a
 
     # Get the tests to run (just for presentation)
     for bdd in bdd_test:  # For each BDD test
-        for webflow in bdd["WebFlows"]:  # For each webflow
-            test_list += webflow["WebScreens"]
+        if "WebFlows" in bdd: # Sanity check to see if there are actual webflows in tests
+            for webflow in bdd["WebFlows"]:  # For each webflow
+                if "WebScreens" in webflow: # Sanity check to see if there are actual webscreens in tests
+                    test_list += webflow["WebScreens"]
     print("{} BDD endpoint(s) scanned successfully.".format(len(test_list)))
 
     # Get the names of the tests to run (just for presentation)
@@ -69,12 +71,14 @@ def main(artifact_dir: str, apps: list, bdd_http_proto: str, bdd_url: str, bdd_a
 
     # For each test, generate the URL to query the BDD framework, to be used in the test class
     for bdd in bdd_test:  # For each BDD test
-        for webflow in bdd["WebFlows"]:  # For each webflow
-            for webscreen in webflow["WebScreens"]:  # for each webscreen
-                test_endpoint = build_bdd_test_endpoint(
-                    bdd_endpoint, bdd["EspaceName"], webscreen["Name"])
-                test_urls.append(
-                    {"TestSuite": bdd["EspaceName"], "Name": webscreen["Name"], "URL": test_endpoint})
+        if "WebFlows" in bdd: # Sanity check to see if there are actual webflows in tests
+            for webflow in bdd["WebFlows"]:  # For each webflow
+                if "WebScreens" in webflow: # Sanity check to see if there are actual webscreens in tests
+                    for webscreen in webflow["WebScreens"]:  # for each webscreen
+                        test_endpoint = build_bdd_test_endpoint(
+                            bdd_endpoint, bdd["EspaceName"], webscreen["Name"])
+                        test_urls.append(
+                            {"TestSuite": bdd["EspaceName"], "Name": webscreen["Name"], "URL": test_endpoint})
 
     # Save the test results in a file for later processing
     filename = os.path.join(BDD_FRAMEWORK_FOLDER,
