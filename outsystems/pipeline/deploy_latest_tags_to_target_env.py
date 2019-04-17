@@ -23,6 +23,7 @@ from outsystems.lifetime.lifetime_deployments import get_deployments, get_deploy
 from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.exceptions.no_deployments import NoDeploymentsError
+from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 
 # Exceptions
 # Functions
@@ -72,15 +73,20 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Check if target environment already has the application versions to be deployed
     for app in app_data_list:
         # get the status of the app in the target env, to check if they were deployed
-        app_status = get_environment_app_version(
-            artifact_dir, lt_endpoint, lt_token, True, env_name=dest_env, app_key=app["Key"])
-        # Check if the app version is already deployed in the target environment
-        if app_status["AppStatusInEnvs"][0]["BaseApplicationVersionKey"] != app["VersionKey"]:
-            # If it's not, save the key of the tagged app, to deploy later
+        try:
+            app_status = get_environment_app_version(
+                artifact_dir, lt_endpoint, lt_token, True, env_name=dest_env, app_key=app["Key"])
+            # Check if the app version is already deployed in the target environment
+            if app_status["AppStatusInEnvs"][0]["BaseApplicationVersionKey"] != app["VersionKey"]:
+                # If it's not, save the key of the tagged app, to deploy later
+                to_deploy_app_keys.append(app["VersionKey"])
+            else:
+                print("Skipping app {} with version {}, since it's already deployed in {} environment.".format(
+                    app["Name"], app["Version"], dest_env))
+        except AppDoesNotExistError:
+            print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env))
             to_deploy_app_keys.append(app["VersionKey"])
-        else:
-            print("Skipping app {} with version {}, since it's already deployed in {} environment.".format(
-                app["Name"], app["Version"], dest_env))
+
 
     # Check if there are apps to be deployed
     if len(to_deploy_app_keys) == 0:
