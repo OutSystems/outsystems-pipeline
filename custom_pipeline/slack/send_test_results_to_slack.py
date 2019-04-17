@@ -11,17 +11,12 @@ else:  # Else just add the project dir
 
 # Custom Modules
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE
-
-############################################################## VARS ##############################################################
-notification_type = {
-    "azure": ("Azure DevOps", ":microsoft:"), "jenkins": ("Jenkins", ":jenkins:")}
+from custom_pipeline.slack.send_slack_message import send_slack_message
 
 ############################################################## SCRIPT ##############################################################
 def main(artifact_dir: str, slack_hook: str, slack_channels: list, pipeline_type: str, job_name: str, job_url: str):
     filename = os.path.join(artifact_dir, JUNIT_TEST_RESULTS_FILE)
     _, tr = xunitparser.parse(open(filename))
-
-    global notification_type
 
     message = "*{}* BDD tests run.\n*{}* errors found.".format(
         tr.testsRun, len(tr.failures))
@@ -36,33 +31,8 @@ def main(artifact_dir: str, slack_hook: str, slack_channels: list, pipeline_type
             test_name = test_name.split('test_')[1]
             message += "*{}*\n".format(test_name)
 
-    if pipeline_type not in notification_type:
-        username = "Regression Testing"
-        icon = ":outsystems:"
-    else:
-        username = "{} Regression Testing".format(
-            notification_type[pipeline_type][0])
-        icon = notification_type[pipeline_type][1]
-    for channel in slack_channels:
-        # Build slack post
-        postData = {
-            "channel": channel,
-            "username": username,
-            "text": "*Test Results for {}:*".format(job_name),
-            "icon_emoji": icon,
-            "attachments": [{
-                "color": "#49C39E" if len(tr.failures) == 0 else "#D40E0D",
-                "text": message,
-                "mrkdwn_in": ["text"]
-            }]
-        }
-        response = requests.post(slack_hook, json.dumps(postData), None)
-        if response.status_code == 200:
-            print("Message sent to slack channel {} successfully...".format(channel))
-        else:
-            print("Error sending notification to slack channel {}: {}".format(
-                channel, response.text))
-
+    job_status = (len(tr.failures) > 0)
+    send_slack_message(slack_hook, slack_channels, pipeline_type, "*Test Results for {}:*".format(job_name), job_status, message )
 # End of main()
 
 if __name__ == "__main__":
@@ -96,5 +66,4 @@ if __name__ == "__main__":
     job_url = args.job_dashboard_url
 
     # Calls the main script
-    main(artifact_dir, slack_hook, slack_channels,
-         pipeline_type, job_name, job_url)
+    main(artifact_dir, slack_hook, slack_channels, pipeline_type, job_name, job_url)
