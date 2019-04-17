@@ -31,7 +31,7 @@ def main(artifact_dir: str, slack_hook: str, slack_channels: list, pipeline_type
             test_name = test_name.split('test_')[1]
             message += "*{}*\n".format(test_name)
 
-    job_status = (len(tr.failures) > 0)
+    job_status = (len(tr.failures) <= 0)
     send_slack_message(slack_hook, slack_channels, pipeline_type, "*Test Results for {}:*".format(job_name), job_status, message )
 # End of main()
 
