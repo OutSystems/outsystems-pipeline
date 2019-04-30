@@ -7,6 +7,17 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## April 30th, 2019
+
+### Slack integration
+
+Modularized the slack integration, to allow multiple message types. Before it was only using it for Test Results.
+
+#### Bug Fixes
+
+* Fixed a bug where BDD tests would not have test cases and would fail when generating the test unit cases
+* Fixed a bug where the Slack Notification for test errors would only display the last espace that run and not the actual espace the test belonged.
+
 ## April 3rd, 2019
 
 ### Azure DevOps support (beta)
