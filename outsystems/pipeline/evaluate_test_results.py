@@ -20,7 +20,7 @@ from outsystems.file_helpers.file import load_data
 ########################################################### TEST CLASS ###########################################################
 # Generator class that will create a unit test for each entry of the test results and print out a XML in tests/python-tests/*.xml
 class BDDTestRunner(unittest.TestCase):
-    longMessage = True
+    longMessage = False
 
     TEST_URL = ""
     TEST_MODULE = ""
@@ -32,24 +32,19 @@ class BDDTestRunner(unittest.TestCase):
         self.TEST_MODULE = module
     
     def format_error_report(self, error_obj):
-        if error_obj["SuiteSuccess"]:
-            return ""
+        description = "Test Name:{};Test Module:{}".format(self.TEST_NAME, self.TEST_MODULE)
+
         if not error_obj["ErrorMessage"]:
-            description = "\n\nTest Name: {}\nTest Module: {}\n".format(self.TEST_NAME, self.TEST_MODULE)
-            description += "BDD Test Suite failed {} scenarios (in {})\n".format(
-                error_obj["FailedScenarios"], error_obj["SuccessfulScenarios"])
+            description += "\nBDD Test Suite failed {} scenarios (in {})\n".format(error_obj["FailedScenarios"], error_obj["SuccessfulScenarios"])
             for failure in error_obj["FailureReports"]:
                 description += failure
         else:
-            description = "\n\nTest Name: {}\nTest Module: {}\n".format(self.TEST_NAME, self.TEST_MODULE)
-            description += "\n\nAn error was found in the unit test.\n\nError: {}\n".format(
-                error_obj["ErrorMessage"])
+            description += "\nAn error was found in the unit test.\nError: {}".format(error_obj["ErrorMessage"])
         return description
 
     def test_bdd_output(self):
         json_obj = run_bdd_test(self.TEST_URL)
         self.assertTrue(json_obj["SuiteSuccess"], self.format_error_report(json_obj))
-
 
 ############################################################## SCRIPT ##############################################################
 if __name__ == '__main__':

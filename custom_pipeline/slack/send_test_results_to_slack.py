@@ -29,10 +29,10 @@ def main(artifact_dir: str, slack_hook: str, slack_channels: list, pipeline_type
             failure_msg = failure[1]
             
             # Get the test name
-            test_name = failure_msg.split("Test Name: ")[1]
-            test_name = test_name.split(" ")[0]
+            test_name = failure_msg.split("Test Name:")[1]
+            test_name = test_name.split(";")[0]
             # Get the test module
-            test_module = failure_msg.split("Test Module: ")[1]
+            test_module = failure_msg.split("Test Module:")[1]
             test_module = test_module.split(" ")[0]
             
             message += "*{} ({})*\n".format(test_name, test_module)
