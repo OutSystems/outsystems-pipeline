@@ -19,38 +19,43 @@ from outsystems.file_helpers.file import load_data
 
 ########################################################### TEST CLASS ###########################################################
 # Generator class that will create a unit test for each entry of the test results and print out a XML in tests/python-tests/*.xml
-class TestsContainer(unittest.TestCase):
+class BDDTestRunner(unittest.TestCase):
     longMessage = True
 
+    TEST_URL = ""
+    TEST_MODULE = ""
+    TEST_NAME = ""
 
-def format_error_report(error_obj):
-    if error_obj["SuiteSuccess"]:
-        return ""
-    if not error_obj["ErrorMessage"]:
-        description = "\n\nBDD Test Suite failed {} scenarios (in {})\n".format(
-            error_obj["FailedScenarios"], error_obj["SuccessfulScenarios"])
-        for failure in error_obj["FailureReports"]:
-            description += failure
-    else:
-        description = "\n\nAn error was found in the unit test.\n\nError: {}\n".format(
-            error_obj["ErrorMessage"])
-    return description
+    def set_test_info(self, url :str, name :str, module :str):
+        self.TEST_URL = url
+        self.TEST_NAME = name
+        self.TEST_MODULE = module
+    
+    def format_error_report(self, error_obj):
+        if error_obj["SuiteSuccess"]:
+            return ""
+        if not error_obj["ErrorMessage"]:
+            description = "\n\nTest Name: {}\nTest Module: {}\n".format(self.TEST_NAME, self.TEST_MODULE)
+            description += "BDD Test Suite failed {} scenarios (in {})\n".format(
+                error_obj["FailedScenarios"], error_obj["SuccessfulScenarios"])
+            for failure in error_obj["FailureReports"]:
+                description += failure
+        else:
+            description = "\n\nTest Name: {}\nTest Module: {}\n".format(self.TEST_NAME, self.TEST_MODULE)
+            description += "\n\nAn error was found in the unit test.\n\nError: {}\n".format(
+                error_obj["ErrorMessage"])
+        return description
 
-
-def run_bdd_tests(description, url):
-    def test(self):
-        json_obj = run_bdd_test(url)
-        self.assertTrue(json_obj["SuiteSuccess"],
-                        format_error_report(json_obj))
-    return test
+    def test_bdd_output(self):
+        json_obj = run_bdd_test(self.TEST_URL)
+        self.assertTrue(json_obj["SuiteSuccess"], self.format_error_report(json_obj))
 
 
 ############################################################## SCRIPT ##############################################################
 if __name__ == '__main__':
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--artifacts", type=str,
-                        help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
+    parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
     args = parser.parse_args()
     # Parse the artifact directory
     # Assumes the default dir = Artifacts
@@ -59,18 +64,17 @@ if __name__ == '__main__':
         sys.argv = sys.argv[:-2]
 
     # Load the test endpoints
-    filename = os.path.join(BDD_FRAMEWORK_FOLDER,
-                            BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)
+    filename = os.path.join(BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)
     test_urls = load_data(artifact_dir, filename)
-
+    # Creates a test suite with all the tests. 
+    # It also provides each test with information (name, module) to be used in the notifications
+    suite = unittest.TestSuite()
     for test in test_urls:
-        # Changes the qualified name to <var>
-        TestsContainer.__qualname__ = test["TestSuite"]
-        # Changes the class name to <var>-timestamp
-        TestsContainer.__name__ = test["TestSuite"]
-        setattr(TestsContainer, 'test_{0}'.format(
-            test["Name"]), run_bdd_tests(test["Name"], test["URL"]))
+        test_case = BDDTestRunner(methodName='test_bdd_output')
+        test_case.set_test_info(test["URL"], test["Name"], test["TestSuite"])
+        suite.addTest(test_case)
+
+    # Runs the test suite and stores the value in a XMN file to be used by JUNIT
     filename = os.path.join(ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE)
     with open(filename, 'wb') as output:
-        unittest.main(testRunner=xmlrunner.XMLTestRunner(
-            output=output), failfast=False, buffer=False, catchbreak=False)
+        xmlrunner.XMLTestRunner(output=output, failfast=False, buffer=False).run(suite)
