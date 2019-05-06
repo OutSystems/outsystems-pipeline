@@ -7,6 +7,16 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## May 6th, 2019
+
+### Package naming changes
+
+In order to prepare for the 1.0 release, there was some name changes that will break the scripts. The cd_pipelines directory was changed to examples and the custom_pipeline package was changed to outysystems_integration.
+
+#### Breaking changes
+
+With the change of packages, it might have broken some integrations. If you were using code directly from the repo, please be aware that the slack integration and the pip install inside the virtual environment might fail.
+
 ## April 30th, 2019
 
 ### Slack integration
