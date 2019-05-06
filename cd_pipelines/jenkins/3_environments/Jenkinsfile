@@ -11,8 +11,17 @@ pipeline {
     AuthorizationToken = credentials("${params.LTToken}")
     // App list with the test apps
     ApplicationsWithTests = "${params.AppScope},${params.AppWithTests}"
-    // Slack Specific Variables
-    SlackHook = credentials('slack-hook')
+
+    /*
+    * Pipeline for 3 Environments:
+    * DEV -> Where you develop you applications
+    * REG -> Where you test your applications
+    * PRD -> Where your apps will go live
+    */
+
+    DevEnv = "${params.DevEnv}"
+    RegEnv = "${params.RegEnv}"
+    PrdEnv = "${params.PrdEnv}"
   }
   stages {
     stage('Install Python Dependencies and create Artifact directory') {
@@ -48,7 +57,7 @@ pipeline {
       steps {
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Regression...'
-          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${params.DevEnv}\" --destination_env \"${params.RegEnv}\" --app_list \"${env.ApplicationsWithTests}\""
+          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevEnv}\" --destination_env \"${env.RegEnv}\" --app_list \"${env.ApplicationsWithTests}\""
         } 
       }
       post {
@@ -78,8 +87,6 @@ pipeline {
           withPythonEnv('python') {
             echo "Publishing JUnit test results..."
             junit(testResults: "${env.ArtifactsFolder}\\junit-result.xml", allowEmptyResults: true)
-            echo "Sending notifcations to slack..."
-            powershell "python .\\custom_pipeline\\slack\\send_test_results_to_slack.py --artifacts \"${env.ArtifactsFolder}\" --slack_hook ${env.SlackHook} --slack_channel \"${params.SlackChannel}\" --job_name \"${env.JOB_NAME}\" --job_dashboard_url ${env.RUN_DISPLAY_URL}"
           }
           dir ("${env.ArtifactsFolder}") {
             archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
@@ -87,64 +94,19 @@ pipeline {
         }
       }
     }
-    stage('Deploy to Quality Assurance Environment') {
+    stage('Confirm push to Production') {
       steps {
         // Wrap the confirm in a timeout to avoid hanging Jenkins forever
         timeout(time:1, unit:'DAYS') {
-          input 'Deploy changes to Acceptance?'
-        }
-        withPythonEnv('python') {
-          echo 'Deploying latest application tags to Acceptance...'
-          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${params.RegEnv}\" --destination_env \"${params.QAEnv}\" --app_list \"${params.AppScope}\""
-        }
-      }
-      post {
-        always {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
-          }
-        }
-        failure {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "DeploymentConflicts"
-          }
-        }
-      }
-    }
-    stage('Confirm push to Pre-Production and Production') {
-      steps {
-        // Wrap the confirm in a timeout to avoid hanging Jenkins forever
-        timeout(time:1, unit:'DAYS') {
-          input 'Accept changes and deploy to Pre- and Production?'
-        }
-      }
-    }
-    stage('Deploy to Pre-Production Environment') {
-      steps {
-        withPythonEnv('python') {
-          echo 'Deploying latest application tags to Pre-Production...'
-          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${params.QAEnv}\" --destination_env \"${params.PpEnv}\" --app_list \"${params.AppScope}\""
-        }
-      }
-      post {
-        always {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
-          }
-        }
-        failure {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "DeploymentConflicts"
-          }
+          input 'Accept changes and deploy to Production?'
         }
       }
     }
     stage('Deploy to Production Environment') {
       steps {
-        sleep 60 // TODO: Replace by polling script that checks whenever the sync in PRE is finished
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Production...'
-          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${params.PpEnv}\" --destination_env \"${params.PrdEnv}\" --app_list \"${params.AppScope}\""
+          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegEnv}\" --destination_env \"${env.PrdEnv}\" --app_list \"${params.AppScope}\""
         }
       }
       post {
