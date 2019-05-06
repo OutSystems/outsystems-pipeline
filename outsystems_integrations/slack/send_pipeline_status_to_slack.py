@@ -12,7 +12,7 @@ else:  # Else just add the project dir
 # Custom Modules
 from outsystems.vars.file_vars import ARTIFACT_FOLDER
 from outsystems.file_helpers.file import check_file, load_data
-from custom_pipeline.slack.send_slack_message import send_slack_message
+from outsystems_integrations.slack.send_slack_message import send_slack_message
 
 ############################################################## SCRIPT ##############################################################
 def main(artifact_dir: str, error_file_name :str, slack_hook: str, slack_channels: list, pipeline_type: str, pipeline_status :bool, msg_title: str, message :str):

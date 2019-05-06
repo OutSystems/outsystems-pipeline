@@ -11,7 +11,7 @@ else:  # Else just add the project dir
 
 # Custom Modules
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE
-from custom_pipeline.slack.send_slack_message import send_slack_message
+from outsystems_integrations.slack.send_slack_message import send_slack_message
 
 ############################################################## SCRIPT ##############################################################
 def main(artifact_dir: str, slack_hook: str, slack_channels: list, pipeline_type: str, job_name: str, job_url: str):

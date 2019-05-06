@@ -10,7 +10,7 @@ else:  # Else just add the project dir
     sys.path.append(os.getcwd())
 
 # Custom Modules
-from custom_pipeline.slack.vars import notification_type
+from outsystems_integrations.slack.vars import notification_type
 
 # Sends a slack message for a given channel list
 def send_slack_message(slack_hook: str, slack_channels: list, pipeline_type: str, slack_title: str, job_status: bool ,slack_message: str):
