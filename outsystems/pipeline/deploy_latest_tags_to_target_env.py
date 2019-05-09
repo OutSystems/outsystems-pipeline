@@ -80,12 +80,13 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             if app_status["AppStatusInEnvs"][0]["BaseApplicationVersionKey"] != app["VersionKey"]:
                 # If it's not, save the key of the tagged app, to deploy later
                 to_deploy_app_keys.append(app["VersionKey"])
+                print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env))
             else:
                 print("Skipping app {} with version {}, since it's already deployed in {} environment.".format(
                     app["Name"], app["Version"], dest_env))
         except AppDoesNotExistError:
-            print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env))
             to_deploy_app_keys.append(app["VersionKey"])
+            print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env))
 
 
     # Check if there are apps to be deployed
