@@ -7,6 +7,17 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## May 10th, 2019
+
+### Application versioning mismatch
+
+There's a scenario where the LifeTime API can have unexpected behaviors: if you tag an application with an inferior tag that was deployed somewhere in time, the search for highest tag to deploy would return the old one and not the running version on the source environment.
+
+### Bug fixes
+
+* Fixed the version mismatch when the tags are not done in an incremental way.
+* Added notification to provide more information on what's being deployed.
+
 ## May 6th, 2019
 
 ### Package naming changes
