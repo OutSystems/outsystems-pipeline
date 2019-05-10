@@ -16,8 +16,8 @@ from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDP
 from outsystems.vars.pipeline_vars import DEPLOYMENT_STATUS_LIST, QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
-from outsystems.lifetime.lifetime_environments import get_environment_app_version
-from outsystems.lifetime.lifetime_applications import get_application_versions
+from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
+from outsystems.lifetime.lifetime_applications import get_application_versions, get_running_app_version
 from outsystems.lifetime.lifetime_deployments import get_deployments, get_deployment_status, get_deployment_info, \
     send_deployment, delete_deployment, start_deployment, continue_deployment
 from outsystems.file_helpers.file import store_data
@@ -42,34 +42,32 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     global app_data_list, app_keys, to_deploy_app_keys
 
     # Builds the LifeTime endpoint
-    lt_endpoint = build_lt_endpoint(
-        lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
+    lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
+
+    # Gets the environment key for the source environment
+    env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, source_env)
 
     # Creates a list with the details for the apps you want to deploy
     for app_name in apps:
         # Removes whitespaces in the beginning and end of the string
         app_name = app_name.strip()
-        # Get the application with version details (for one version = the latest)
-        app_with_versions = get_application_versions(
-            artifact_dir, lt_endpoint, lt_token, 1, app_name=app_name)
+        # Get the app running version on the source environment. It will only retrieve tagged applications
+        deployed = get_running_app_version(artifact_dir, lt_endpoint, lt_token, env_key, app_name=app_name)
         # Grab the App key
-        app_key = app_with_versions[0]["ApplicationKey"]
+        app_key = deployed["ApplicationKey"]
         # Grab the Version ID from the latest version of the app
-        app_version = app_with_versions[0]["Version"]
+        app_version = deployed["Version"]
         # Grab the Version Key from the latest version of the app
-        app_version_key = app_with_versions[0]["Key"]
+        app_version_key = deployed["VersionKey"]
         if lt_api_version == 1:  # LT for OS version < 11
             app_keys.append(app_version_key)
         elif lt_api_version == 2:  # LT for OS v11
-            app_keys.append(
-                {"ApplicationVersionKey": app_version_key, "DeploymentZoneKey": ""})
+            app_keys.append({"ApplicationVersionKey": app_version_key, "DeploymentZoneKey": ""})
         else:
-            raise NotImplementedError(
-                "Please make sure the API version is compatible with the module.")
+            raise NotImplementedError("Please make sure the API version is compatible with the module.")
         # Add it to the app data listapp_version
-        app_data_list.append({'Name': app_name, 'Key': app_key,
-                              'Version': app_version, 'VersionKey': app_version_key})
-
+        app_data_list.append({'Name': app_name, 'Key': app_key, 'Version': app_version, 'VersionKey': app_version_key})
+    
     # Check if target environment already has the application versions to be deployed
     for app in app_data_list:
         # get the status of the app in the target env, to check if they were deployed

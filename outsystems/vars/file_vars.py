@@ -5,6 +5,7 @@ ARTIFACT_FOLDER = "Artifacts"
 APPLICATIONS_FILE = "applications.cache"
 APPLICATION_FILE = ".cache"
 APPLICATION_VERSIONS_FILE = ".versions.cache"
+APPLICATION_VERSION_FILE = ".version.cache"
 APPLICATION_FOLDER = 'application_data'
 
 # Modules vars

@@ -14,7 +14,7 @@ from outsystems.exceptions.app_version_error import AppVersionsError
 from outsystems.file_helpers.file import store_data, load_data, clear_cache
 from outsystems.lifetime.lifetime_base import send_get_request
 # Variables
-from outsystems.vars.file_vars import APPLICATION_FOLDER, APPLICATIONS_FILE, APPLICATION_FILE, APPLICATION_VERSIONS_FILE
+from outsystems.vars.file_vars import APPLICATION_FOLDER, APPLICATIONS_FILE, APPLICATION_FILE, APPLICATION_VERSIONS_FILE, APPLICATION_VERSION_FILE
 from outsystems.vars.lifetime_vars import APPLICATIONS_ENDPOINT, APPLICATION_VERSIONS_ENDPOINT, APPLICATIONS_SUCCESS_CODE, \
     APPLICATIONS_EMPTY_CODE, APPLICATIONS_FLAG_FAILED_CODE, APPLICATIONS_FAILED_CODE, APPLICATION_SUCCESS_CODE, \
     APPLICATION_FLAG_FAILED_CODE, APPLICATION_NO_PERMISSION_CODE, APPLICATION_FAILED_CODE, APPLICATION_VERSION_SUCCESS_CODE, \
@@ -106,6 +106,48 @@ def get_application_versions(artifact_dir: str, endpoint: str, auth_token: str, 
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
+
+def get_application_version(artifact_dir: str, endpoint: str, auth_token: str, extra_data: bool, version_id: str, **kwargs):
+    # Tuple with (AppName, AppKey): app_info[0] = AppName; app_info[1] = AppKey
+    app_info = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
+    query = "{}/{}/{}/{}".format(APPLICATIONS_ENDPOINT,
+                              app_info[1], APPLICATION_VERSIONS_ENDPOINT, version_id)
+    # Sends the request
+    params = {"IncludeModules": extra_data, "IncludeEnvStatus": extra_data}
+    response = send_get_request(endpoint, auth_token, query, params)
+    status_code = int(response["http_status"])
+    if status_code == APPLICATION_VERSION_SUCCESS_CODE:
+        # Stores the result
+        filename = "{}.{}{}".format(app_info[0], version_id, APPLICATION_VERSION_FILE)
+        filename = os.path.join(APPLICATION_FOLDER, filename)
+        store_data(artifact_dir, filename, response["response"])
+        return response["response"]
+    elif status_code == APPLICATION_VERSION_NO_PERMISSION_CODE:
+        raise NotEnoughPermissionsError(
+            "You don't have enough permissions to see the versions of that application. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSION_FAILED_CODE:
+        raise AppDoesNotExistError(
+            "Failed to retrieve the application. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSION_FAILED_LIST_CODE:
+        raise AppVersionsError(
+            "Failed to retrieve the application version. Details: {}".format(response["response"]))
+    else:
+        raise NotImplementedError(
+            "There was an error. Response from server: {}".format(response))
+
+def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, env_key :str, **kwargs):
+    # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
+    app_tuple = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
+    app_data = {}
+
+    deployed_app = get_application_data(artifact_dir, endpoint, auth_token, True, app_name=app_tuple[0])
+    for status_in_env in deployed_app["AppStatusInEnvs"]:
+        if status_in_env["EnvironmentKey"] == env_key:
+            app_version_data = get_application_version(artifact_dir, endpoint, auth_token, True, status_in_env["BaseApplicationVersionKey"], app_name=app_tuple[0])
+            app_data = {"ApplicationKey": app_tuple[1], "Version": app_version_data["Version"], "VersionKey": status_in_env["BaseApplicationVersionKey"]}
+            break
+
+    return app_data
 
 ########################################## PRIVATE METHODS ##########################################
 # Private method to get the App name or key into a tuple (name,key).
