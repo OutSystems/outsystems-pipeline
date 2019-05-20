@@ -2,7 +2,9 @@ param(
   [Parameter(Mandatory=$true)]
   [string]$PythonEnv,
   [Parameter(Mandatory=$true)]
-  [string]$ArtifactDir
+  [string]$ArtifactDir,
+  [Parameter(Mandatory=$true)]
+  [string]$RequirementsFile
 )
 
 Write-Host "Create Artifacts Folder"
@@ -18,7 +20,7 @@ Write-Host "Switch to Virtual Environment"
 . .\$PythonEnv\Scripts\Activate.ps1
 
 Write-Host "Install Python requirements"
-pip install -q -I -r .\cd_pipelines\requirements.txt
+pip install -q -I -r $RequirementsFile
 
 Write-Host "Leave the Virtual Environment for now"
 deactivate
