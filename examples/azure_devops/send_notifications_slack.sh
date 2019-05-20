@@ -31,7 +31,7 @@ echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
 echo "Sending test results to Slack"
-python3 custom_pipeline/slack/send_test_results_to_slack.py --artifacts "$artifacts" --slack_hook $slack_hook --slack_channel "$slack_channels" --pipeline "$pipeline_type" --job_name "$job_name" --job_dashboard_url "$dashboard_url"
+python3 outsystems_integrations/slack/send_test_results_to_slack.py --artifacts "$artifacts" --slack_hook $slack_hook --slack_channel "$slack_channels" --pipeline "$pipeline_type" --job_name "$job_name" --job_dashboard_url "$dashboard_url"
 
 echo "Leave the Virtual Environment for now"
 deactivate
