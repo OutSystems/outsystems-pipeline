@@ -55,5 +55,8 @@ do
     echo "##vso[task.uploadfile]$cfile"
 done
 
-echo "Stashing $PWD/$artifacts/DeploymentConflicts"
-echo "##vso[task.uploadfile]$PWD/$artifacts/DeploymentConflicts"
+conflicts_file=$PWD/$artifacts/DeploymentConflicts
+if test -f "$conflicts_file"; then
+    echo "Stashing $conflicts_file"
+    echo "##vso[task.uploadfile]$conflicts_file"
+fi
