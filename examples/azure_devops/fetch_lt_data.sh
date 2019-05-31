@@ -33,7 +33,7 @@ echo "Leave the Virtual Environment for now"
 deactivate
 
 echo "Stashing the *.cache generated in the pipeline logs"
-cache_files = $artifacts/*.cache
+cache_files=$artifacts/*.cache
 for cfile in $cache_files
 do
     echo "Caching $cfile"
