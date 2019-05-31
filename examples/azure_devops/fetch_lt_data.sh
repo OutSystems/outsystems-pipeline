@@ -33,9 +33,9 @@ echo "Leave the Virtual Environment for now"
 deactivate
 
 echo "Stashing the *.cache generated in the pipeline logs"
-_cache_files = $artifacts/*.cache
-for file in $_cache_files
+cache_files = $artifacts/*.cache
+for cfile in $cache_files
 do
-    echo "Caching $file"
-    echo "##vso[task.uploadfile]$file"
+    echo "Caching $cfile"
+    echo "##vso[task.uploadfile]$cfile"
 done
