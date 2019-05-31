@@ -36,6 +36,6 @@ echo "Stashing the *.cache generated in the pipeline logs"
 cache_files=$PWD/$artifacts/*.cache
 for cfile in $cache_files
 do
-    echo "Caching $cfile"
+    echo "Stashing $cfile"
     echo "##vso[task.uploadfile]$cfile"
 done
