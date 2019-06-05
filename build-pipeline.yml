@@ -52,3 +52,16 @@ jobs:
 
   - script: python setup.py sdist
     displayName: 'Build sdist'
+
+  - script: pip install twine
+    displayName: Installing Twine
+
+  - script: |
+      if [ twine upload dist\* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword) | grep -q ''exist'' ]; then
+        echo "Package uploaded successfully"
+        exit 0
+      else
+        echo "Package version already uploaded. Bump the version."
+        exit 1
+      fi'
+    displayName: Uploading to PyOrg via Twine
