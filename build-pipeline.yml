@@ -57,7 +57,9 @@ jobs:
     displayName: Installing Twine
 
   - script: |
-      if twine upload dist/* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword) | grep -q 'exist' ; then
+      ouput="$(twine upload dist/* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword))"
+      echo "${output}"
+      if $output | grep -q 'exist' ; then
         echo "Package uploaded successfully"
         exit 0
       else
