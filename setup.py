@@ -26,7 +26,7 @@ PACKAGES = [
 if __name__ == '__main__':  # Do not run setup() when we import this module.
     setup(
         name=NAME,
-        version='0.1',
+        version='0.1.5',
         description=DESCRIPTION,
         keywords=' '.join(KEYWORDS),
         author=AUTHOR,
