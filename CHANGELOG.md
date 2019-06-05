@@ -7,6 +7,12 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## June 5th, 2019
+
+#### Bug fixes
+
+* Fixed a bug with the wait cycle for LifeTime to be free that would, in some cases, lead to the pipeline attempting to deploy multiple plans in parallel, leading to errors.
+
 ## May 10th, 2019
 
 ### Application versioning mismatch
