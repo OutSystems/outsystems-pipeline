@@ -63,5 +63,5 @@ jobs:
       else
         echo "Package version already uploaded. Bump the version."
         exit 1
-      fi'
+      fi
     displayName: Uploading to PyOrg via Twine
