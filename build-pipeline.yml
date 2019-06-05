@@ -58,7 +58,7 @@ jobs:
 
   - script: |
       ouput=$(twine upload dist/* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword))
-      if $output | grep -q 'exist' ; then
+      if $output | grep exist ; then
         echo "Package uploaded successfully"
         exit 0
       else
