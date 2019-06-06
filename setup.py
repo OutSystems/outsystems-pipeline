@@ -10,8 +10,16 @@ KEYWORDS = [
     '',
 ]
 
-with open('build-requirements.txt') as f:
-    requirements = f.read().splitlines()
+#with open('build-requirements.txt') as f:
+#    requirements = f.read().splitlines()
+
+REQUIREMENTS = [
+  'python-dateutil==2.7.5',
+  'requests==2.20.1',
+  'unittest-xml-reporting==2.2.1',
+  'xunitparser==1.3.3',
+  'pytest==4.3.0'
+]
 
 PACKAGES = [
     'outsystems',
@@ -72,5 +80,5 @@ if __name__ == '__main__':  # Do not run setup() when we import this module.
         author_email=EMAIL,
         url=URL,
         packages=PACKAGES,
-        install_requires=requirements
+        install_requires=REQUIREMENTS
     )
