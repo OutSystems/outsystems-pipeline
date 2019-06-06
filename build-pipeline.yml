@@ -61,5 +61,5 @@ jobs:
   - script: pip install twine
     displayName: Installing Twine
 
-  - script: twine upload dist/* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword))
+  - script: twine upload dist/* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword)
     displayName: Uploading to PyOrg via Twine
