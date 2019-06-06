@@ -38,7 +38,7 @@ if __name__ == '__main__':  # Do not run setup() when we import this module.
 
     setup(
         name=NAME,
-        version=version,
+        version='<version>',
         description=DESCRIPTION,
         keywords=' '.join(KEYWORDS),
         author=AUTHOR,

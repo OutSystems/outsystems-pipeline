@@ -1,4 +1,4 @@
-import argparse
+import argparse, fileinput
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -30,5 +30,8 @@ if __name__ == "__main__":
 
     version = ".".join(version_array)
     
-    with open("VERSION", 'w') as version_file:
-        version_file.write(version)
+    with fileinput.FileInput("setup.py", inplace=True, backup='.bak') as setup_file:
+        for line in setup_file:
+            print(line.replace("version='<version>'", "version='{}'".format(version)), end='')
+#    with open("VERSION", 'w') as version_file:
+#        version_file.write(version)

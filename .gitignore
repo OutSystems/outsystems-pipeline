@@ -3,6 +3,7 @@
 __pycache__
 temp_file
 .pytest_cache
+*.bak
 # local testing
 tests/python-tests/*.xml
 .vscode
@@ -12,3 +13,4 @@ venv/*
 junit
 dist/*
 MANIFEST
+VERSION
