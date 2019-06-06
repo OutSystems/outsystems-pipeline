@@ -50,19 +50,16 @@ jobs:
       versionSpec: '3.x'
       architecture: 'x64'
 
-  - script: python setup.py sdist
+  - script: |
+      if [ "$(ReleaseType)" == "major" ]; then
+        python setup.py sdist
+      else
+        python setup.py --$(ReleaseType) sdist
+      fi
     displayName: 'Build sdist'
 
   - script: pip install twine
     displayName: Installing Twine
 
-  - script: |
-      ouput=$(twine upload dist/* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword))
-      if $output | grep exist ; then
-        echo "Package uploaded successfully"
-        exit 0
-      else
-        echo "Package version already uploaded. Bump the version."
-        exit 1
-      fi
+  - script: twine upload dist/* --disable-progress-bar --skip-existing -u $(TwineUser) -p $(TwinePassword))
     displayName: Uploading to PyOrg via Twine
