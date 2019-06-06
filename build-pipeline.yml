@@ -45,6 +45,9 @@ jobs:
     vmImage: 'Ubuntu-16.04'
 
   steps:
+  - checkout: self
+    persistCredentials: true
+
   - task: UsePythonVersion@0
     inputs:
       versionSpec: '3.x'
@@ -57,6 +60,14 @@ jobs:
         python setup.py --$(ReleaseType) sdist
       fi
     displayName: 'Build sdist'
+
+  - script: | 
+      version=$( cat VERSION )
+      git add VERSION
+      git commit -m "Automated version bump"
+      git tag $version -a "Automated version bump"
+      git push origin --tags
+    displayName: Commit the version bump
 
   - script: pip install twine
     displayName: Installing Twine
