@@ -56,19 +56,12 @@ jobs:
   - script: |
       pip search outsystems-pipeline | grep outsystems-pipeline | grep -oE "\(.*?\)" | tr --delete "()" > VERSION
       if [ "$(ReleaseType)" == "major" ]; then
-        python setup.py sdist
+        python build/version_bumper.py
       else
-        python setup.py --$(ReleaseType) sdist
+        python build/version_bumper.py --$(ReleaseType)
       fi
+      python setup.py sdist
     displayName: 'Build sdist'
-
-#  - script: | 
-#      version=$( cat VERSION )
-#      git add VERSION
-#      git commit -m "Automated version bump"
-#      git tag $version -a "Automated version bump"
-#      git push origin --tags
-#    displayName: Commit the version bump
 
   - script: pip install twine
     displayName: Installing Twine
