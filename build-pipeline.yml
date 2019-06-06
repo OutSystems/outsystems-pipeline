@@ -54,6 +54,7 @@ jobs:
       architecture: 'x64'
 
   - script: |
+      pip search outsystems-pipeline | grep outsystems-pipeline | grep -oE "\(.*?\)" | tr --delete "()" > VERSION
       if [ "$(ReleaseType)" == "major" ]; then
         python setup.py sdist
       else
@@ -61,13 +62,13 @@ jobs:
       fi
     displayName: 'Build sdist'
 
-  - script: | 
-      version=$( cat VERSION )
-      git add VERSION
-      git commit -m "Automated version bump"
-      git tag $version -a "Automated version bump"
-      git push origin --tags
-    displayName: Commit the version bump
+#  - script: | 
+#      version=$( cat VERSION )
+#      git add VERSION
+#      git commit -m "Automated version bump"
+#      git tag $version -a "Automated version bump"
+#      git push origin --tags
+#    displayName: Commit the version bump
 
   - script: pip install twine
     displayName: Installing Twine
