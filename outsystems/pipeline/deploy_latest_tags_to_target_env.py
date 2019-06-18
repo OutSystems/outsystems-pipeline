@@ -11,7 +11,7 @@ else:  # Else just add the project dir
     sys.path.append(os.getcwd())
 
 # Custom Modules
-from outsystems.vars.file_vars import ARTIFACT_FOLDER
+from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_PLAN_FILE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION, DEPLOYMENT_MESSAGE
 from outsystems.vars.pipeline_vars import DEPLOYMENT_STATUS_LIST, QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
@@ -120,6 +120,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         print("Deployment plan {} was deleted successfully.".format(dep_plan_key))
         sys.exit(1)
 
+    # The plan has no conflits. Save it to the artifacts storage
+    filename = "{}{}".format(dep_plan_key, DEPLOYMENT_PLAN_FILE)
+    store_data(artifact_dir, filename, dep_details)
+    
     # Check if outdated consumer applications (outside of deployment plan) should be redeployed and start the deployment plan execution
     if lt_api_version == 1:  # LT for OS version < 11
         start_deployment(lt_endpoint, lt_token, dep_plan_key)
