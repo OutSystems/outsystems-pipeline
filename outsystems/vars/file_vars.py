@@ -26,6 +26,7 @@ ENVIRONMENT_FOLDER = 'environment_data'
 # Environments vars
 DEPLOYMENTS_FILE = "deployments.cache"
 DEPLOYMENT_FILE = ".cache"
+DEPLOYMENT_PLAN_FILE = ".plan.cache"
 DEPLOYMENT_STATUS_FILE = ".status.cache"
 DEPLOYMENT_FOLDER = "deployment_data"
 
