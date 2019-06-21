@@ -118,7 +118,6 @@ def check_if_can_deploy(artifact_dir :str, lt_endpoint: str, lt_api_version :str
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest :list, dep_note: str):
 
     app_data_list = []  # will contain the applications to deploy details from LT
-    app_keys = []  # will contain the application keys to create the deployment plan
     to_deploy_app_keys = []  # will contain the app keys for the apps tagged
 
     # Builds the LifeTime endpoint
