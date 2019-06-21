@@ -144,7 +144,8 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
     for status_in_env in deployed_app["AppStatusInEnvs"]:
         if status_in_env["EnvironmentKey"] == env_key:
             app_version_data = get_application_version(artifact_dir, endpoint, auth_token, True, status_in_env["BaseApplicationVersionKey"], app_name=app_tuple[0])
-            app_data = {"ApplicationKey": app_tuple[1], "Version": app_version_data["Version"], "VersionKey": status_in_env["BaseApplicationVersionKey"]}
+            app_data = {"ApplicationName": app_tuple[0], "ApplicationKey": app_tuple[1], "Version": app_version_data["Version"],
+                "VersionKey": status_in_env["BaseApplicationVersionKey"], "CreatedOn": app_version_data["CreatedOn"], "ChangeLog": app_version_data["ChangeLog"] }
             break
 
     return app_data
