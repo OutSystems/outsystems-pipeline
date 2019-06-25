@@ -54,7 +54,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         # Removes whitespaces in the beginning and end of the string
         app_name = app_name.strip()
         # Get the app running version on the source environment. It will only retrieve tagged applications
-        deployed = get_running_app_version(artifact_dir, lt_endpoint, lt_api_version, lt_token, src_env_key, app_name=app_name)
+        deployed = get_running_app_version(artifact_dir, lt_endpoint, lt_token, src_env_key, app_name=app_name)
         # Grab the App key
         app_key = deployed["ApplicationKey"]
         # Grab the Version ID from the latest version of the app

@@ -135,7 +135,7 @@ def get_application_version(artifact_dir: str, endpoint: str, auth_token: str, e
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
-def get_running_app_version(artifact_dir: str, endpoint: str, lt_api_version :int, auth_token: str, env_key :str, **kwargs):
+def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, env_key :str, **kwargs):
     # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
     app_tuple = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
     app_data = {}
@@ -146,8 +146,12 @@ def get_running_app_version(artifact_dir: str, endpoint: str, lt_api_version :in
             app_version_data = get_application_version(artifact_dir, endpoint, auth_token, True, status_in_env["BaseApplicationVersionKey"], app_name=app_tuple[0])
             app_data = {"ApplicationName": app_tuple[0], "ApplicationKey": app_tuple[1], "Version": app_version_data["Version"],
                     "VersionKey": status_in_env["BaseApplicationVersionKey"]}
-            if lt_api_version == 2:  # LT for OS version >= 11
-                app_data.update({"CreatedOn": app_version_data["CreatedOn"], "ChangeLog": app_version_data["ChangeLog"] })
+            # Since these 2 fields were only introduced in a minor of OS11, we check here if they exist
+            # We can't just use the version
+            if "CreatedOn" in app_version_data:
+                app_data.update({"CreatedOn": app_version_data["CreatedOn"]})
+            if "ChangeLog" in app_version_data:
+                app_data.update({"ChangeLog": app_version_data["ChangeLog"]})
             break
 
     return app_data
