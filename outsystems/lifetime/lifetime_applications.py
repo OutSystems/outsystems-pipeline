@@ -145,7 +145,13 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
         if status_in_env["EnvironmentKey"] == env_key:
             app_version_data = get_application_version(artifact_dir, endpoint, auth_token, True, status_in_env["BaseApplicationVersionKey"], app_name=app_tuple[0])
             app_data = {"ApplicationName": app_tuple[0], "ApplicationKey": app_tuple[1], "Version": app_version_data["Version"],
-                "VersionKey": status_in_env["BaseApplicationVersionKey"], "CreatedOn": app_version_data["CreatedOn"], "ChangeLog": app_version_data["ChangeLog"] }
+                    "VersionKey": status_in_env["BaseApplicationVersionKey"]}
+            # Since these 2 fields were only introduced in a minor of OS11, we check here if they exist
+            # We can't just use the version
+            if "CreatedOn" in app_version_data:
+                app_data.update({"CreatedOn": app_version_data["CreatedOn"]})
+            if "ChangeLog" in app_version_data:
+                app_data.update({"ChangeLog": app_version_data["ChangeLog"]})
             break
 
     return app_data
