@@ -1,13 +1,22 @@
-# Python package
-# Create and test a Python package on multiple Python versions.
-# Add steps that analyze code, save the dist with the build record, publish to a PyPI-compatible index, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+# Generates a Python package if the code passes the test
+# Create and test a Python code on multiple Python versions
+# Uploads the package with a new version to Pypi.org
 
 trigger:
-- master
+  batch: true # Batch the changes if there are many commits in a short burst
+  branches:
+    include: # Only use the master branch
+    - master
+  paths:
+    include: # Only includes the outsystems pipeline code as trigger
+      - outsystems/*
+    exclude: # Excludes everything else
+      - /*
+
+# Exclude pull requests
+pr: none
 
 jobs:
-
 - job: 'Test'
   pool:
     vmImage: 'Ubuntu-16.04'
