@@ -61,6 +61,9 @@ if __name__ == '__main__':
         
     # Runs the test suite and stores the value in a XMN file to be used by JUNIT
     filename = os.path.join(ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE)
-    with open(filename, 'wb') as output:
-        runner = xmlrunner.XMLTestRunner(output=output, failfast=False, buffer=False)
-        unittest.main(testRunner=runner)
+    try:
+        with open(filename, 'wb') as output:
+            runner = xmlrunner.XMLTestRunner(output=output, failfast=False, buffer=False)
+            unittest.main(testRunner=runner)
+    except UnboundLocalError:
+        sys.exit(0)
