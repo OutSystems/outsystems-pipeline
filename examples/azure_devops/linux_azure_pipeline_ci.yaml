@@ -5,12 +5,15 @@ trigger: none
 # will disable PR builds
 pr: none 
 
+variables:
+  AgentPool: 'Default'
+
 stages:
 - stage: Pre_Req_installation
   displayName: Install Python Dependencies and create Artifact directory
   jobs:
   - job: InstallDependencies
-    pool: Default
+    pool: $(AgentPool)
     displayName: Create Artifacts Folder and Installing dependencies
     workspace:
       clean: all
@@ -36,10 +39,12 @@ stages:
     - script: |
         echo "Switch to $(PythonEnvName) Virtual Environment"
         source $(PythonEnvName)/bin/activate
+
         echo "Installing wheel Package"
         pip3 install -U wheel
         echo "Install OutSystems Pipeline Package"
         pip3 install -U outsystems-pipeline
+
         echo "Leave $(PythonEnvName) Virtual Environment for now"
         deactivate
       displayName: Install OutSystems Pipeline Package
@@ -48,17 +53,20 @@ stages:
   - job: DeployToRegression
     displayName: Deploy latest apps to the Regression environment
     dependsOn: InstallDependencies
-    pool: Default
+    pool: $(AgentPool)
     steps:
     - script: |
         echo "Switch to $(PythonEnvName) Virtual Environment"
         source $(PythonEnvName)/bin/activate
+
         echo "Fetch LifeTime data"
         python3 -m outsystems.pipeline.fetch_lifetime_data --artifacts "$(ArtifactsFolder)" --lt_url $(LTURL) \
           --lt_token $(LTToken) --lt_api_version $(LTAPIVersion)
         status=$?
+
         echo "Leave $(PythonEnvName) Virtual Environment for now"
         deactivate
+
         echo "Stashing the *.cache generated in the pipeline logs"
         cache_files=$PWD/$(ArtifactsFolder)/*.cache
         for cfile in $cache_files
@@ -68,6 +76,7 @@ stages:
             echo "##vso[task.uploadfile]$cfile"
           fi
         done
+
         exit $status
       displayName: Fetch LifeTime data
       workingDirectory: $(System.DefaultWorkingDirectory)
@@ -75,13 +84,16 @@ stages:
     - script: |
         echo "Switch to $(PythonEnvName) Virtual Environment"
         source $(PythonEnvName)/bin/activate
+
         echo "Deploy $(ApplicationScopeWithTests) to $(DstEnv)"
         python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$(ArtifactsFolder)" --lt_url $(LTURL) \
           --lt_token $(LTToken) --lt_api_version $(LTAPIVersion) --source_env "$(SrcEnv)" --destination_env "$(DstEnv)" \
           --app_list "$(ApplicationScopeWithTests)" --deploy_msg "$(DeployMsg)"
         status=$?
+
         echo "Leave the Virtual Environment for now"
         deactivate
+
         echo "Stashing the *.cache generated in the pipeline logs"
         cache_files=$PWD/$(ArtifactsFolder)/**/*.cache
         for cfile in $cache_files
@@ -106,6 +118,7 @@ stages:
           echo "Stashing $conflicts_file"
           echo "##vso[task.uploadfile]$conflicts_file"
         fi
+
         exit $status
       displayName: Deploy apps to $(DstEnv)
       workingDirectory: $(System.DefaultWorkingDirectory)
@@ -113,15 +126,19 @@ stages:
   - job: RunRegressionTests
     displayName: Run tests on the Regression Environment
     dependsOn: DeployToRegression
-    pool: Default
+    pool: $(AgentPool)
     steps:
     - script: |
         echo "Switch to $(PythonEnvName) Virtual Environment"
         source $(PythonEnvName)/bin/activate
+
         python -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$(ArtifactsFolder)" --app_list "$(ApplicationScopeWithTests)" \
           --cicd_probe_env $(CICDProbeURL) --bdd_framework_env $(BDDFrameworkURL)
+        status=$?
+
         echo "Leave the Virtual Environment for now"
         deactivate
+
         echo "Stashing the *.cache generated in the pipeline logs"
         cache_files=$PWD/$(ArtifactsFolder)/**/*.cache
         for cfile in $cache_files
@@ -129,15 +146,22 @@ stages:
           echo "Stashing $cfile"
           echo "##vso[task.uploadfile]$cfile"
         done
+
+        exit $status
       displayName: Generate BDD URLs for testing
       workingDirectory: $(System.DefaultWorkingDirectory)
 
     - script: |
         echo "Switch to $(PythonEnvName) Virtual Environment"
         source $(PythonEnvName)/bin/activate
+
         python -m outsystems.pipeline.evaluate_test_results --artifacts "$(ArtifactsFolder)"
+        status=$?
+
         echo "Leave the Virtual Environment for now"
         deactivate
+
+        exit $status
       displayName: Evaluate Test Results
       workingDirectory: $(System.DefaultWorkingDirectory)
     
@@ -155,7 +179,7 @@ stages:
   - job: PublishArtifact
     displayName: Publish Artifacts used to deploy to Regression
     dependsOn: RunRegressionTests
-    pool: Default
+    pool: $(AgentPool)
     steps:
     - task: PublishBuildArtifacts@1
       inputs:
