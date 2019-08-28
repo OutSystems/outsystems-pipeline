@@ -33,14 +33,14 @@ pipeline {
     stage('Install Python Dependencies and create Artifact directory') {
       steps {
         echo "Create Artifacts Folder"
-        powershell "mkdir ${env.ArtifactsFolder}"
+        sh "mkdir ${env.ArtifactsFolder}"
         // Only the virtual environment needs to be installed at the system level
         echo "Install Python Virtual environments"
-        powershell 'pip install -q -I virtualenv --user'
+        sh 'pip3 install -q -I virtualenv --user'
         // Install the rest of the dependencies at the environment level and not the system level
         withPythonEnv('python') {
           echo "Install Python requirements"
-          powershell 'pip install -q -I -r .\\cd_pipelines\\requirements.txt'
+          sh 'pip3 install -U outsystems-pipeline'
         }
       }
     }
@@ -48,7 +48,7 @@ pipeline {
       steps {
         withPythonEnv('python') {
           echo 'Retrieving latest application tags from Development environment...'
-          powershell "python .\\outsystems\\pipeline\\fetch_lifetime_data.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}"
+          sh "python3 -m outsystems.pipeline.fetch_lifetime_data --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}"
         }
       }
       post {
@@ -63,7 +63,7 @@ pipeline {
       steps {
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Regression...'
-          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevEnv}\" --destination_env \"${env.RegEnv}\" --app_list \"${env.ApplicationsWithTests}\""
+          sh "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevEnv}\" --destination_env \"${env.RegEnv}\" --app_list \"${env.ApplicationsWithTests}\""
         } 
       }
       post {
@@ -83,16 +83,16 @@ pipeline {
       steps {
         withPythonEnv('python') {
           echo 'Generating URLs for BDD testing...'
-          powershell "python .\\outsystems\\pipeline\\generate_unit_testing_assembly.py --artifacts \"${env.ArtifactsFolder}\" --app_list \"${env.ApplicationsWithTests}\" --cicd_probe_env ${params.ProbeUrl} --bdd_framework_env ${params.BddUrl}"
+          sh "python3 -m outsystems.pipeline.generate_unit_testing_assembly --artifacts \"${env.ArtifactsFolder}\" --app_list \"${env.ApplicationsWithTests}\" --cicd_probe_env ${params.ProbeUrl} --bdd_framework_env ${params.BddUrl}"
           echo "Testing the URLs and generating the JUnit results XML..."
-          powershell(script: "python .\\outsystems\\pipeline\\evaluate_test_results.py --artifacts \"${env.ArtifactsFolder}\"", returnStatus: true)
+          sh(script: "python3 -m outsystems.pipeline.evaluate_test_results --artifacts \"${env.ArtifactsFolder}\"", returnStatus: true)
         }
       }
       post {
         always {
           withPythonEnv('python') {
             echo "Publishing JUnit test results..."
-            junit(testResults: "${env.ArtifactsFolder}\\junit-result.xml", allowEmptyResults: true)
+            junit(testResults: "${env.ArtifactsFolder}/junit-result.xml", allowEmptyResults: true)
           }
           dir ("${env.ArtifactsFolder}") {
             archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
@@ -108,7 +108,7 @@ pipeline {
         }
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Acceptance...'
-          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegEnv}\" --destination_env \"${env.QaEnv}\" --app_list \"${params.AppScope}\""
+          sh "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegEnv}\" --destination_env \"${env.QaEnv}\" --app_list \"${params.AppScope}\""
         }
       }
       post {
@@ -136,7 +136,7 @@ pipeline {
       steps {
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Pre-Production...'
-          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.QaEnv}\" --destination_env \"${env.PpEnv}\" --app_list \"${params.AppScope}\""
+          sh "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.QaEnv}\" --destination_env \"${env.PpEnv}\" --app_list \"${params.AppScope}\""
         }
       }
       post {
@@ -154,10 +154,9 @@ pipeline {
     }
     stage('Deploy to Production Environment') {
       steps {
-        sleep 60 // TODO: Replace by polling script that checks whenever the sync in PRE is finished
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Production...'
-          powershell "python .\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.PpEnv}\" --destination_env \"${env.PrdEnv}\" --app_list \"${params.AppScope}\""
+          sh "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeEnvironmentURL} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.PpEnv}\" --destination_env \"${env.PrdEnv}\" --app_list \"${params.AppScope}\""
         }
       }
       post {
