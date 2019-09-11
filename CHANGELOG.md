@@ -7,6 +7,13 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## June 26th, 2019
+
+#### Bug fixes
+
+* Fixed a bug when the pipeline was used without tests. The evaluate test results module would give an error. Now it creates an empty junit-result.xml. The pipeline assumes that, if no tests are run, the pipeline is OK.
+* Fixed bug where the pipeline would fail if there was a saved plan on LifeTime. Now, saved plans are treated as "LifeTime is busy" and can timeout the pipeline execution.
+
 ## June 5th, 2019
 
 #### Bug fixes
