@@ -1,5 +1,8 @@
 # Python Modules
-import xunitparser, json, os, requests, sys, argparse
+import xunitparser
+import os
+import sys
+import argparse
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -13,7 +16,8 @@ else:  # Else just add the project dir
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE
 from outsystems_integrations.slack.send_slack_message import send_slack_message
 
-############################################################## SCRIPT ##############################################################
+
+# ---------------------- SCRIPT ----------------------
 def main(artifact_dir: str, slack_hook: str, slack_channels: list, pipeline_type: str, job_name: str, job_url: str):
     filename = os.path.join(artifact_dir, JUNIT_TEST_RESULTS_FILE)
     _, tr = xunitparser.parse(open(filename))
@@ -33,11 +37,13 @@ def main(artifact_dir: str, slack_hook: str, slack_channels: list, pipeline_type
             test_info = test_info.split('__')
             test_module = test_info[0]
             test_name = test_info[1]
-            
+
             message += "*{} ({})*\n".format(test_name, test_module)
 
     job_status = (len(tr.failures) <= 0)
-    send_slack_message(slack_hook, slack_channels, pipeline_type, "*Test Results for {}:*".format(job_name), job_status, message )
+    send_slack_message(slack_hook, slack_channels, pipeline_type, "*Test Results for {}:*".format(job_name), job_status, message)
+
+
 # End of main()
 
 if __name__ == "__main__":

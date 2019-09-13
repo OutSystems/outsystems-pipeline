@@ -1,5 +1,8 @@
 # Python Modules
-import json, requests, sys, os
+import json
+import requests
+import sys
+import os
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -12,8 +15,9 @@ else:  # Else just add the project dir
 # Custom Modules
 from outsystems_integrations.slack.vars import notification_type
 
+
 # Sends a slack message for a given channel list
-def send_slack_message(slack_hook: str, slack_channels: list, pipeline_type: str, slack_title: str, job_status: bool ,slack_message: str):
+def send_slack_message(slack_hook: str, slack_channels: list, pipeline_type: str, slack_title: str, job_status: bool, slack_message: str):
     if pipeline_type not in notification_type:
         username = "Regression Testing"
         icon = ":outsystems:"

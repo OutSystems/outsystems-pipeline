@@ -20,6 +20,7 @@ from outsystems.vars.lifetime_vars import APPLICATIONS_ENDPOINT, APPLICATION_VER
     APPLICATION_FLAG_FAILED_CODE, APPLICATION_NO_PERMISSION_CODE, APPLICATION_FAILED_CODE, APPLICATION_VERSION_SUCCESS_CODE, \
     APPLICATION_VERSION_INVALID_CODE, APPLICATION_VERSION_NO_PERMISSION_CODE, APPLICATION_VERSION_FAILED_CODE, APPLICATION_VERSION_FAILED_LIST_CODE
 
+
 # Returns a list of applications that exist in the infrastructure.
 def get_applications(artifact_dir: str, endpoint: str, auth_token: str, extra_data: bool):
     params = {"IncludeModules": extra_data, "IncludeEnvStatus": extra_data}
@@ -37,13 +38,15 @@ def get_applications(artifact_dir: str, endpoint: str, auth_token: str, extra_da
             "No applications available in the infrastructure. Details {}".format(response["response"]))
     elif status_code == APPLICATIONS_FLAG_FAILED_CODE:
         raise InvalidParametersError(
-            "There was an error with the 'extra_data' flag or the request was invalid when listing all applications. The params used were: {}. Details: {}".format(params, response["response"]))
+            "There was an error with the 'extra_data' flag or the request was invalid when listing all applications. The params used were: {}. Details: {}".format(params, response[
+                "response"]))
     elif status_code == APPLICATIONS_FAILED_CODE:
         raise ServerError(
             "Failed to list the applications. Details {}".format(response["response"]))
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
+
 
 # Returns the details of a given application.
 def get_application_data(artifact_dir: str, endpoint: str, auth_token: str, extra_data: bool, **kwargs):
@@ -63,7 +66,8 @@ def get_application_data(artifact_dir: str, endpoint: str, auth_token: str, extr
         return response["response"]
     elif status_code == APPLICATION_FLAG_FAILED_CODE:
         raise InvalidParametersError(
-            "There was an error with the 'extra_data' flag or the request was invalid when listing the application. The params used were: {}. Details: {}".format(params, response["response"]))
+            "There was an error with the 'extra_data' flag or the request was invalid when listing the application. The params used were: {}. Details: {}".format(params, response[
+                "response"]))
     elif status_code == APPLICATION_NO_PERMISSION_CODE:
         raise NotEnoughPermissionsError(
             "You don't have enough permissions to see the details of that application. Details: {}".format(response["response"]))
@@ -74,6 +78,7 @@ def get_application_data(artifact_dir: str, endpoint: str, auth_token: str, extr
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
+
 # Returns a list of versions of a given application.
 def get_application_versions(artifact_dir: str, endpoint: str, auth_token: str, number_of_versions: int, **kwargs):
     # Tuple with (AppName, AppKey): app_info[0] = AppName; app_info[1] = AppKey
@@ -82,8 +87,7 @@ def get_application_versions(artifact_dir: str, endpoint: str, auth_token: str, 
     query = "{}/{}/{}".format(APPLICATIONS_ENDPOINT,
                               app_info[1], APPLICATION_VERSIONS_ENDPOINT)
     # Sends the request
-    response = send_get_request(endpoint, auth_token, query, {
-                                "MaximumVersionsToReturn": number_of_versions})
+    response = send_get_request(endpoint, auth_token, query, {"MaximumVersionsToReturn": number_of_versions})
     status_code = int(response["http_status"])
     if status_code == APPLICATION_VERSION_SUCCESS_CODE:
         # Stores the result
@@ -107,11 +111,12 @@ def get_application_versions(artifact_dir: str, endpoint: str, auth_token: str, 
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
+
 def get_application_version(artifact_dir: str, endpoint: str, auth_token: str, extra_data: bool, version_id: str, **kwargs):
     # Tuple with (AppName, AppKey): app_info[0] = AppName; app_info[1] = AppKey
     app_info = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
     query = "{}/{}/{}/{}".format(APPLICATIONS_ENDPOINT,
-                              app_info[1], APPLICATION_VERSIONS_ENDPOINT, version_id)
+                                 app_info[1], APPLICATION_VERSIONS_ENDPOINT, version_id)
     # Sends the request
     params = {"IncludeModules": extra_data, "IncludeEnvStatus": extra_data}
     response = send_get_request(endpoint, auth_token, query, params)
@@ -135,7 +140,8 @@ def get_application_version(artifact_dir: str, endpoint: str, auth_token: str, e
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
-def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, env_key :str, **kwargs):
+
+def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, env_key: str, **kwargs):
     # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
     app_tuple = _get_application_info(artifact_dir, endpoint, auth_token, **kwargs)
     app_data = {}
@@ -144,8 +150,12 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
     for status_in_env in deployed_app["AppStatusInEnvs"]:
         if status_in_env["EnvironmentKey"] == env_key:
             app_version_data = get_application_version(artifact_dir, endpoint, auth_token, True, status_in_env["BaseApplicationVersionKey"], app_name=app_tuple[0])
-            app_data = {"ApplicationName": app_tuple[0], "ApplicationKey": app_tuple[1], "Version": app_version_data["Version"],
-                    "VersionKey": status_in_env["BaseApplicationVersionKey"]}
+            app_data = {
+                "ApplicationName": app_tuple[0],
+                "ApplicationKey": app_tuple[1],
+                "Version": app_version_data["Version"],
+                "VersionKey": status_in_env["BaseApplicationVersionKey"]
+            }
             # Since these 2 fields were only introduced in a minor of OS11, we check here if they exist
             # We can't just use the version
             if "CreatedOn" in app_version_data:
@@ -156,7 +166,9 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
 
     return app_data
 
-########################################## PRIVATE METHODS ##########################################
+
+# ---------------------- PRIVATE METHODS ----------------------
+
 # Private method to get the App name or key into a tuple (name,key).
 def _get_application_info(artifact_dir: str, api_url: str, auth_token: str, **kwargs):
     if "app_name" in kwargs:
@@ -171,6 +183,7 @@ def _get_application_info(artifact_dir: str, api_url: str, auth_token: str, **kw
         raise InvalidParametersError(
             "You need to use either app_name=<name> or app_key=<key> as parameters to call this method.")
     return (app_name, app_key)
+
 
 # Private method to find an application key from name
 def _find_application_key(artifact_dir: str, api_url: str, auth_token: str, application_name: str):
@@ -199,6 +212,7 @@ def _find_application_key(artifact_dir: str, api_url: str, auth_token: str, appl
         clear_cache(artifact_dir, APPLICATIONS_FILE)
         return _find_application_key(artifact_dir, api_url, auth_token, application_name)
     return app_key
+
 
 # Private method to find an application name from key
 def _find_application_name(artifact_dir: str, api_url: str, auth_token: str, application_key: str):

@@ -1,4 +1,5 @@
-import argparse, fileinput
+import argparse
+import fileinput
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -7,19 +8,23 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with open("VERSION", 'r') as version_file:
-        version = version_file.read().replace('\n','')
+        version = version_file.read().replace('\n', '')
         version_array = version.split('.')
 
     if args.revision:
-        if len(version_array) > 2: # Increments the previous beta version
+        if len(version_array) > 2:
+            # Increments the previous beta version
             revision_version = int(version_array[-1])
             version_array[-1] = str(revision_version + 1)
-        else: # no beta version, creates one with 1
+        else:
+            # no beta version, creates one with 1
             version_array.extend("1")
     elif args.minor:
-        if len(version_array) > 2: # Removes the previous beta version
-            version_array[-1] = "0" # remove revision
-        else: # forces 3 part release versions
+        if len(version_array) > 2:
+            # Removes the previous beta version
+            version_array[-1] = "0"
+        else:
+            # forces 3 part release versions
             while len(version_array) < 3:
                 version_array.extend("0")
         minor_version = int(version_array[-2])
@@ -29,7 +34,7 @@ if __name__ == "__main__":
         version_array = [str(major_version + 1), "0", "0"]
 
     version = ".".join(version_array)
-    
+
     with fileinput.FileInput("setup.py", inplace=True, backup='.bak') as setup_file:
         for line in setup_file:
             print(line.replace("version='<version>'", "version='{}'".format(version)), end='')
