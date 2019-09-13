@@ -1,5 +1,7 @@
 # Python Modules
-import sys, os, argparse
+import sys
+import os
+import argparse
 from time import sleep
 
 # Workaround for Jenkins:
@@ -13,31 +15,30 @@ else:  # Else just add the project dir
 # Custom Modules
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_PLAN_FILE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION, DEPLOYMENT_MESSAGE
-from outsystems.vars.pipeline_vars import DEPLOYMENT_STATUS_LIST, QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
+from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
-from outsystems.lifetime.lifetime_applications import get_application_versions, get_running_app_version
-from outsystems.lifetime.lifetime_deployments import get_deployments, get_deployment_status, get_deployment_info, \
+from outsystems.lifetime.lifetime_applications import get_running_app_version
+from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
     send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
 from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
-from outsystems.exceptions.no_deployments import NoDeploymentsError
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 
 # Exceptions
 # Functions
 # Variables
 
-############################################################## VARS ##############################################################
+# ---------------------- VARS ----------------------
 # Set script local variables
 app_data_list = []  # will contain the applications to deploy details from LT
 app_keys = []  # will contain the application keys to deploy from LT
 to_deploy_app_keys = []  # will contain the app keys for the apps tagged
 
-############################################################## SCRIPT ##############################################################
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_note: str):
 
+# ---------------------- SCRIPT ----------------------
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_note: str):
     # use the script variables
     global app_data_list, app_keys, to_deploy_app_keys
 
@@ -69,7 +70,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             raise NotImplementedError("Please make sure the API version is compatible with the module.")
         # Add it to the app data listapp_version
         app_data_list.append({'Name': app_name, 'Key': app_key, 'Version': app_version, 'VersionKey': app_version_key})
-    
+
     # Check if target environment already has the application versions to be deployed
     for app in app_data_list:
         # get the status of the app in the target env, to check if they were deployed
@@ -113,7 +114,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Check if created deployment plan has conflicts
     dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)
     if len(dep_details["ApplicationConflicts"]) > 0:
-        store_data(artifact_dir, CONFLICTS_FILE,dep_details["ApplicationConflicts"])
+        store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
         print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE))
         # Abort previously created deployment plan to target environment
         delete_deployment(lt_endpoint, lt_token, dep_plan_key)
@@ -123,7 +124,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # The plan has no conflits. Save it to the artifacts storage
     filename = "{}{}".format(dep_plan_key, DEPLOYMENT_PLAN_FILE)
     store_data(artifact_dir, filename, dep_details)
-    
+
     # Check if outdated consumer applications (outside of deployment plan) should be redeployed and start the deployment plan execution
     if lt_api_version == 1:  # LT for OS version < 11
         start_deployment(lt_endpoint, lt_token, dep_plan_key)
@@ -162,29 +163,31 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     print("Timeout occurred while deployment plan is still in {} status.".format(DEPLOYMENT_RUNNING_STATUS))
     sys.exit(1)
 
+
 # End of main()
+
 
 if __name__ == "__main__":
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--artifacts", type=str, default=ARTIFACT_FOLDER, 
-        help="Name of the artifacts folder. Default: \"Artifacts\"")
-    parser.add_argument("-u", "--lt_url", type=str, required=True, 
-        help="URL for LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
-    parser.add_argument("-t", "--lt_token", type=str, required=True, 
-        help="Token for LifeTime API calls.")
+    parser.add_argument("-a", "--artifacts", type=str, default=ARTIFACT_FOLDER,
+                        help="Name of the artifacts folder. Default: \"Artifacts\"")
+    parser.add_argument("-u", "--lt_url", type=str, required=True,
+                        help="URL for LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
+    parser.add_argument("-t", "--lt_token", type=str, required=True,
+                        help="Token for LifeTime API calls.")
     parser.add_argument("-v", "--lt_api_version", type=int, default=LIFETIME_API_VERSION,
-        help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2")
+                        help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2")
     parser.add_argument("-e", "--lt_endpoint", type=str, default=LIFETIME_API_ENDPOINT,
-        help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
+                        help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-s", "--source_env", type=str, required=True,
-        help="Name, as displayed in LifeTime, of the source environment where the apps are.")
+                        help="Name, as displayed in LifeTime, of the source environment where the apps are.")
     parser.add_argument("-d", "--destination_env", type=str, required=True,
-        help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps.")
+                        help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps.")
     parser.add_argument("-l", "--app_list", type=str, required=True,
-        help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
+                        help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-m", "--deploy_msg", type=str, default=DEPLOYMENT_MESSAGE,
-        help="Message you want to show on the deployment plans in LifeTime. Default: \"Automated deploy using OS Pipelines\".")
+                        help="Message you want to show on the deployment plans in LifeTime. Default: \"Automated deploy using OS Pipelines\".")
 
     args = parser.parse_args()
     # Parse the artifact directory

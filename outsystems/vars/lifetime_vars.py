@@ -31,7 +31,7 @@ DEPLOYMENTS_EMPTY_CODE = 204
 DEPLOYMENTS_INVALID_CODE = 400
 DEPLOYMENTS_NO_PERMISSION_CODE = 403
 DEPLOYMENTS_FAILED_CODE = 500
-DEPLOYMENT_MESSAGE = "Automated deploy via OutSystems Pipeline" 
+DEPLOYMENT_MESSAGE = "Automated deploy via OutSystems Pipeline"
 # Deployment creation specific
 DEPLOYMENT_PLAN_V1_API_OPS = "ApplicationVersionKeys"
 DEPLOYMENT_PLAN_V2_API_OPS = "ApplicationOperations"

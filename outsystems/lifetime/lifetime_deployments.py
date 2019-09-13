@@ -1,9 +1,10 @@
 # Python Modules
-import json, os, datetime
+import json
+import os
+import datetime
 
 # Custom Modules
 # Exceptions
-from outsystems.exceptions.invalid_parameters import InvalidParametersError
 from outsystems.exceptions.no_deployments import NoDeploymentsError
 from outsystems.exceptions.invalid_parameters import InvalidParametersError
 from outsystems.exceptions.not_enough_permissions import NotEnoughPermissionsError
@@ -26,6 +27,7 @@ from outsystems.vars.lifetime_vars import DEPLOYMENTS_ENDPOINT, DEPLOYMENT_STATU
     DEPLOYMENT_ACTION_NO_DEPLOYMENT_CODE, DEPLOYMENT_ACTION_FAILED_CODE, DEPLOYMENT_PLAN_V1_API_OPS, DEPLOYMENT_PLAN_V2_API_OPS
 from outsystems.vars.file_vars import DEPLOYMENTS_FILE, DEPLOYMENT_FILE, DEPLOYMENT_FOLDER, DEPLOYMENT_STATUS_FILE
 from outsystems.vars.pipeline_vars import DEPLOYMENT_STATUS_LIST
+
 
 # Returns a list of deployments ordered by creation date, from newest to oldest.
 def get_deployments(artifact_dir: str, endpoint: str, auth_token: str, date: str):
@@ -55,6 +57,7 @@ def get_deployments(artifact_dir: str, endpoint: str, auth_token: str, date: str
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
+
 # Returns the details of a given deployment, validating if there are any conflicts.
 # The returned information contains the applications included in the deployment plan and
 # the possible conflicts that can arise from the deployment of the selected applications.
@@ -83,6 +86,7 @@ def get_deployment_info(artifact_dir: str, endpoint: str, auth_token: str, deplo
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
+
 # Returns the details of a given deployment execution, including the deployment status and messages.
 def get_deployment_status(artifact_dir: str, endpoint: str, auth_token: str, deployment_key: str):
     # Builds the API call
@@ -110,6 +114,7 @@ def get_deployment_status(artifact_dir: str, endpoint: str, auth_token: str, dep
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
+
 # Returns the details of the running deployment plan to a specific target environment or empty if nothing is running
 def get_running_deployment(artifact_dir: str, endpoint: str, auth_token: str, dest_env_key: str):
     # List of running deployments
@@ -124,12 +129,14 @@ def get_running_deployment(artifact_dir: str, endpoint: str, auth_token: str, de
                 deployment_status = get_deployment_status(artifact_dir, endpoint, auth_token, deplyoment["Key"])
                 if deployment_status["DeploymentStatus"] in DEPLOYMENT_STATUS_LIST:
                     running_deployments.append(deplyoment)
-        
+
         return running_deployments
 
-    except NoDeploymentsError: # If there are no deployments, return empty
+    except NoDeploymentsError:
+        # If there are no deployments, return empty
         return running_deployments
-    except: # Legit exception that needs to be handle -> bubble up
+    except:
+        # Legit exception that needs to be handle -> bubble up
         raise
 
 
@@ -162,6 +169,7 @@ def send_deployment(artifact_dir: str, endpoint: str, auth_token: str, lt_api_ve
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
+
 # Discards a deployment, if possible. Only deployments whose state is “saved” can be deleted.
 def delete_deployment(endpoint: str, auth_token: str, deployment_key: str):
     # Builds the API call
@@ -186,6 +194,7 @@ def delete_deployment(endpoint: str, auth_token: str, deployment_key: str):
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
+
 
 # Executes the start command in a specified deployment.
 # The initiation of a deployment plan will check if it's valid.
@@ -222,6 +231,7 @@ def start_deployment(endpoint: str, auth_token: str, deployment_key: str, **kwar
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
+
 # Executes the continue command in a specified deployment.
 def continue_deployment(endpoint: str, auth_token: str, deployment_key: str):
     # Builds the API call
@@ -248,7 +258,8 @@ def continue_deployment(endpoint: str, auth_token: str, deployment_key: str):
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
-########################################## PRIVATE METHODS ##########################################
+
+# ---------------------- PRIVATE METHODS ----------------------
 def _create_deployment_plan(artifact_dir: str, endpoint: str, lt_api_version: int, auth_token: str, app_keys: str, dep_note: str, source_env: str, dest_env: str):
     if lt_api_version == 1:
         api_var_name = DEPLOYMENT_PLAN_V1_API_OPS
