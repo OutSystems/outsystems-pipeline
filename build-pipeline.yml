@@ -38,6 +38,11 @@ jobs:
     displayName: 'Install dependencies'
 
   - script: |
+     python -m pip install flake8
+     flake8 .
+    displayName: 'Run lint validation'
+
+  - script: |
       pip install pytest
       pytest test --doctest-modules --junitxml=junit/test-results.xml
     displayName: 'pytest'
