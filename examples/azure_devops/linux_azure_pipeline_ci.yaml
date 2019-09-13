@@ -132,7 +132,7 @@ stages:
         echo "Switch to $(PythonEnvName) Virtual Environment"
         source $(PythonEnvName)/bin/activate
 
-        python -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$(ArtifactsFolder)" --app_list "$(ApplicationScopeWithTests)" \
+        python3 -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$(ArtifactsFolder)" --app_list "$(ApplicationScopeWithTests)" \
           --cicd_probe_env $(CICDProbeURL) --bdd_framework_env $(BDDFrameworkURL)
         status=$?
 
@@ -155,7 +155,7 @@ stages:
         echo "Switch to $(PythonEnvName) Virtual Environment"
         source $(PythonEnvName)/bin/activate
 
-        python -m outsystems.pipeline.evaluate_test_results --artifacts "$(ArtifactsFolder)"
+        python3 -m outsystems.pipeline.evaluate_test_results --artifacts "$(ArtifactsFolder)"
         status=$?
 
         echo "Leave the Virtual Environment for now"
