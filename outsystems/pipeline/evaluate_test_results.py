@@ -1,5 +1,9 @@
 # Python Modules
-import unittest, json, os, xmlrunner, sys, argparse
+import unittest
+import os
+import xmlrunner
+import sys
+import argparse
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -10,17 +14,19 @@ else:  # Else just add the project dir
     sys.path.append(os.getcwd())
 
 # Custom Modules
-from outsystems.vars.bdd_vars import BDD_HTTP_PROTO, BDD_API_VERSION, BDD_API_ENDPOINT
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE, JUNIT_TEST_RESULTS_FILE
 from outsystems.bdd_framework.bdd_runner import run_bdd_test
 from outsystems.file_helpers.file import load_data
+
+
 # Functions
 # Variables
 
-########################################################### TEST CLASS ###########################################################
+# ---------------------- TEST CLASS ----------------------
 # Generator class that will create a unit test for each entry of the test results and print out a XML in tests/python-tests/*.xml
 class BDDTestRunner(unittest.TestCase):
     longMessage = False
+
 
 def format_error_report(error_obj):
     description = ""
@@ -32,13 +38,16 @@ def format_error_report(error_obj):
         description += "\nAn error was found in the unit test.\nError: {}".format(error_obj["ErrorMessage"])
     return description
 
-def bdd_check_generator(url :str):
+
+def bdd_check_generator(url: str):
     def test(self):
         json_obj = run_bdd_test(url)
         self.assertTrue(json_obj["SuiteSuccess"], format_error_report(json_obj))
+
     return test
 
-############################################################## SCRIPT ##############################################################
+
+# ---------------------- SCRIPT ----------------------
 if __name__ == '__main__':
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
@@ -58,7 +67,7 @@ if __name__ == '__main__':
         test_func = bdd_check_generator(test_endpoint["URL"])
         test_name = "test_{}__{}".format(test_endpoint["TestSuite"], test_endpoint["Name"])
         setattr(BDDTestRunner, test_name, test_func)
-        
+
     # Runs the test suite and stores the value in a XMN file to be used by JUNIT
     filename = os.path.join(ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE)
     try:

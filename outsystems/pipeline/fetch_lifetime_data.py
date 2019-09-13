@@ -1,5 +1,7 @@
 # Python Modules
-import os, sys, argparse
+import os
+import sys
+import argparse
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -16,7 +18,8 @@ from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.file_vars import ARTIFACT_FOLDER
 
-############################################################## SCRIPT ##############################################################
+
+# ---------------------- SCRIPT ----------------------
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str):
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(
