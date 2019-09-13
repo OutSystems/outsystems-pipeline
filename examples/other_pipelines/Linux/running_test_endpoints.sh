@@ -23,5 +23,10 @@ source $env_name/bin/activate
 echo "Building the test endpoints"
 python3 -m outsystems.pipeline.evaluate_test_results --artifacts "$artifacts"
 
+# Store the exit status from the command above, to make it the exit status of this script
+status_code=$?
+
 echo "Leave the Virtual Environment for now"
 deactivate
+
+exit $status_code
