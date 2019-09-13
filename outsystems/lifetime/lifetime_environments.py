@@ -18,6 +18,7 @@ from outsystems.vars.lifetime_vars import ENVIRONMENTS_ENDPOINT, ENVIRONMENT_APP
     ENVIRONMENT_APP_NO_PERMISSION_CODE, ENVIRONMENT_APP_NOT_FOUND, ENVIRONMENT_APP_FAILED_CODE
 from outsystems.vars.file_vars import ENVIRONMENTS_FILE, ENVIRONMENT_FOLDER, ENVIRONMENT_APPLICATION_FILE
 
+
 # Lists all the environments in the infrastructure.
 def get_environments(artifact_dir: str, endpoint: str, auth_token: str):
     # Sends the request
@@ -38,9 +39,11 @@ def get_environments(artifact_dir: str, endpoint: str, auth_token: str):
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
+
 # Returns the environment key.
 def get_environment_key(artifact_dir: str, endpoint: str, auth_token: str, environment_name: str):
     return _find_environment_key(artifact_dir, endpoint, auth_token, environment_name)
+
 
 # Returns information about the running version of the specified application in a given environment.
 def get_environment_app_version(artifact_dir: str, endpoint: str, auth_token: str, extra_data: bool, **kwargs):
@@ -80,7 +83,8 @@ def get_environment_app_version(artifact_dir: str, endpoint: str, auth_token: st
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
-########################################## PRIVATE METHODS ##########################################
+
+# ---------------------- PRIVATE METHODS ----------------------
 # Private method to get the App name or key into a tuple (name,key).
 def _get_environment_info(artifact_dir: str, api_url: str, auth_token: str, **kwargs):
     if "env_name" in kwargs:
@@ -94,7 +98,8 @@ def _get_environment_info(artifact_dir: str, api_url: str, auth_token: str, **kw
     else:
         raise InvalidParametersError(
             "You need to use either env_name=<name> or env_key=<key> as parameters to call this method.")
-    return (env_name, env_key)
+    return env_name, env_key
+
 
 # Private method to find an environment key from name
 def _find_environment_key(artifact_dir: str, api_url: str, auth_token: str, environment_name: str):
@@ -123,6 +128,7 @@ def _find_environment_key(artifact_dir: str, api_url: str, auth_token: str, envi
         return _find_environment_key(artifact_dir, api_url, auth_token, environment_name)
     return env_key
 
+
 # Private method to find an environment name from key
 def _find_environment_name(artifact_dir: str, api_url: str, auth_token: str, environment_key: str):
     env_name = ""
@@ -149,6 +155,7 @@ def _find_environment_name(artifact_dir: str, api_url: str, auth_token: str, env
         clear_cache(artifact_dir, ENVIRONMENTS_FILE)
         return _find_environment_name(artifact_dir, api_url, auth_token, environment_key)
     return env_name
+
 
 def _find_environment_url(artifact_dir: str, api_url: str, auth_token: str, environment_name: str):
     env_url = ""
