@@ -27,7 +27,7 @@ echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
 echo "Building the test endpoints"
-python3 outsystems/pipeline/generate_unit_testing_assembly.py --artifacts "$artifacts" --app_list "$app_list" --cicd_probe_env $cicd_url --bdd_framework_env $bdd_url
+python3 -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$artifacts" --app_list "$app_list" --cicd_probe_env $cicd_url --bdd_framework_env $bdd_url
 
 echo "Leave the Virtual Environment for now"
 deactivate

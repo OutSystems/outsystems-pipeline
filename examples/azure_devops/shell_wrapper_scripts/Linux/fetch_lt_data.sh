@@ -27,7 +27,7 @@ echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
 echo "Fetch LifeTime data"
-python3 outsystems/pipeline/fetch_lifetime_data.py --artifacts "$artifacts" --lt_url $lt_url --lt_token $lt_token --lt_api_version $lt_api
+python3 -m outsystems.pipeline.fetch_lifetime_data --artifacts "$artifacts" --lt_url $lt_url --lt_token $lt_token --lt_api_version $lt_api
 
 echo "Leave the Virtual Environment for now"
 deactivate

@@ -35,7 +35,7 @@ echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
 echo "Deploy apps to $dest_env"
-python3 outsystems/pipeline/deploy_latest_tags_to_target_env.py --artifacts "$artifacts" --lt_url $lt_url --lt_token $lt_token --lt_api_version $lt_api --source_env "$source_env" --destination_env "$dest_env" --app_list "$app_list" --deploy_msg "$dep_msg"
+python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$artifacts" --lt_url $lt_url --lt_token $lt_token --lt_api_version $lt_api --source_env "$source_env" --destination_env "$dest_env" --app_list "$app_list" --deploy_msg "$dep_msg"
 
 echo "Leave the Virtual Environment for now"
 deactivate

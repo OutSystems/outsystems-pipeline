@@ -21,7 +21,7 @@ echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
 echo "Building the test endpoints"
-python3 outsystems/pipeline/evaluate_test_results.py --artifacts "$artifacts"
+python3 -m outsystems.pipeline.evaluate_test_results --artifacts "$artifacts"
 
 echo "Leave the Virtual Environment for now"
 deactivate

@@ -28,8 +28,10 @@ python3 -m venv $env_name --clear
 echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
-echo "Install Python requirements"
-pip3 install -q -I -r $dep_file
+echo "Installing wheel Package"
+pip3 install -U wheel
+echo "Install OutSystems Pipeline Package"
+pip3 install -U outsystems-pipeline
 
 echo "Leave the Virtual Environment for now"
 deactivate
