@@ -41,7 +41,6 @@ if __name__ == '__main__':  # Do not run setup() when we import this module.
         name=NAME,
         version='<version>',
         description=DESCRIPTION,
-        long_description=open("CHANGELOG.md").read(),
         keywords=' '.join(KEYWORDS),
         author=AUTHOR,
         author_email=EMAIL,
