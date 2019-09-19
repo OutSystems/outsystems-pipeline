@@ -73,7 +73,7 @@ stages:
           . .\$(PythonEnvName)\bin\activate.ps1
 
           Write-Host "Fetch LifeTime data"
-          python -m outsystems.pipeline.fetch_lifetime_data --artifacts "$(ArtifactsFolder)" --lt_url $(LTURL) \
+          python -m outsystems.pipeline.fetch_lifetime_data --artifacts "$(ArtifactsFolder)" --lt_url $(LTURL) `
             --lt_token $(LTToken) --lt_api_version $(LTAPIVersion)
           $status_code = $LASTEXITCODE
 
@@ -100,8 +100,8 @@ stages:
           . .\$(PythonEnvName)\bin\activate.ps1
 
           Write-Host "Deploy $(ApplicationScopeWithTests) to $(DstEnv)"
-          python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$(ArtifactsFolder)" --lt_url $(LTURL) \
-            --lt_token $(LTToken) --lt_api_version $(LTAPIVersion) --source_env "$(SrcEnv)" --destination_env "$(DstEnv)" \
+          python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$(ArtifactsFolder)" --lt_url $(LTURL) `
+            --lt_token $(LTToken) --lt_api_version $(LTAPIVersion) --source_env "$(SrcEnv)" --destination_env "$(DstEnv)" `
             --app_list "$(ApplicationScopeWithTests)" --deploy_msg "$(DeployMsg)"
           $status_code = $LASTEXITCODE
 
@@ -137,7 +137,7 @@ stages:
           Write-Host "Switch to $(PythonEnvName) Virtual Environment"
           . .\$(PythonEnvName)\bin\activate.ps1
 
-          python -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$(ArtifactsFolder)" --app_list "$(ApplicationScopeWithTests)" \
+          python -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$(ArtifactsFolder)" --app_list "$(ApplicationScopeWithTests)" `
             --cicd_probe_env $(CICDProbeURL) --bdd_framework_env $(BDDFrameworkURL)
           $status_code = $LASTEXITCODE
           
