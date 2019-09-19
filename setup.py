@@ -4,7 +4,7 @@ import os
 NAME = 'outsystems-pipeline'
 DESCRIPTION = 'Python pipeline to enable continuous testing using OutSystems.'
 AUTHOR = u'João Furtado, Miguel Afonso, Rui Mendes, Mário Pires'
-EMAIL = u'joao.furtado@outsystems.com, miguel.afonso@outsystems.com, rui.mendes@outsystems.com, mario.pires@outsystems.com'
+EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
 KEYWORDS = [
     '',
