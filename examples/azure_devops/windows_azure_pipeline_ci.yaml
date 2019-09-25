@@ -1,194 +1,73 @@
-name: $(Build.DefinitionName)_$(Date:yyyyMMdd)$(Rev:_r)
+---
+steps:
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      Write-Host "Create $(ArtifactsBuildFolder) directory on $(System.DefaultWorkingDirectory)"
+      mkdir "$(ArtifactsBuildFolder)" -Force
+    workingDirectory: $(System.DefaultWorkingDirectory)
+  displayName: 'Create Artifacts Folder'
 
-# will disable CI builds
-trigger: none 
-# will disable PR builds
-pr: none 
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: pip install -U outsystems-pipeline==$(OSPipelineVersion)
+    workingDirectory: $(System.DefaultWorkingDirectory)
+  displayName: 'Install OutSystems Pipeline Package'
 
-variables:
-  AgentPool: 'Default'
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: python -m outsystems.pipeline.fetch_lifetime_data --artifacts "$(ArtifactsBuildFolder)" --lt_url $env:lifeTimeEnvironmentURL --lt_token $(LifeTimeServiceAccountToken) --lt_api_version $(LifeTimeAPIVersion)
+  displayName: 'Fetch Lifetime Data'
 
-stages:
-- stage: Pre_Req_installation
-  displayName: Install Python Dependencies and create Artifact directory
-  jobs:
-  - job: InstallDependencies
-    pool: $(AgentPool)
-    displayName: Create Artifacts Folder and Installing dependencies
-    workspace:
-      clean: all
-    steps:
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Create $(ArtifactsFolder) directory on $(System.DefaultWorkingDirectory)"
-          mkdir "$(ArtifactsFolder)"
-        workingDirectory: $(System.DefaultWorkingDirectory)
-      displayName: Create Artifacts Folder
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$(ArtifactsBuildFolder)" --lt_url $(LifeTimeEnvironmentURL) --lt_token $(LifeTimeServiceAccountToken) --lt_api_version $(LifeTimeAPIVersion) --source_env $(DevelopmentEnvironment) --destination_env $(RegressionEnvironment) --app_list "$(ApplicationScopeWithTests)"
+  displayName: 'Deploy to CI Environment'
 
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Install Virtual Environment package"
-          pip install -q -I virtualenv --user
-        workingDirectory: $(System.DefaultWorkingDirectory)
-      displayName: Install virtual environment
-      
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Create $(PythonEnvName) Virtual Environment"
-          python -m venv $(PythonEnvName) --clear
-        workingDirectory: $(System.DefaultWorkingDirectory)
-      displayName: Create $(PythonEnvName) Virtual Environment and activate it
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: python -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$(ArtifactsBuildFolder)" --app_list "$(ApplicationScopeWithTests)" --cicd_probe_env $(ProbeEnvironmentURL) --bdd_framework_env $(BddEnvironmentURL)
+  displayName: 'Generate URLs for BDD testing'
 
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Switch to $(PythonEnvName) Virtual Environment"
-          . .\$(PythonEnvName)\bin\activate.ps1
-          Write-Host "Installing wheel Package"
-          pip install -U wheel
-          Write-Host "Install OutSystems Pipeline Package"
-          pip install -U outsystems-pipeline
-          Write-Host "Leave $(PythonEnvName) Virtual Environment for now"
-          deactivate
-        workingDirectory: $(System.DefaultWorkingDirectory)
-      displayName: Install OutSystems Pipeline Package
-      
-  - job: DeployToRegression
-    displayName: Deploy latest apps to the Regression environment
-    dependsOn: InstallDependencies
-    pool: $(AgentPool)
-    steps:
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Switch to $(PythonEnvName) Virtual Environment"
-          . .\$(PythonEnvName)\bin\activate.ps1
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: python -m outsystems.pipeline.evaluate_test_results --artifacts "$(ArtifactsBuildFolder)"
+  displayName: 'Evaluate Test Results'
+  continueOnError: true
 
-          Write-Host "Fetch LifeTime data"
-          python -m outsystems.pipeline.fetch_lifetime_data --artifacts "$(ArtifactsFolder)" --lt_url $(LTURL) `
-            --lt_token $(LTToken) --lt_api_version $(LTAPIVersion)
-          $status_code = $LASTEXITCODE
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results'
+  inputs:
+    testResultsFiles: '$(ArtifactsBuildFolder)\junit-result.xml'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
 
-          Write-Host "Leave $(PythonEnvName) Virtual Environment for now"
-          deactivate
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script:  New-Item -Force -Path $(ArtifactsBuildFolder) -Name "ApplicationScope.cache" -ItemType "file" -Value "$(ApplicationScope)"
+  displayName: 'Write ApplicationScope to File'
+  continueOnError: true
 
-          Write-Host "Stashing the *.cache generated in the pipeline logs"
-          $cache_files = Get-ChildItem -Path "$PWD\$(ArtifactsFolder)\*.cache"
-          
-          foreach ($cfile in $cache_files) {
-            Write-Host "Stashing $cfile"
-            Write-Output "##vso[task.uploadfile]$cfile"
-          }
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: versions'
+  inputs:
+    PathtoPublish: $(ArtifactsBuildFolder)
+    ArtifactName: $(ArtifactName)
 
-          exit $status_code
-        workingDirectory: $(System.DefaultWorkingDirectory)
-      displayName: Fetch LifeTime data
-    
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: |
-          Write-Host "Switch to $(PythonEnvName) Virtual Environment"
-          . .\$(PythonEnvName)\bin\activate.ps1
-
-          Write-Host "Deploy $(ApplicationScopeWithTests) to $(DstEnv)"
-          python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$(ArtifactsFolder)" --lt_url $(LTURL) `
-            --lt_token $(LTToken) --lt_api_version $(LTAPIVersion) --source_env "$(SrcEnv)" --destination_env "$(DstEnv)" `
-            --app_list "$(ApplicationScopeWithTests)" --deploy_msg "$(DeployMsg)"
-          $status_code = $LASTEXITCODE
-
-          Write-Host "Leave the Virtual Environment for now"
-          deactivate
-
-          Write-Host "Stashing the *.cache generated in the pipeline logs"
-          $cache_files = Get-ChildItem -Path "$PWD\$(ArtifactsFolder)\*.cache" -Recurse
-          foreach ($cfile in $cache_files) {
-            Write-Host "Stashing $cfile"
-            Write-Output "##vso[task.uploadfile]$cfile"
-          }
-
-          $conflicts_file = Get-ChildItem -Path $PWD\$(ArtifactsFolder)\DeploymentConflicts
-          if(Test-Path $conflicts_file) {
-            Write-Host "Stashing $conflicts_file"
-            Write-Output "##vso[task.uploadfile]$conflicts_file"
-          }
-        
-          exit $status_code
-        workingDirectory: $(System.DefaultWorkingDirectory)
-      displayName: Deploy apps to $(DstEnv)
-
-  - job: RunRegressionTests
-    displayName: Run tests on the Regression Environment
-    dependsOn: DeployToRegression
-    pool: $(AgentPool)
-    steps:
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: | 
-          Write-Host "Switch to $(PythonEnvName) Virtual Environment"
-          . .\$(PythonEnvName)\bin\activate.ps1
-
-          python -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$(ArtifactsFolder)" --app_list "$(ApplicationScopeWithTests)" `
-            --cicd_probe_env $(CICDProbeURL) --bdd_framework_env $(BDDFrameworkURL)
-          $status_code = $LASTEXITCODE
-          
-          Write-Host "Leave the Virtual Environment for now"
-          deactivate
-
-          Write-Host "Stashing the *.cache generated in the pipeline logs"
-          $cache_files = Get-ChildItem -Path "$PWD\$(ArtifactsFolder)\*.cache" -Recurse
-          foreach ($cfile in $cache_files) {
-            Write-Host "Stashing $cfile"
-            Write-Output "##vso[task.uploadfile]$cfile"
-          }
-
-          exit $status_code
-        workingDirectory: $(System.DefaultWorkingDirectory)
-      displayName: Generate BDD URLs for testing
-
-    - task: PowerShell@2
-      inputs:
-        targetType: 'inline'
-        script: | 
-          Write-Host "Switch to $(PythonEnvName) Virtual Environment"
-          . .\$(PythonEnvName)\bin\activate.ps1
-
-          python -m outsystems.pipeline.evaluate_test_results --artifacts "$(ArtifactsFolder)"
-          $status_code = $LASTEXITCODE
-
-          Write-Host "Leave the Virtual Environment for now"
-          deactivate
-          
-          exit $status_code
-        workingDirectory: $(System.DefaultWorkingDirectory)
-      displayName: Evaluate Test Results
-    
-    - task: PublishTestResults@2
-      name: PublishTestResults
-      inputs:
-        testResultsFormat: JUnit
-        testResultsFiles: "*.xml"
-        searchFolder: $(System.DefaultWorkingDirectory)/$(ArtifactsFolder)
-        failTaskOnFailedTests: true
-        mergeTestResults: true
-        testRunTitle: BDD Test Results
-      displayName: Publish Regression JUnit test results
-  
-  - job: PublishArtifact
-    displayName: Publish Artifacts used to deploy to Regression
-    dependsOn: RunRegressionTests
-    pool: $(AgentPool)
-    steps:
-    - task: PublishBuildArtifacts@1
-      inputs:
-        PathtoPublish: $(System.DefaultWorkingDirectory)/$(ArtifactsFolder)/application_data
-        ArtifactName: artifacts_ci
+- powershell: |
+    Write-Host "Stashing the *.cache generated in the pipeline logs"
+    $cache_files = Get-ChildItem -Path "$(ArtifactsBuildFolder)\*.cache" -Recurse
+    foreach ($cfile in $cache_files) {
+      Write-Host "Stashing $cfile"
+      Write-Output "##vso[task.uploadfile]$cfile"
+    }
+  condition: always()
+  displayName: 'Stash generated *.cache files into pipeline logs'
+...

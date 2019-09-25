@@ -1,0 +1,227 @@
+{
+    "tasks": [
+        {
+            "environment": {},
+            "displayName": "Get OutSystems Pipeline Library",
+            "alwaysRun": false,
+            "continueOnError": false,
+            "condition": "succeeded()",
+            "enabled": true,
+            "timeoutInMinutes": 0,
+            "inputs": {
+                "targetType": "inline",
+                "filePath": "",
+                "arguments": "",
+                "script": "pip install -U outsystems-pipeline==$(OSPipelineVersion)",
+                "errorActionPreference": "stop",
+                "failOnStderr": "false",
+                "ignoreLASTEXITCODE": "false",
+                "pwsh": "false",
+                "workingDirectory": ""
+            },
+            "task": {
+                "id": "e213ff0f-5d5c-4791-802d-52ea3e7be1f1",
+                "versionSpec": "2.*",
+                "definitionType": "task"
+            }
+        },
+        {
+            "environment": {},
+            "displayName": "Copy Deployment Manifest to working directory",
+            "alwaysRun": false,
+            "continueOnError": false,
+            "condition": "succeeded()",
+            "enabled": true,
+            "timeoutInMinutes": 0,
+            "inputs": {
+                "SourceFolder": "$(System.DefaultWorkingDirectory)\\_$(Build.DefinitionName)\\$(ArtifactName)",
+                "Contents": "**",
+                "TargetFolder": "$(ArtifactsReleaseFolder)",
+                "CleanTargetFolder": "false",
+                "OverWrite": "false",
+                "flattenFolders": "false",
+                "preserveTimestamp": "false"
+            },
+            "task": {
+                "id": "5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c",
+                "versionSpec": "2.*",
+                "definitionType": "task"
+            }
+        },
+        {
+            "environment": {},
+            "displayName": "Deploy to Destination Environment",
+            "alwaysRun": false,
+            "continueOnError": false,
+            "condition": "succeeded()",
+            "enabled": true,
+            "timeoutInMinutes": 0,
+            "inputs": {
+                "targetType": "inline",
+                "filePath": "",
+                "arguments": "",
+                "script": "$ApplicationScope = Get-Content -Path $(ArtifactsReleaseFolder)\\ApplicationScope.cache\n\npython -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"$(ArtifactsReleaseFolder)\"  --lt_url $(LifeTimeEnvironmentURL)  --lt_token $(LifeTimeServiceAccountToken)  --lt_api_version $(LifeTimeAPIVersion)  --source_env $(SourceEnvironment)  --destination_env $(DestinationEnvironment)  --app_list $ApplicationScope",
+                "errorActionPreference": "stop",
+                "failOnStderr": "false",
+                "ignoreLASTEXITCODE": "false",
+                "pwsh": "false",
+                "workingDirectory": ""
+            },
+            "task": {
+                "id": "e213ff0f-5d5c-4791-802d-52ea3e7be1f1",
+                "versionSpec": "2.*",
+                "definitionType": "task"
+            }
+        },
+        {
+            "environment": {},
+            "displayName": "Stash generated *.cache files into pipeline logs",
+            "alwaysRun": false,
+            "continueOnError": true,
+            "condition": "always()",
+            "enabled": true,
+            "timeoutInMinutes": 0,
+            "inputs": {
+                "targetType": "inline",
+                "filePath": "",
+                "arguments": "",
+                "script": "Write-Host \"Stashing the *.cache generated in the pipeline logs\"\n$cache_files = Get-ChildItem -Path \"$(ArtifactsReleaseFolder)\\*.cache\" -Recurse\nforeach ($cfile in $cache_files) {\n    Write-Host \"Stashing $cfile\"\n    Write-Output \"##vso[task.uploadfile]$cfile\"\n}",
+                "errorActionPreference": "stop",
+                "failOnStderr": "false",
+                "ignoreLASTEXITCODE": "false",
+                "pwsh": "false",
+                "workingDirectory": ""
+            },
+            "task": {
+                "id": "e213ff0f-5d5c-4791-802d-52ea3e7be1f1",
+                "versionSpec": "2.*",
+                "definitionType": "task"
+            }
+        }
+    ],
+    "runsOn": [
+        "Agent",
+        "DeploymentGroup"
+    ],
+    "revision": 1,
+    "comment": "",
+    "name": "OS_deploy_to_destination_env",
+    "version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "isTest": false
+    },
+    "friendlyName": "OS_deploy_to_destination_env",
+    "description": "",
+    "category": "Deploy",
+    "definitionType": "metaTask",
+    "author": "OutSystems",
+    "demands": [],
+    "groups": [],
+    "inputs": [
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "ArtifactName",
+            "label": "ArtifactName",
+            "defaultValue": "",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "ArtifactsReleaseFolder",
+            "label": "ArtifactsReleaseFolder",
+            "defaultValue": "",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "DestinationEnvironment",
+            "label": "DestinationEnvironment",
+            "defaultValue": "",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "LifeTimeAPIVersion",
+            "label": "LifeTimeAPIVersion",
+            "defaultValue": "",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "LifeTimeEnvironmentURL",
+            "label": "LifeTimeEnvironmentURL",
+            "defaultValue": "",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "LifeTimeServiceAccountToken",
+            "label": "LifeTimeServiceAccountToken",
+            "defaultValue": "",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "OSPipelineVersion",
+            "label": "OSPipelineVersion",
+            "defaultValue": "",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "SourceEnvironment",
+            "label": "SourceEnvironment",
+            "defaultValue": "",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        }
+    ],
+    "satisfies": [],
+    "sourceDefinitions": [],
+    "dataSourceBindings": [],
+    "instanceNameFormat": "Task group: OS_deploy_to_destination_env",
+    "preJobExecution": {},
+    "execution": {},
+    "postJobExecution": {}
+}
