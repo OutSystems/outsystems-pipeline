@@ -37,7 +37,9 @@ steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: python -m outsystems.pipeline.evaluate_test_results --artifacts "$(ArtifactsBuildFolder)"
+    script: |
+      python -m outsystems.pipeline.evaluate_test_results --artifacts "$(ArtifactsBuildFolder)"
+      exit 0
   displayName: 'Evaluate Test Results'
   continueOnError: true
 
