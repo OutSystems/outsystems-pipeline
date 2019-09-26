@@ -19,13 +19,13 @@ steps:
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: python -m outsystems.pipeline.fetch_lifetime_data --artifacts "$(ArtifactsBuildFolder)" --lt_url $env:lifeTimeEnvironmentURL --lt_token $(LifeTimeServiceAccountToken) --lt_api_version $(LifeTimeAPIVersion)
+    script: python -m outsystems.pipeline.fetch_lifetime_data --artifacts "$(ArtifactsBuildFolder)" --lt_url  $(LifeTimeHostname) --lt_token $(LifeTimeServiceAccountToken) --lt_api_version $(LifeTimeAPIVersion)
   displayName: 'Fetch Lifetime Data'
 
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
-    script: python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$(ArtifactsBuildFolder)" --lt_url $(LifeTimeEnvironmentURL) --lt_token $(LifeTimeServiceAccountToken) --lt_api_version $(LifeTimeAPIVersion) --source_env $(DevelopmentEnvironment) --destination_env $(RegressionEnvironment) --app_list "$(ApplicationScopeWithTests)"
+    script: python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$(ArtifactsBuildFolder)" --lt_url $(LifeTimeHostname) --lt_token $(LifeTimeServiceAccountToken) --lt_api_version $(LifeTimeAPIVersion) --source_env $(DevelopmentEnvironment) --destination_env $(RegressionEnvironment) --app_list "$(ApplicationScopeWithTests)"
   displayName: 'Deploy to CI Environment'
 
 - task: PowerShell@2
