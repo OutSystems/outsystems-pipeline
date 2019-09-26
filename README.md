@@ -6,7 +6,7 @@ This project is maintained by OutSystems and contains the source code of `outsys
 
 ## Getting started
 
-Access the [Wiki](../wiki) section for all the information on how to use `outsystems-pipeline` and set up your OutSystems pipelines.
+In the [Wiki](../wiki) you will find all the information on how to use `outsystems-pipeline` and set up your OutSystems pipelines.
 
 The following are step-by-step instructions on how to setup OutSystems CI/CD pipelines using `outsystems-pipeline`:
 
