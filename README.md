@@ -9,7 +9,3 @@ You can access the [Wiki](https://github.com/OutSystems/outsystems-pipeline/wiki
 ## Change Log
 
 See the change log [here](../master/CHANGELOG.md)
-
-## How to Contribute
-
-See here the [Code of Conduct](../master/CODE_OF_CONDUCT.md)
