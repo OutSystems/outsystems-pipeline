@@ -6,6 +6,7 @@ DESCRIPTION = 'Set of Python functions to accelerate building OutSystems CI/CD p
 AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
+LICENSE = 'Apache License 2.0'
 KEYWORDS = [
     '',
 ]
@@ -45,6 +46,7 @@ if __name__ == '__main__':  # Do not run setup() when we import this module.
         author=AUTHOR,
         author_email=EMAIL,
         url=URL,
+        license=LICENSE,
         packages=PACKAGES,
         install_requires=REQUIREMENTS
     )
