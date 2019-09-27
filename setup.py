@@ -7,6 +7,7 @@ AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
 LICENSE = 'Apache License 2.0'
+PYTHON_REQUIRES=">=3.7"
 KEYWORDS = [
     '',
 ]
@@ -47,6 +48,7 @@ if __name__ == '__main__':  # Do not run setup() when we import this module.
         author_email=EMAIL,
         url=URL,
         license=LICENSE,
+        python_requires=PYTHON_REQUIRES,
         packages=PACKAGES,
         install_requires=REQUIREMENTS
     )
