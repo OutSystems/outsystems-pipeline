@@ -15,11 +15,11 @@ The following are step-by-step instructions on how to setup OutSystems CI/CD pip
 
 We also provide [example scripts](../example_templates/examples/other_pipelines) to help bootstrap your custom pipelines.
 
-## Get In Touch
+## Get in touch
 
 Help us improve `outsystems-pipeline` by either [submitting an issue](../issues) with detailed information about the problem you're having or by [sending us an email](mailto:cicd.integrations@outsystems.com) with any feedback or questions that you may have.
 
-## Change Log
+## Change log
 
 See the [change log](../master/CHANGELOG.md) to learn about the latest changes and improvements to `outsystems-pipeline`.
 
