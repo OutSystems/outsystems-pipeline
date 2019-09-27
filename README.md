@@ -6,9 +6,9 @@ This project is maintained by [OutSystems](https://www.outsystems.com/) and cont
 
 ## Getting started
 
-In the [Wiki](https://github.com/OutSystems/outsystems-pipeline/wiki) you will find all the information on how to use `outsystems-pipeline` and set up your OutSystems pipelines.
+In the [Wiki](https://github.com/OutSystems/outsystems-pipeline/wiki) you will find all the information on how to use `outsystems-pipeline` and on setting up your OutSystems pipelines.
 
-The following are step-by-step instructions on how to setup OutSystems CI/CD pipelines using `outsystems-pipeline`:
+The following are step-by-step instructions on how to set up OutSystems CI/CD pipelines using `outsystems-pipeline`:
 
 * [Building an OutSystems pipeline with Jenkins](https://github.com/OutSystems/outsystems-pipeline/wiki/Building-an-OutSystems-pipeline-with-Jenkins)
 * [Building an OutSystems pipeline with Azure DevOps](https://github.com/OutSystems/outsystems-pipeline/wiki/Building-an-OutSystems-pipeline-with-Azure-DevOps)
