@@ -2,11 +2,11 @@
 
 ![Build Status](https://dev.azure.com/os-pipeline/OutSystems-Pipeline/_apis/build/status/OutSystems.outsystems-pipeline?branchName=master)
 
-This project is maintained by [OutSystems](https://www.outsystems.com/) and contains the source code of `outsystems-pipeline`, a Python package [distributed on PyPI.org](https://pypi.org/project/outsystems-pipeline/) that provides functions to support the creation of OutSystems CI/CD pipelines using your DevOps automation tool of choice.
+This project contains the source code of `outsystems-pipeline`, a Python package [distributed on PyPI.org](https://pypi.org/project/outsystems-pipeline/) maintained by [OutSystems](https://www.outsystems.com) to accelerate the creation of OutSystems CI/CD pipelines using your DevOps automation tool of choice. The project also includes example scripts and pipeline templates.
 
 ## Getting started
 
-In the [Wiki](https://github.com/OutSystems/outsystems-pipeline/wiki) you will find all the information on how to use `outsystems-pipeline` and on setting up your OutSystems pipelines.
+In the [Wiki](https://github.com/OutSystems/outsystems-pipeline/wiki), you will find all the information on how to use `outsystems-pipeline` and on setting up your OutSystems pipelines.
 
 The following are step-by-step instructions on how to set up OutSystems CI/CD pipelines using `outsystems-pipeline`:
 
@@ -17,7 +17,10 @@ We also provide [example scripts](https://github.com/OutSystems/outsystems-pipel
 
 ## Get in touch
 
-Help us improve `outsystems-pipeline` by either [submitting an issue](https://github.com/OutSystems/outsystems-pipeline/issues) with detailed information about the problem you're having or by [sending us an email](mailto:cicd.integrations@outsystems.com) with any feedback or questions that you may have.
+Help us improve `outsystems-pipeline` by either:
+
+* [Submitting an issue](https://github.com/OutSystems/outsystems-pipeline/issues) with detailed information about the problem you're having
+* [Sending us an email](mailto:cicd.integrations@outsystems.com) with any feedback or questions that you may have
 
 ## Change log
 
