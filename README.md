@@ -25,4 +25,4 @@ See the [change log](CHANGELOG.md) to learn about the latest changes and improve
 
 ## License
 
-OutSystems distributes the project `outsystem-pipeline` under the [Apache License](LICENSE.md) with no support. For more information, see the [notice file](NOTICE.md).
+OutSystems distributes the project `outsystem-pipeline` under the [Apache License](LICENSE) with no support. For more information, see the [notice file](NOTICE.md).
