@@ -6,22 +6,22 @@ This project is maintained by [OutSystems](https://www.outsystems.com/) and cont
 
 ## Getting started
 
-In the [Wiki](../wiki) you will find all the information on how to use `outsystems-pipeline` and set up your OutSystems pipelines.
+In the [Wiki](https://github.com/OutSystems/outsystems-pipeline/wiki) you will find all the information on how to use `outsystems-pipeline` and set up your OutSystems pipelines.
 
 The following are step-by-step instructions on how to setup OutSystems CI/CD pipelines using `outsystems-pipeline`:
 
-* [Building an OutSystems pipeline with Jenkins](../wiki/Building-an-OutSystems-pipeline-with-Jenkins)
-* [Building an OutSystems pipeline with Azure DevOps](../wiki/Building-an-OutSystems-pipeline-with-Azure-DevOps)
+* [Building an OutSystems pipeline with Jenkins](https://github.com/OutSystems/outsystems-pipeline/wiki/Building-an-OutSystems-pipeline-with-Jenkins)
+* [Building an OutSystems pipeline with Azure DevOps](https://github.com/OutSystems/outsystems-pipeline/wiki/Building-an-OutSystems-pipeline-with-Azure-DevOps)
 
-We also provide [example scripts](../example_templates/examples/other_pipelines) to help bootstrap your custom pipelines.
+We also provide [example scripts](https://github.com/OutSystems/outsystems-pipeline/tree/master/examples/other_pipelines) to help bootstrap your custom pipelines.
 
 ## Get in touch
 
-Help us improve `outsystems-pipeline` by either [submitting an issue](../issues) with detailed information about the problem you're having or by [sending us an email](mailto:cicd.integrations@outsystems.com) with any feedback or questions that you may have.
+Help us improve `outsystems-pipeline` by either [submitting an issue](https://github.com/OutSystems/outsystems-pipeline/issues) with detailed information about the problem you're having or by [sending us an email](mailto:cicd.integrations@outsystems.com) with any feedback or questions that you may have.
 
 ## Change log
 
-See the [change log](../master/CHANGELOG.md) to learn about the latest changes and improvements to `outsystems-pipeline`.
+See the [change log](CHANGELOG.md) to learn about the latest changes and improvements to `outsystems-pipeline`.
 
 ## License
 
