@@ -2,7 +2,7 @@
 
 ![Build Status](https://dev.azure.com/os-pipeline/OutSystems-Pipeline/_apis/build/status/OutSystems.outsystems-pipeline?branchName=master)
 
-This project is maintained by OutSystems and contains the source code of `outsystems-pipeline`, a Python package [distributed on PyPI.org](https://pypi.org/project/outsystems-pipeline/) that provides functions to support the creation of OutSystems CI/CD pipelines using your DevOps automation tool of choice.
+This project is maintained by [OutSystems](https://www.outsystems.com/) and contains the source code of `outsystems-pipeline`, a Python package [distributed on PyPI.org](https://pypi.org/project/outsystems-pipeline/) that provides functions to support the creation of OutSystems CI/CD pipelines using your DevOps automation tool of choice.
 
 ## Getting started
 
@@ -17,7 +17,7 @@ We also provide [example scripts](../example_templates/examples/other_pipelines)
 
 ## Get In Touch
 
-Help us improve `outsystems-pipeline` by [letting us know](mailto:cicd.integrations@outsystems.com) about any feedback or questions that you may have.
+Help us improve `outsystems-pipeline` by either [submitting an issue](../issues) with detailed information about the problem you're having or by [sending us an email](mailto:cicd.integrations@outsystems.com) with any feedback or questions that you may have.
 
 ## Change Log
 
@@ -25,4 +25,4 @@ See the [change log](../master/CHANGELOG.md) to learn about the latest changes a
 
 ## License
 
-OutSystems distributes the project `outsystem-pipeline` under the [Apache License](LICENSE).
+OutSystems distributes the project `outsystem-pipeline` under the [Apache License](LICENSE.md).
