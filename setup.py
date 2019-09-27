@@ -12,6 +12,21 @@ KEYWORDS = [
     '',
 ]
 
+CLASSIFIERS = [
+    'Development Status :: 4 - Beta',
+    'Intended Audience :: Developers',
+    'Intended Audience :: System Administrators',
+    'License :: OSI Approved :: Apache Software License',
+    'Programming Language :: Python',
+    'Topic :: Software Development :: Build Tools',
+    'Topic :: Software Development :: Quality Assurance',
+    'Topic :: Software Development :: Testing',
+    'Topic :: Software Development :: Testing :: Acceptance',
+    'Topic :: Software Development :: Testing :: BDD',
+    'Topic :: Software Development :: Testing :: Unit',
+    'Topic :: System :: Software Distribution'
+]
+
 REQUIREMENTS = [
     'python-dateutil==2.7.5',
     'requests==2.20.1',
@@ -49,6 +64,7 @@ if __name__ == '__main__':  # Do not run setup() when we import this module.
         url=URL,
         license=LICENSE,
         python_requires=PYTHON_REQUIRES,
+        classifiers=CLASSIFIERS,
         packages=PACKAGES,
         install_requires=REQUIREMENTS
     )
