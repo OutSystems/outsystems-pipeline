@@ -4,6 +4,8 @@
 
 This project contains the source code of `outsystems-pipeline`, a Python package [distributed on PyPI.org](https://pypi.org/project/outsystems-pipeline/) maintained by [OutSystems](https://www.outsystems.com) to accelerate the creation of OutSystems CI/CD pipelines using your DevOps automation tool of choice. The project also includes example scripts and pipeline templates.
 
+In the future we intend to open the project repository to accept your contributions by pull requests.
+
 ## Getting started
 
 In the [Wiki](https://github.com/OutSystems/outsystems-pipeline/wiki), you will find all the information on how to use `outsystems-pipeline` and on setting up your OutSystems pipelines.
