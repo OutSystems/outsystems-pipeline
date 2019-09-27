@@ -3,6 +3,20 @@ import os
 
 NAME = 'outsystems-pipeline'
 DESCRIPTION = 'Set of Python functions to accelerate building OutSystems CI/CD pipelines'
+LONG_DESCRIPTION = '''The outsystems-pipeline Python package provides functions to support the creation of OutSystems CI/CD pipelines using your DevOps automation tool of choice.
+
+Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline>`_ on GitHub for instructions on how to build example OutSystems CI/CD pipelines with common DevOps automation tools, as well as documentation that will help you adapt the examples to your particular scenarios.
+
+
+Installing and upgrading
+========================
+
+Install or upgrade outsystems-pipeline to the latest available version as follows:
+::
+
+    pip install -U outsystems-pipeline
+
+'''
 AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
@@ -58,6 +72,7 @@ if __name__ == '__main__':  # Do not run setup() when we import this module.
         name=NAME,
         version='<version>',
         description=DESCRIPTION,
+        long_description=LONG_DESCRIPTION,
         keywords=' '.join(KEYWORDS),
         author=AUTHOR,
         author_email=EMAIL,
