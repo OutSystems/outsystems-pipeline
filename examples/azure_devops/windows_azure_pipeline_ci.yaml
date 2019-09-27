@@ -1,0 +1,75 @@
+---
+steps:
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      Write-Host "Create $(ArtifactsBuildFolder) directory on $(System.DefaultWorkingDirectory)"
+      mkdir "$(ArtifactsBuildFolder)" -Force
+    workingDirectory: $(System.DefaultWorkingDirectory)
+  displayName: 'Create Artifacts Folder'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: pip install -U outsystems-pipeline==$(OSPipelineVersion)
+    workingDirectory: $(System.DefaultWorkingDirectory)
+  displayName: 'Install OutSystems Pipeline Package'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: python -m outsystems.pipeline.fetch_lifetime_data --artifacts "$(ArtifactsBuildFolder)" --lt_url  $(LifeTimeHostname) --lt_token $(LifeTimeServiceAccountToken) --lt_api_version $(LifeTimeAPIVersion)
+  displayName: 'Fetch Lifetime Data'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$(ArtifactsBuildFolder)" --lt_url $(LifeTimeHostname) --lt_token $(LifeTimeServiceAccountToken) --lt_api_version $(LifeTimeAPIVersion) --source_env $(DevelopmentEnvironment) --destination_env $(RegressionEnvironment) --app_list "$(ApplicationScopeWithTests)"
+  displayName: 'Deploy to CI Environment'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: python -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$(ArtifactsBuildFolder)" --app_list "$(ApplicationScopeWithTests)" --cicd_probe_env $(ProbeEnvironmentURL) --bdd_framework_env $(BddEnvironmentURL)
+  displayName: 'Generate URLs for BDD testing'
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      python -m outsystems.pipeline.evaluate_test_results --artifacts "$(ArtifactsBuildFolder)"
+      exit 0
+  displayName: 'Evaluate Test Results'
+  continueOnError: true
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results'
+  inputs:
+    testResultsFiles: '$(ArtifactsBuildFolder)\junit-result.xml'
+    mergeTestResults: true
+    failTaskOnFailedTests: true
+
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script:  New-Item -Force -Path $(ArtifactsBuildFolder) -Name "ApplicationScope.cache" -ItemType "file" -Value "$(ApplicationScope)"
+  displayName: 'Write ApplicationScope to File'
+  continueOnError: true
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: versions'
+  inputs:
+    PathtoPublish: $(ArtifactsBuildFolder)
+    ArtifactName: $(ArtifactName)
+
+- powershell: |
+    Write-Host "Stashing the *.cache generated in the pipeline logs"
+    $cache_files = Get-ChildItem -Path "$(ArtifactsBuildFolder)\*.cache" -Recurse
+    foreach ($cfile in $cache_files) {
+      Write-Host "Stashing $cfile"
+      Write-Output "##vso[task.uploadfile]$cfile"
+    }
+  condition: always()
+  displayName: 'Stash generated *.cache files into pipeline logs'
+...

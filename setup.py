@@ -21,7 +21,7 @@ AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
 LICENSE = 'Apache License 2.0'
-PYTHON_REQUIRES=">=3.7"
+PYTHON_REQUIRES = '>=3.7'
 KEYWORDS = [
     '',
 ]
