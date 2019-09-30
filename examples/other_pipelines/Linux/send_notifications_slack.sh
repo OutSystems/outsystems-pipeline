@@ -33,5 +33,10 @@ source $env_name/bin/activate
 echo "Sending test results to Slack"
 python3 outsystems_integrations/slack/send_test_results_to_slack.py --artifacts "$artifacts" --slack_hook $slack_hook --slack_channel "$slack_channels" --pipeline "$pipeline_type" --job_name "$job_name" --job_dashboard_url "$dashboard_url"
 
+# Store the exit status from the command above, to make it the exit status of this script
+status_code=$?
+
 echo "Leave the Virtual Environment for now"
 deactivate
+
+exit $status_code

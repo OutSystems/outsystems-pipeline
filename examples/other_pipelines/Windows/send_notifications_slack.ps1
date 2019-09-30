@@ -22,5 +22,10 @@ Write-Host "Switch to Virtual Environment"
 Write-Host "Building the test endpoints"
 python outsystems_integrations/slack/send_test_results_to_slack.py --artifacts "$ArtifactDir" --slack_hook $SlackHook --slack_channel "$SlackChannels" --pipeline "$PipelineType" --job_name "$JobName" --job_dashboard_url "$DashboardUrl"
 
+# Store the exit status from the command above, to make it the exit status of this script
+$status_code = $LASTEXITCODE
+
 Write-Host "Leave the Virtual Environment for now"
 deactivate
+
+exit $status_code

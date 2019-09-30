@@ -10,6 +10,8 @@ trigger:
   paths:
     include: # Only includes the outsystems pipeline code as trigger
       - outsystems/*
+      - build/*
+      - setup.py
     exclude: # Excludes everything else
       - /*
 
