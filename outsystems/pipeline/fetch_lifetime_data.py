@@ -1,4 +1,4 @@
-"""Obtains the full list of environments and applications on LifeTime and stores
+"""Obtains the full list of environments and applications on LifeTime and caches
 the retrieved information in the artifacts folder.
 """
 
