@@ -1,3 +1,7 @@
+"""Obtains the list of BDD Framework endpoints for a set of applications and
+stores the retrieved information in the artifacts folder.
+"""
+
 # Python Modules
 import sys
 import os
@@ -99,18 +103,18 @@ if __name__ == "__main__":
                         help="Comma-separated list app names to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"", required=True)
 
     parser.add_argument("--cicd_probe_env", type=str,
-                        help="URL for CICD Probe, without the API endpoint. Example: \"https://<host>\"", required=True)
+                        help="URL of the CICD Probe, without the API endpoint. Example: \"https://<host>\"", required=True)
     parser.add_argument("--cicd_probe_api", type=str,
-                        help="(optional) Used to set the API endpoint for CICD Probe, without the version. Default: \"CI_CDProbe/rest\"", default=PROBE_API_ENDPOINT)
+                        help="(Optional) Overrides the default CICD Probe API endpoint, without the version. Default: \"CI_CDProbe/rest\"", default=PROBE_API_ENDPOINT)
     parser.add_argument("--cicd_probe_version", type=int,
-                        help="(optional) CICD Probe API version number. Default: 1", default=PROBE_API_VERSION)
+                        help="(Optional) CICD Probe API version to use. Default: 1", default=PROBE_API_VERSION)
 
     parser.add_argument("--bdd_framework_env", type=str,
-                        help="URL for BDD Framework, without the API endpoint. Example: \"https://<host>\"", required=True)
+                        help="URL of the BDD Framework, without the API endpoint. Example: \"https://<host>\"", required=True)
     parser.add_argument("--bdd_framework_api", type=str,
-                        help="(optional) Used to set the API endpoint for BDD Framework, without the version. Default: \"BDDFramework/rest\"", default=BDD_API_ENDPOINT)
+                        help="(Optional) Overrides the default BDD Framework API endpoint, without the version. Default: \"BDDFramework/rest\"", default=BDD_API_ENDPOINT)
     parser.add_argument("--bdd_framework_version", type=int,
-                        help="(optional) BDD Framework API version number. Default: 1", default=BDD_API_VERSION)
+                        help="(Optional) BDD Framework API version to use. Default: 1", default=BDD_API_VERSION)
 
     args = parser.parse_args()
 
@@ -122,7 +126,7 @@ if __name__ == "__main__":
 
     # Parse the BDD API endpoint
     bdd_api_endpoint = args.bdd_framework_api
-    # Parse the BDD Url and split the BDD hostname from the HTTP protocol
+    # Parse the BDD URL and split the BDD hostname from the HTTP protocol
     # Assumes the default HTTP protocol = "https"
     bdd_http_proto = BDD_HTTP_PROTO
     bdd_url = args.bdd_framework_env
@@ -138,7 +142,7 @@ if __name__ == "__main__":
 
     # Parse the CICD Probe API endpoint
     cicd_api_endpoint = args.cicd_probe_api
-    # Parse the CICD Probe Url and split the CICD Probe hostname from the HTTP protocol
+    # Parse the CICD Probe URL and split the CICD Probe hostname from the HTTP protocol
     # Assumes the default HTTP protocol = "https"
     cicd_http_proto = PROBE_HTTP_PROTO
     cicd_url = args.cicd_probe_env
