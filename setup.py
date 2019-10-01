@@ -2,7 +2,7 @@ from distutils.core import setup
 import os
 
 NAME = 'outsystems-pipeline'
-DESCRIPTION = 'Set of Python functions to accelerate building OutSystems CI/CD pipelines'
+DESCRIPTION = 'Python package to accelerate the integration of OutSystems with third-party CI/CD tools'
 LONG_DESCRIPTION = '''The outsystems-pipeline Python package provides functions to support the creation of OutSystems CI/CD pipelines using your DevOps automation tool of choice.
 
 Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline>`_ on GitHub for instructions on how to build example OutSystems CI/CD pipelines with common DevOps automation tools, as well as documentation that will help you adapt the examples to your particular scenarios.
@@ -21,7 +21,7 @@ AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
 LICENSE = 'Apache License 2.0'
-PYTHON_REQUIRES = '>=3.7'
+PYTHON_REQUIRES = '>=3.0'
 KEYWORDS = [
     '',
 ]
