@@ -67,7 +67,7 @@ if __name__ == "__main__":
         lt_url = lt_url.replace("https://", "")
     if lt_url.endswith("/"):
         lt_url = lt_url[:-1]
-    # Parte LT API Version
+    # Parse LT API Version
     lt_version = args.lt_api_version
     # Parse the LT Token
     lt_token = args.lt_token
