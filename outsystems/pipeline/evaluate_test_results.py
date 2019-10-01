@@ -1,3 +1,7 @@
+"""Builds and runs a test suite for the BDD Framework endpoints stored in the
+artifacts folder and generates a JUnit XML test report in the artifacts folder
+"""
+
 # Python Modules
 import unittest
 import os
@@ -68,7 +72,7 @@ if __name__ == '__main__':
         test_name = "test_{}__{}".format(test_endpoint["TestSuite"], test_endpoint["Name"])
         setattr(BDDTestRunner, test_name, test_func)
 
-    # Runs the test suite and stores the value in a XMN file to be used by JUNIT
+    # Runs the test suite and stores the value in a XML file to be used by JUnit
     filename = os.path.join(ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE)
     try:
         with open(filename, 'wb') as output:
