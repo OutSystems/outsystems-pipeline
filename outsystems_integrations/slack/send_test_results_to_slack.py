@@ -50,7 +50,7 @@ if __name__ == "__main__":
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--artifacts", type=str,
-                        help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
+                        help="(Optional) Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
     parser.add_argument("--slack_hook", type=str,
                         help="Slack hook URL for API calls. Example: \"https://hooks.slack.com/services/<id>/<id>/<id>\"", required=True)
     parser.add_argument("--slack_channel", type=str,

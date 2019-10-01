@@ -171,15 +171,15 @@ if __name__ == "__main__":
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--artifacts", type=str, default=ARTIFACT_FOLDER,
-                        help="Name of the artifacts folder. Default: \"Artifacts\"")
+                        help="(Optional) Name of the artifacts folder. Default: \"Artifacts\"")
     parser.add_argument("-u", "--lt_url", type=str, required=True,
-                        help="URL for LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
+                        help="URL of the LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
     parser.add_argument("-t", "--lt_token", type=str, required=True,
-                        help="Token for LifeTime API calls.")
+                        help="LifeTime authentication token used in the API requests.")
     parser.add_argument("-v", "--lt_api_version", type=int, default=LIFETIME_API_VERSION,
-                        help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2")
+                        help="(Optional) LifeTime Deployment API version to use. Use 2 for OutSystems 11 and above and 1 for OutSystems 10. Default: 2")
     parser.add_argument("-e", "--lt_endpoint", type=str, default=LIFETIME_API_ENDPOINT,
-                        help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
+                        help="(Optional) Overrides the default LifeTime API endpoint, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-s", "--source_env", type=str, required=True,
                         help="Name, as displayed in LifeTime, of the source environment where the apps are.")
     parser.add_argument("-d", "--destination_env", type=str, required=True,

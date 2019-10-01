@@ -1,3 +1,7 @@
+"""Obtains the full list of environments and applications on LifeTime and stores
+the retrieved information in the artifacts folder.
+"""
+
 # Python Modules
 import os
 import sys
@@ -37,15 +41,15 @@ if __name__ == "__main__":
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--artifacts", type=str,
-                        help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
+                        help="(Optional) Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
     parser.add_argument("-u", "--lt_url", type=str,
-                        help="URL for LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"", required=True)
+                        help="URL of the LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"", required=True)
     parser.add_argument("-t", "--lt_token", type=str,
-                        help="Token for LifeTime API calls.", required=True)
+                        help="LifeTime authentication token used in the API requests.", required=True)
     parser.add_argument("-v", "--lt_api_version", type=int,
-                        help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2", default=LIFETIME_API_VERSION)
+                        help="(Optional) LifeTime Deployment API version to use. Use 2 for OutSystems 11 and above and 1 for OutSystems 10. Default: 2", default=LIFETIME_API_VERSION)
     parser.add_argument("-e", "--lt_endpoint", type=str,
-                        help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"", default=LIFETIME_API_ENDPOINT)
+                        help="(Optional) Overrides the default LifeTime API endpoint, without the version. Default: \"lifetimeapi/rest\"", default=LIFETIME_API_ENDPOINT)
 
     args = parser.parse_args()
     # Parse the artifact directory

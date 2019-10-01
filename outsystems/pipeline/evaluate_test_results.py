@@ -51,7 +51,7 @@ def bdd_check_generator(url: str):
 if __name__ == '__main__':
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
+    parser.add_argument("-a", "--artifacts", type=str, help="(Optional) Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
     args = parser.parse_args()
     # Parse the artifact directory
     # Assumes the default dir = Artifacts
