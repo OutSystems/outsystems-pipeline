@@ -90,7 +90,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Check if there are apps to be deployed
     if len(to_deploy_app_keys) == 0:
-        print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env))
+        print("Deployment skipped because {} environment already has the target applications deployed with the same tags.".format(dest_env))
         sys.exit(0)
 
     # Write the names and keys of the application versions to be deployed
