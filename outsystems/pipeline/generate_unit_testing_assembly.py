@@ -103,11 +103,11 @@ if __name__ == "__main__":
                         help="Comma-separated list app names to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"", required=True)
 
     parser.add_argument("--cicd_probe_env", type=str,
-                        help="URL of the CICD Probe, without the API endpoint. Example: \"https://<host>\"", required=True)
+                        help="URL of the CI/CD Probe, without the API endpoint. Example: \"https://<host>\"", required=True)
     parser.add_argument("--cicd_probe_api", type=str,
-                        help="(Optional) Overrides the default CICD Probe API endpoint, without the version. Default: \"CI_CDProbe/rest\"", default=PROBE_API_ENDPOINT)
+                        help="(Optional) Overrides the default CI/CD Probe API endpoint, without the version. Default: \"CI_CDProbe/rest\"", default=PROBE_API_ENDPOINT)
     parser.add_argument("--cicd_probe_version", type=int,
-                        help="(Optional) CICD Probe API version to use. Default: 1", default=PROBE_API_VERSION)
+                        help="(Optional) CI/CD Probe API version to use. Default: 1", default=PROBE_API_VERSION)
 
     parser.add_argument("--bdd_framework_env", type=str,
                         help="URL of the BDD Framework, without the API endpoint. Example: \"https://<host>\"", required=True)
