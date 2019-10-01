@@ -1,3 +1,11 @@
+"""Creates and runs a LifeTime deployment plan to deploy a set of applications
+from the source environment to the destination environment.
+
+The deployment plan only includes the latest tagged versions of the
+applications from the source environment that do not already exist on the target
+environment.
+"""
+
 # Python Modules
 import sys
 import os
@@ -181,13 +189,13 @@ if __name__ == "__main__":
     parser.add_argument("-e", "--lt_endpoint", type=str, default=LIFETIME_API_ENDPOINT,
                         help="(Optional) Overrides the default LifeTime API endpoint, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-s", "--source_env", type=str, required=True,
-                        help="Name, as displayed in LifeTime, of the source environment where the apps are.")
+                        help="Name of the source environment, as displayed on LifeTime. Example: \"Development\"")
     parser.add_argument("-d", "--destination_env", type=str, required=True,
-                        help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps.")
+                        help="Name of the destination environment where to deploy the apps, as displayed on LifeTime. Example: \"Regression\"")
     parser.add_argument("-l", "--app_list", type=str, required=True,
-                        help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
+                        help="Comma-separated list app names to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-m", "--deploy_msg", type=str, default=DEPLOYMENT_MESSAGE,
-                        help="Message you want to show on the deployment plans in LifeTime. Default: \"Automated deploy using OS Pipelines\".")
+                        help="(Optional) Note to include on the deployment plan. Default: \"Automated deploy via OutSystems Pipeline\"")
 
     args = parser.parse_args()
     # Parse the artifact directory

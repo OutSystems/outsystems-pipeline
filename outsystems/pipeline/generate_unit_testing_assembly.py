@@ -96,7 +96,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--artifacts", type=str,
                         help="(Optional) Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
     parser.add_argument("-l", "--app_list", type=str,
-                        help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"", required=True)
+                        help="Comma-separated list app names to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"", required=True)
 
     parser.add_argument("--cicd_probe_env", type=str,
                         help="URL for CICD Probe, without the API endpoint. Example: \"https://<host>\"", required=True)
