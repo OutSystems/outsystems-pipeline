@@ -1,3 +1,7 @@
+"""Builds and runs a test suite for the BDD Framework endpoints stored in the
+artifacts folder and generates a JUnit XML test report in the artifacts folder
+"""
+
 # Python Modules
 import unittest
 import os
@@ -51,7 +55,7 @@ def bdd_check_generator(url: str):
 if __name__ == '__main__':
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
-    parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
+    parser.add_argument("-a", "--artifacts", type=str, help="(Optional) Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
     args = parser.parse_args()
     # Parse the artifact directory
     # Assumes the default dir = Artifacts
@@ -68,7 +72,7 @@ if __name__ == '__main__':
         test_name = "test_{}__{}".format(test_endpoint["TestSuite"], test_endpoint["Name"])
         setattr(BDDTestRunner, test_name, test_func)
 
-    # Runs the test suite and stores the value in a XMN file to be used by JUNIT
+    # Runs the test suite and stores the value in a XML file to be used by JUnit
     filename = os.path.join(ARTIFACT_FOLDER, JUNIT_TEST_RESULTS_FILE)
     try:
         with open(filename, 'wb') as output:

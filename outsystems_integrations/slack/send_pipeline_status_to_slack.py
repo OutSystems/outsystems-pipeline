@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--artifacts", type=str,
-                        help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
+                        help="(Optional) Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
     parser.add_argument("--error_in_file", type=str,
                         help="Filename where the error output is stored", default="")
     parser.add_argument("--slack_hook", type=str,

@@ -1,3 +1,3 @@
-# Support to other pipeline types
+# Support for other CI/CD tools
 
-The current examples will grow as time goes but since it's very impratical to create / mantain every possible combination, here you will find shell scripts (both in `bash` or `powershell`) to help you integrate the OutSystems Pipeline in any CICD Engine of your choice.
+To help you integrate OutSystems with any CI/CD tool of your choice, we provide example `bash` and `powershell` wrapper scripts, which you can edit and adapt to your needs.

@@ -1,3 +1,11 @@
+"""Creates and runs a LifeTime deployment plan to deploy a set of applications
+from the source environment to the destination environment.
+
+The deployment plan only includes the latest tagged versions of the
+applications from the source environment that do not already exist on the target
+environment.
+"""
+
 # Python Modules
 import sys
 import os
@@ -81,16 +89,16 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             if app_status["AppStatusInEnvs"][0]["BaseApplicationVersionKey"] != app["VersionKey"]:
                 # If it's not, save the key of the tagged app, to deploy later
                 to_deploy_app_keys.append(app["VersionKey"])
-                print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env))
+                print("App {} with version {} does not exist in {} environment. Ignoring check and deploying it.".format(app["Name"], app["Version"], dest_env))
             else:
                 print("Skipping app {} with version {}, since it's already deployed in {} environment.".format(app["Name"], app["Version"], dest_env))
         except AppDoesNotExistError:
             to_deploy_app_keys.append(app["VersionKey"])
-            print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env))
+            print("App {} with version {} does not exist in {} environment. Ignoring check and deploying it.".format(app["Name"], app["Version"], dest_env))
 
     # Check if there are apps to be deployed
     if len(to_deploy_app_keys) == 0:
-        print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env))
+        print("Deployment skipped because {} environment already has the target applications deployed with the same tags.".format(dest_env))
         sys.exit(0)
 
     # Write the names and keys of the application versions to be deployed
@@ -171,23 +179,23 @@ if __name__ == "__main__":
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--artifacts", type=str, default=ARTIFACT_FOLDER,
-                        help="Name of the artifacts folder. Default: \"Artifacts\"")
+                        help="(Optional) Name of the artifacts folder. Default: \"Artifacts\"")
     parser.add_argument("-u", "--lt_url", type=str, required=True,
-                        help="URL for LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
+                        help="URL of the LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
     parser.add_argument("-t", "--lt_token", type=str, required=True,
-                        help="Token for LifeTime API calls.")
+                        help="LifeTime authentication token used in the API requests.")
     parser.add_argument("-v", "--lt_api_version", type=int, default=LIFETIME_API_VERSION,
-                        help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2")
+                        help="(Optional) LifeTime Deployment API version to use. Use 2 for OutSystems 11 and above and 1 for OutSystems 10. Default: 2")
     parser.add_argument("-e", "--lt_endpoint", type=str, default=LIFETIME_API_ENDPOINT,
-                        help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
+                        help="(Optional) Overrides the default LifeTime API endpoint, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-s", "--source_env", type=str, required=True,
-                        help="Name, as displayed in LifeTime, of the source environment where the apps are.")
+                        help="Name of the source environment, as displayed on LifeTime. Example: \"Development\"")
     parser.add_argument("-d", "--destination_env", type=str, required=True,
-                        help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps.")
+                        help="Name of the destination environment where to deploy the apps, as displayed on LifeTime. Example: \"Regression\"")
     parser.add_argument("-l", "--app_list", type=str, required=True,
-                        help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
+                        help="Comma-separated list app names to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-m", "--deploy_msg", type=str, default=DEPLOYMENT_MESSAGE,
-                        help="Message you want to show on the deployment plans in LifeTime. Default: \"Automated deploy using OS Pipelines\".")
+                        help="(Optional) Note to include on the deployment plan. Default: \"Automated deploy via OutSystems Pipeline\"")
 
     args = parser.parse_args()
     # Parse the artifact directory
@@ -205,7 +213,7 @@ if __name__ == "__main__":
         lt_url = lt_url.replace("https://", "")
     if lt_url.endswith("/"):
         lt_url = lt_url[:-1]
-    # Parte LT API Version
+    # Parse LT API Version
     lt_version = args.lt_api_version
     # Parse the LT Token
     lt_token = args.lt_token
