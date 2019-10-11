@@ -150,9 +150,16 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     to_deploy_app_info = []
     for app in app_data_list:
         for deploying_apps in to_deploy_app_keys:
-            if deploying_apps["ApplicationVersionKey"] == app["VersionKey"]:
-                to_deploy_app_names.append(app["Name"])
-                to_deploy_app_info.append(app)
+            if lt_api_version == 1:  # LT for OS version < 11
+                if deploying_apps == app["VersionKey"]:
+                    to_deploy_app_names.append(app["Name"])
+                    to_deploy_app_info.append(app)
+            elif lt_api_version == 2:  # LT for OS v11
+                if deploying_apps["ApplicationVersionKey"] == app["VersionKey"]:
+                    to_deploy_app_names.append(app["Name"])
+                    to_deploy_app_info.append(app)
+            else:
+                raise NotImplementedError("Please make sure the API version is compatible with the module.")
     print("Creating deployment plan from {} to {} including applications: {} ({}).".format(source_env, dest_env, to_deploy_app_names, to_deploy_app_info))
 
     wait_counter = 0
