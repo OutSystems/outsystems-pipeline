@@ -18,7 +18,7 @@ from outsystems.vars.file_vars import APPLICATION_FOLDER, APPLICATIONS_FILE, APP
 from outsystems.vars.lifetime_vars import APPLICATIONS_ENDPOINT, APPLICATION_VERSIONS_ENDPOINT, APPLICATIONS_SUCCESS_CODE, \
     APPLICATIONS_EMPTY_CODE, APPLICATIONS_FLAG_FAILED_CODE, APPLICATIONS_FAILED_CODE, APPLICATION_SUCCESS_CODE, \
     APPLICATION_FLAG_FAILED_CODE, APPLICATION_NO_PERMISSION_CODE, APPLICATION_FAILED_CODE, APPLICATION_VERSION_SUCCESS_CODE, \
-    APPLICATION_VERSION_INVALID_CODE, APPLICATION_VERSION_NO_PERMISSION_CODE, APPLICATION_VERSION_FAILED_CODE, APPLICATION_VERSION_FAILED_LIST_CODE, APPLICATION_VERSIONS_CONTENT
+    APPLICATION_VERSION_INVALID_CODE, APPLICATION_VERSION_NO_PERMISSION_CODE, APPLICATION_VERSION_FAILED_CODE, APPLICATION_VERSION_FAILED_LIST_CODE, APPLICATION_VERSIONS_CONTENT, APPLICATION_VERSIONS_EMPTY_CODE
 
 
 # Returns a list of applications that exist in the infrastructure.
@@ -184,6 +184,9 @@ def export_app_oap(file_path: str, endpoint: str, auth_token: str, env_key: str,
     elif status_code == APPLICATION_NO_PERMISSION_CODE:
         raise NotEnoughPermissionsError(
             "You don't have enough permissions to see the details of that application. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSIONS_EMPTY_CODE:
+        raise BinaryNotFoundError(
+            "No binary available for given keys. Details: {}".format(response["response"]))
     elif status_code == APPLICATION_FAILED_CODE:
         raise EnvironmentNotFoundError(
             "Failed getting applications because one of the environments was not found. Details: {}".format(response["response"]))
