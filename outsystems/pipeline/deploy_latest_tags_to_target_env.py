@@ -315,7 +315,10 @@ if __name__ == "__main__":
     # Parse Deployment Message
     dep_note = args.deploy_msg
     # Parse Airgap Option
-    airgap = args.airgap
+    if bool(args.airgap):
+        airgap = args.airgap
+    else:
+        airgap = False
     
     # Calls the main script
     main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note, airgap)
