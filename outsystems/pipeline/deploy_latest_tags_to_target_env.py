@@ -276,7 +276,7 @@ if __name__ == "__main__":
                         help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-f", "--manifest_file", type=str,
                         help="(optional) Manifest file path, used if you have a split pipeline for CI and CD, where the CI pipeline will generate the deployment manifest file.")
-    parser.add_argument("-g", "--airgap", type=bool,
+    parser.add_argument("-g", "--airgap", type=bool, default=False,
                         help="(optional) Airgap option, used to export applications and deploy them via Solution Pack Tool (OSPTool)")
 
     args = parser.parse_args()
