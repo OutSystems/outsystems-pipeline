@@ -6,11 +6,13 @@ APPLICATIONS_FILE = "applications.cache"
 APPLICATION_FILE = ".cache"
 APPLICATION_VERSIONS_FILE = ".versions.cache"
 APPLICATION_VERSION_FILE = ".version.cache"
-APPLICATION_FOLDER = 'application_data'
+APPLICATION_FOLDER = "application_data"
+APPLICATION_OAP_FOLDER = "application_oap"
+APPLICATION_OAP_FILE = ".oap"
 
 # Modules vars
 MODULES_FILE = "modules.cache"
-MODULES_FOLDER = 'module_data'
+MODULES_FOLDER = "module_data"
 MODULE_FILE = ".cache"
 MODULE_VERSIONS_FILE = ".versions.cache"
 MODULE_VERSION_FILE = ".version.cache"
@@ -21,7 +23,7 @@ ENVIRONMENT_FILE = ".cache"
 ENVIRONMENT_APPS_FILE = ".applications.cache"
 ENVIRONMENT_APPLICATION_FILE = ".applications.cache"
 ENVIRONMENT_VERSIONS_FILE = ".versions.cache"
-ENVIRONMENT_FOLDER = 'environment_data'
+ENVIRONMENT_FOLDER = "environment_data"
 
 # Environments vars
 DEPLOYMENTS_FILE = "deployments.cache"

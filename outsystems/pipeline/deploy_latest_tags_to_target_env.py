@@ -15,14 +15,14 @@ else:  # Else just add the project dir
 
 # Custom Modules
 # Variables
-from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE
+from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE, APPLICATION_OAP_FOLDER, APPLICATION_OAP_FILE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION, DEPLOYMENT_MESSAGE
 from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
-from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_version
+from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_version, export_app_oap
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
     send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
 from outsystems.file_helpers.file import store_data, load_data
@@ -117,7 +117,25 @@ def check_if_can_deploy(artifact_dir :str, lt_endpoint: str, lt_api_version :str
             print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env))
     return app_keys
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest :list, dep_note: str):
+# TODO comment the new functions
+def generate_oap_list(app_data_list :list):
+    app_oap_list = []
+    for app in app_data_list:
+        filename = "{}{}".format(app["VersionKey"], APPLICATION_OAP_FILE)
+        app_oap_list.append({"app_key": app["Key"],"version_key": app["VersionKey"], "filename": filename})
+        print("{} application with version {}, to be exported as {}".format(app["Name"], app["Version"], filename))
+    return app_oap_list
+
+def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, env_name :str, app_oap_list :list):
+    for app in app_oap_list:
+        file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
+        export_app_oap(file_path, lt_endpoint, lt_token, env_key, app_key=app["app_key"], app_version_key=app["version_key"])
+
+#def deploy_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, env_name :str, app_data_list :list):
+#    for app in app_data_list:
+#        deploy_app_oap(osp_tool_file, osp_file, env_hostname, credentials)
+
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest :list, dep_note: str, airgap: bool):
 
     app_data_list = []  # will contain the applications to deploy details from LT
     to_deploy_app_keys = []  # will contain the app keys for the apps tagged
@@ -138,93 +156,98 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     else:
         app_data_list = generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, apps)
 
-    to_deploy_app_keys = check_if_can_deploy(artifact_dir, lt_endpoint, lt_api_version, lt_token, dest_env_key, dest_env, app_data_list)
-    
-    # Check if there are apps to be deployed
-    if len(to_deploy_app_keys) == 0:
-        print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env))
-        sys.exit(0)
-
-    # Write the names and keys of the application versions to be deployed
-    to_deploy_app_names = []
-    to_deploy_app_info = []
-    for app in app_data_list:
-        for deploying_apps in to_deploy_app_keys:
-            if lt_api_version == 1:  # LT for OS version < 11
-                if deploying_apps == app["VersionKey"]:
-                    to_deploy_app_names.append(app["Name"])
-                    to_deploy_app_info.append(app)
-            elif lt_api_version == 2:  # LT for OS v11
-                if deploying_apps["ApplicationVersionKey"] == app["VersionKey"]:
-                    to_deploy_app_names.append(app["Name"])
-                    to_deploy_app_info.append(app)
-            else:
-                raise NotImplementedError("Please make sure the API version is compatible with the module.")
-    print("Creating deployment plan from {} to {} including applications: {} ({}).".format(source_env, dest_env, to_deploy_app_names, to_deploy_app_info))
-
-    wait_counter = 0
-    deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
-    while len(deployments) > 0:
-        if wait_counter >= QUEUE_TIMEOUT_IN_SECS:
-            print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.")
-            sys.exit(1)
-        sleep(SLEEP_PERIOD_IN_SECS)
-        wait_counter += SLEEP_PERIOD_IN_SECS
-        print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter))
-        deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
-
-    # LT is free to deploy
-    # Send the deployment plan and grab the key
-    dep_plan_key = send_deployment(artifact_dir, lt_endpoint, lt_token, lt_api_version, to_deploy_app_keys, dep_note, source_env, dest_env)
-    print("Deployment plan {} created successfully.".format(dep_plan_key))
-
-    # Check if created deployment plan has conflicts
-    dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)
-    if len(dep_details["ApplicationConflicts"]) > 0:
-        store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
-        print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE))
-        # Abort previously created deployment plan to target environment
-        delete_deployment(lt_endpoint, lt_token, dep_plan_key)
-        print("Deployment plan {} was deleted successfully.".format(dep_plan_key))
-        sys.exit(1)
-
-    # Check if outdated consumer applications (outside of deployment plan) should be redeployed and start the deployment plan execution
-    if lt_api_version == 1:  # LT for OS version < 11
-        start_deployment(lt_endpoint, lt_token, dep_plan_key)
-    elif lt_api_version == 2:  # LT for OS v11
-        start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=REDEPLOY_OUTDATED_APPS)
+    if airgap:
+        app_oap_list = generate_oap_list(app_data_list)
+        export_apps_oap(artifact_dir, lt_endpoint, lt_token, src_env_key, source_env, app_oap_list)
+        #deploy_apps_oap(artifact_dir, dest_env_endpoint, osp_tool_path, credentials, app_oap_list)
     else:
-        raise NotImplementedError("Please make sure the API version is compatible with the module.")
-    print("Deployment plan {} started being executed.".format(dep_plan_key))
+        to_deploy_app_keys = check_if_can_deploy(artifact_dir, lt_endpoint, lt_api_version, lt_token, dest_env_key, dest_env, app_data_list)
+        
+        # Check if there are apps to be deployed
+        if len(to_deploy_app_keys) == 0:
+            print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env))
+            sys.exit(0)
 
-    # Sleep thread until deployment has finished
-    wait_counter = 0
-    while wait_counter < DEPLOYMENT_TIMEOUT_IN_SECS:
-        # Check Deployment Plan status.
-        dep_status = get_deployment_status(
-            artifact_dir, lt_endpoint, lt_token, dep_plan_key)
-        if dep_status["DeploymentStatus"] != DEPLOYMENT_RUNNING_STATUS:
-            # Check deployment status is pending approval. Force it to continue (if 2-Step deployment is enabled)
-            if dep_status["DeploymentStatus"] == DEPLOYMENT_WAITING_STATUS:
-                continue_deployment(lt_endpoint, lt_token, dep_plan_key)
-                print("Deployment plan {} resumed execution.".format(dep_plan_key))
-            elif dep_status["DeploymentStatus"] in DEPLOYMENT_ERROR_STATUS_LIST:
-                print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]))
-                store_data(artifact_dir, DEPLOY_ERROR_FILE, dep_status)
+        # Write the names and keys of the application versions to be deployed
+        to_deploy_app_names = []
+        to_deploy_app_info = []
+        for app in app_data_list:
+            for deploying_apps in to_deploy_app_keys:
+                if lt_api_version == 1:  # LT for OS version < 11
+                    if deploying_apps == app["VersionKey"]:
+                        to_deploy_app_names.append(app["Name"])
+                        to_deploy_app_info.append(app)
+                elif lt_api_version == 2:  # LT for OS v11
+                    if deploying_apps["ApplicationVersionKey"] == app["VersionKey"]:
+                        to_deploy_app_names.append(app["Name"])
+                        to_deploy_app_info.append(app)
+                else:
+                    raise NotImplementedError("Please make sure the API version is compatible with the module.")
+        print("Creating deployment plan from {} to {} including applications: {} ({}).".format(source_env, dest_env, to_deploy_app_names, to_deploy_app_info))
+
+        wait_counter = 0
+        deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
+        while len(deployments) > 0:
+            if wait_counter >= QUEUE_TIMEOUT_IN_SECS:
+                print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.")
                 sys.exit(1)
-            else:
-                # If it reaches here, it means the deployment was successful
-                print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]))
-                # Exit the script to continue with the pipeline
-                sys.exit(0)
-        # Deployment status is still running. Go back to sleep.
-        sleep(SLEEP_PERIOD_IN_SECS)
-        wait_counter += SLEEP_PERIOD_IN_SECS
-        print("{} secs have passed since the deployment started...".format(wait_counter))
+            sleep(SLEEP_PERIOD_IN_SECS)
+            wait_counter += SLEEP_PERIOD_IN_SECS
+            print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter))
+            deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
 
-    # Deployment timeout reached. Exit script with error
-    print("Timeout occurred while deployment plan is still in {} status.".format(DEPLOYMENT_RUNNING_STATUS))
-    sys.exit(1)
+        # LT is free to deploy
+        # Send the deployment plan and grab the key
+        dep_plan_key = send_deployment(artifact_dir, lt_endpoint, lt_token, lt_api_version, to_deploy_app_keys, dep_note, source_env, dest_env)
+        print("Deployment plan {} created successfully.".format(dep_plan_key))
+
+        # Check if created deployment plan has conflicts
+        dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)
+        if len(dep_details["ApplicationConflicts"]) > 0:
+            store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
+            print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE))
+            # Abort previously created deployment plan to target environment
+            delete_deployment(lt_endpoint, lt_token, dep_plan_key)
+            print("Deployment plan {} was deleted successfully.".format(dep_plan_key))
+            sys.exit(1)
+
+        # Check if outdated consumer applications (outside of deployment plan) should be redeployed and start the deployment plan execution
+        if lt_api_version == 1:  # LT for OS version < 11
+            start_deployment(lt_endpoint, lt_token, dep_plan_key)
+        elif lt_api_version == 2:  # LT for OS v11
+            start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=REDEPLOY_OUTDATED_APPS)
+        else:
+            raise NotImplementedError("Please make sure the API version is compatible with the module.")
+        print("Deployment plan {} started being executed.".format(dep_plan_key))
+
+        # Sleep thread until deployment has finished
+        wait_counter = 0
+        while wait_counter < DEPLOYMENT_TIMEOUT_IN_SECS:
+            # Check Deployment Plan status.
+            dep_status = get_deployment_status(
+                artifact_dir, lt_endpoint, lt_token, dep_plan_key)
+            if dep_status["DeploymentStatus"] != DEPLOYMENT_RUNNING_STATUS:
+                # Check deployment status is pending approval. Force it to continue (if 2-Step deployment is enabled)
+                if dep_status["DeploymentStatus"] == DEPLOYMENT_WAITING_STATUS:
+                    continue_deployment(lt_endpoint, lt_token, dep_plan_key)
+                    print("Deployment plan {} resumed execution.".format(dep_plan_key))
+                elif dep_status["DeploymentStatus"] in DEPLOYMENT_ERROR_STATUS_LIST:
+                    print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]))
+                    store_data(artifact_dir, DEPLOY_ERROR_FILE, dep_status)
+                    sys.exit(1)
+                else:
+                    # If it reaches here, it means the deployment was successful
+                    print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]))
+                    # Exit the script to continue with the pipeline
+                    sys.exit(0)
+            # Deployment status is still running. Go back to sleep.
+            sleep(SLEEP_PERIOD_IN_SECS)
+            wait_counter += SLEEP_PERIOD_IN_SECS
+            print("{} secs have passed since the deployment started...".format(wait_counter))
+
+        # Deployment timeout reached. Exit script with error
+        print("Timeout occurred while deployment plan is still in {} status.".format(DEPLOYMENT_RUNNING_STATUS))
+        sys.exit(1)
 
 
 # End of main()
@@ -253,6 +276,8 @@ if __name__ == "__main__":
                         help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-f", "--manifest_file", type=str,
                         help="(optional) Manifest file path, used if you have a split pipeline for CI and CD, where the CI pipeline will generate the deployment manifest file.")
+    parser.add_argument("-g", "--airgap", type=bool,
+                        help="(optional) Airgap option, used to export applications and deploy them via Solution Pack Tool (OSPTool)")
 
     args = parser.parse_args()
     
@@ -289,6 +314,8 @@ if __name__ == "__main__":
         manifest_file = None
     # Parse Deployment Message
     dep_note = args.deploy_msg
+    # Parse Airgap Option
+    airgap = args.airgap
     
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note, airgap)

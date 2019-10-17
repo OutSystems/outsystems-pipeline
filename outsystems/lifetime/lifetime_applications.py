@@ -11,14 +11,14 @@ from outsystems.exceptions.not_enough_permissions import NotEnoughPermissionsErr
 from outsystems.exceptions.environment_not_found import EnvironmentNotFoundError
 from outsystems.exceptions.app_version_error import AppVersionsError
 # Functions
-from outsystems.file_helpers.file import store_data, load_data, clear_cache
+from outsystems.file_helpers.file import store_data, load_data, clear_cache, download_oap
 from outsystems.lifetime.lifetime_base import send_get_request
 # Variables
-from outsystems.vars.file_vars import APPLICATION_FOLDER, APPLICATIONS_FILE, APPLICATION_FILE, APPLICATION_VERSIONS_FILE, APPLICATION_VERSION_FILE
+from outsystems.vars.file_vars import APPLICATION_FOLDER, APPLICATIONS_FILE, APPLICATION_FILE, APPLICATION_VERSIONS_FILE, APPLICATION_VERSION_FILE, APPLICATION_OAP_FOLDER, APPLICATION_OAP_FILE
 from outsystems.vars.lifetime_vars import APPLICATIONS_ENDPOINT, APPLICATION_VERSIONS_ENDPOINT, APPLICATIONS_SUCCESS_CODE, \
     APPLICATIONS_EMPTY_CODE, APPLICATIONS_FLAG_FAILED_CODE, APPLICATIONS_FAILED_CODE, APPLICATION_SUCCESS_CODE, \
     APPLICATION_FLAG_FAILED_CODE, APPLICATION_NO_PERMISSION_CODE, APPLICATION_FAILED_CODE, APPLICATION_VERSION_SUCCESS_CODE, \
-    APPLICATION_VERSION_INVALID_CODE, APPLICATION_VERSION_NO_PERMISSION_CODE, APPLICATION_VERSION_FAILED_CODE, APPLICATION_VERSION_FAILED_LIST_CODE
+    APPLICATION_VERSION_INVALID_CODE, APPLICATION_VERSION_NO_PERMISSION_CODE, APPLICATION_VERSION_FAILED_CODE, APPLICATION_VERSION_FAILED_LIST_CODE, APPLICATION_VERSIONS_CONTENT
 
 
 # Returns a list of applications that exist in the infrastructure.
@@ -165,6 +165,31 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
             break
 
     return app_data
+
+
+# Exports the OAP of a given application version.
+def export_app_oap(file_path: str, endpoint: str, auth_token: str, env_key: str, app_key: str, app_version_key: str):
+    query = "{}/{}/{}/{}/{}".format(APPLICATIONS_ENDPOINT,
+                                 app_key, APPLICATION_VERSIONS_ENDPOINT, app_version_key, APPLICATION_VERSIONS_CONTENT)
+    # Sends the request
+    response = send_get_request(endpoint, auth_token, query, None)
+
+    status_code = int(response["http_status"])
+    if status_code == APPLICATIONS_SUCCESS_CODE:
+        # Stores the result
+        url_string = response["response"]
+        url_string = url_string["url"]
+        download_oap(file_path, auth_token, url_string)
+        return
+    elif status_code == APPLICATION_NO_PERMISSION_CODE:
+        raise NotEnoughPermissionsError(
+            "You don't have enough permissions to see the details of that application. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_FAILED_CODE:
+        raise EnvironmentNotFoundError(
+            "Failed getting applications because one of the environments was not found. Details: {}".format(response["response"]))
+    else:
+        raise NotImplementedError(
+            "There was an error. Response from server: {}".format(response))
 
 
 # ---------------------- PRIVATE METHODS ----------------------
