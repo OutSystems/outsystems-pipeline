@@ -182,15 +182,21 @@ def export_app_oap(file_path: str, endpoint: str, auth_token: str, env_key: str,
         url_string = url_string["url"]
         download_oap(file_path, auth_token, url_string)
         return
-    elif status_code == APPLICATION_NO_PERMISSION_CODE:
+    elif status_code == APPLICATION_VERSION_NO_PERMISSION_CODE:
         raise NotEnoughPermissionsError(
             "You don't have enough permissions to see the details of that application. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSION_INVALID_CODE:
+        raise RequestError(
+            "The request is invalid for the given keys. Details: {}".format(response["response"]))
     elif status_code == APPLICATION_VERSIONS_EMPTY_CODE:
         raise BinaryNotFoundError(
             "No binary available for given keys. Details: {}".format(response["response"]))
-    elif status_code == APPLICATION_FAILED_CODE:
+    elif status_code == APPLICATION_VERSION_FAILED_CODE:
         raise EnvironmentNotFoundError(
-            "Failed getting applications because one of the environments was not found. Details: {}".format(response["response"]))
+            "Failed to retrieve the application. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSION_FAILED_LIST_CODE:
+        raise DownloadError(
+            "Failed to download the oap of the application version. Details: {}".format(response["response"]))
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
