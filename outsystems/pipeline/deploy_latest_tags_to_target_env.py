@@ -27,6 +27,9 @@ from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_
     send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
+from outsystems.osp_tool.osp_base import deploy_app_oap
+from outsystems.cicd_probe.cicd_dependencies import get_app_dependencies, sort_app_dependencies
+
 # Exceptions
 from outsystems.exceptions.no_deployments import NoDeploymentsError
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
@@ -118,22 +121,43 @@ def check_if_can_deploy(artifact_dir :str, lt_endpoint: str, lt_api_version :str
     return app_keys
 
 # TODO comment the new functions
+#  Exports the OAP files of a given list of aplications
+
 def generate_oap_list(app_data_list :list):
     app_oap_list = []
     for app in app_data_list:
         filename = "{}{}".format(app["VersionKey"], APPLICATION_OAP_FILE)
-        app_oap_list.append({"app_key": app["Key"],"version_key": app["VersionKey"], "filename": filename})
+        app_oap_list.append({"app_name": app["Name"], "app_version": app["Version"], "app_key": app["Key"], "version_key": app["VersionKey"], "filename": filename})
         print("{} application with version {}, to be exported as {}".format(app["Name"], app["Version"], filename))
     return app_oap_list
+
 
 def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, env_name :str, app_oap_list :list):
     for app in app_oap_list:
         file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
         export_app_oap(file_path, lt_endpoint, lt_token, env_key, app_key=app["app_key"], app_version_key=app["version_key"])
 
-#def deploy_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, env_name :str, app_data_list :list):
-#    for app in app_data_list:
-#        deploy_app_oap(osp_tool_file, osp_file, env_hostname, credentials)
+def generate_deployment_order(artifact_dir :str, probe_endpoint: str, app_oap_list: list):
+    dependencies_list = {}
+    dependencies_order_list = ()
+
+    for app in app_oap_list:
+        dependencies_list[app["version_key"]] = get_app_dependencies(artifact_dir, probe_endpoint, app["version_key"], app["app_name"], app["app_version"])
+
+    dependencies_order_list = sort_app_dependencies(dependencies_list)
+
+    final_list = []
+    for app_dep in dependencies_order_list:
+        for app in app_oap_list:
+            if app["version_key"] == app_dep:
+                final_list.append(app)
+
+    return final_list
+
+def deploy_apps_oap(artifact_dir :str, dest_env: str, osp_tool_path: str, credentials: str, app_oap_list: list):
+    for app in app_oap_list:
+        oap_file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
+        deploy_app_oap(osp_tool_path, oap_file_path, dest_env, credentials)
 
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest :list, dep_note: str, airgap: bool):
 
@@ -269,15 +293,23 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--source_env", type=str, required=True,
                         help="Name, as displayed in LifeTime, of the source environment where the apps are.")
     parser.add_argument("-d", "--destination_env", type=str, required=True,
-                        help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps.")
+                        help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps. (if in Airgap mode should be the hostname of the destination environment where you want to deploy the apps)")
     parser.add_argument("-m", "--deploy_msg", type=str, default=DEPLOYMENT_MESSAGE,
                         help="Message you want to show on the deployment plans in LifeTime. Default: \"Automated deploy using OS Pipelines\".")
     parser.add_argument("-l", "--app_list", type=str, required=True,
                         help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-f", "--manifest_file", type=str,
                         help="(optional) Manifest file path, used if you have a split pipeline for CI and CD, where the CI pipeline will generate the deployment manifest file.")
-    parser.add_argument("-g", "--airgap", type=bool, default=False,
+    parser.add_argument("-g", "--air_gap", type=bool, default=False,
                         help="(optional) Airgap option, used to export applications and deploy them via Solution Pack Tool (OSPTool)")
+    parser.add_argument("-o", "--osp_tool_path", type=str,
+                        help="(optional) TODO")
+    parser.add_argument("-user", "--airgap_user", type=str,
+                        help="(optional) TODO")
+    parser.add_argument("-pass", "--airgap_pass", type=str,
+                        help="(optional) TODO")
+    parser.add_argument("-p", "--cicd_probe", type=str,
+                        help="(optional) TODO")
 
     args = parser.parse_args()
     
@@ -315,10 +347,16 @@ if __name__ == "__main__":
     # Parse Deployment Message
     dep_note = args.deploy_msg
     # Parse Airgap Option
-    if bool(args.airgap):
-        airgap = args.airgap
+    if bool(args.air_gap):
+        air_gap = args.air_gap
+        osp_tool_path = args.osp_tool_path
+        credentials = args.airgap_user + args.airgap_pass
+        cicd_probe = args.cicd_probe
     else:
         airgap = False
+        osp_tool_path = None
+        credentials = None
+        cicd_probe = None
     
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note, airgap)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note, airgap, osp_tool_path, credentials, cicd_probe)

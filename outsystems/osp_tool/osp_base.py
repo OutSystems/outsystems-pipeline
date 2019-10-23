@@ -1,18 +1,22 @@
+import subprocess
 
 
 
 #OSPTool.com /Publish {<osp_file>|<oap_file>} <hostname> <username> <password>
-def deploy_app_oap (osp_tool_file: str, osp_file: str, env_hostname: str, **kwargs):
+#deploy_app_oap(osp_tool_path, osp_path, dest_env, credentials)
+def deploy_app_oap (osp_tool_path: str, osp_file_path: str, env_hostname: str, credentials: str):
     print("ESTOU NO DEPLOY_APPS_OSP")
 
-    print("osp_tool_file: {}".format(osp_tool_file))
-    print("osp_file: {}".format(osp_file))
+    print("osp_tool_path: {}".format(osp_tool_path))
+    print("osp_path: {}".format(osp_file_path))
     print("env_hostname: {}".format(env_hostname))
-    
-    credentials = _get_credentials_info(**kwargs)
+    print("credentials: {}".format(credentials))
 
-    print("username: {}".format(credentials["username"]))
-    print("password: {}".format(credentials["password"]))
+    print("execute: {} {} {} {}".format(osp_tool_path, osp_file_path, env_hostname, credentials))
+
+    subprocess.call("{} {} {} {}".format(osp_tool_path, osp_file_path, env_hostname, credentials))
+
+
     print("A SAIR DO DEPLOY_APPS_OSP")
     pass
 

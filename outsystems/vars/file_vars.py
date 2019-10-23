@@ -35,7 +35,10 @@ DEPLOYMENT_FOLDER = "deployment_data"
 
 # CICD Probe vars
 PROBE_APPLICATION_SCAN_FILE = ".probe.cache"
+PROBE_APPLICATION_DEPENDENCIES_FILE = ".dependencies.cache"
 PROBE_FOLDER = "cicd_probe_data"
+
+
 
 # BDD Framework vars
 BDD_FRAMEWORK_TEST_RUN_FILE = ".testrun.cache"
