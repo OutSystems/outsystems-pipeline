@@ -26,20 +26,17 @@ def get_app_dependencies(artifact_dir: str, probe_endpoint: str, application_ver
        response = response["response"]
        dependencies_list = []
        for dependencie in response:
-           dependencies_list.append(dependencie["ApplicationName"])
-           print("{} depends on: {}".format(application_name, dependencie["ApplicationName"]))
-
+           dependencies_list.append(dependencie["ApplicationKey"])
+           #print("{} depends on: {}".format(application_name, dependencie["ApplicationName"]))
        return set(dependencies_list)
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
 
-#TODO try catch circular cenas
+# Topological ordering (linear ordering) of a dependency list
 def sort_app_dependencies(dep_list: list):
-    deployment_order = []
     try:
-        deployment_order = toposort_flatten(dep_list)
-        return deployment_order
+        return toposort_flatten(dep_list)
     except:
         raise CircularDependencyError(
             "Circular dependencies exist among these items: {}".format(deployment_order))

@@ -29,7 +29,7 @@ from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_
     send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
-from outsystems.lifetime.cicd_base import build_probe_endpoint
+from outsystems.cicd_probe.cicd_base import build_probe_endpoint
 from outsystems.osp_tool.osp_base import deploy_app_oap
 from outsystems.cicd_probe.cicd_dependencies import get_app_dependencies, sort_app_dependencies
 from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deployment_based_on_manifest, generate_regular_deployment
@@ -60,18 +60,17 @@ def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key 
 
 def generate_deployment_order(artifact_dir :str, probe_endpoint: str, app_oap_list: list):
     dependencies_list = {}
-    dependencies_order_list = ()
 
     for app in app_oap_list:
-        dependencies_list[app["version_key"]] = get_app_dependencies(artifact_dir, probe_endpoint, app["version_key"], app["app_name"], app["app_version"])
+        dependencies_list[app["app_key"]] = get_app_dependencies(artifact_dir, probe_endpoint, app["version_key"], app["app_name"], app["app_version"])
 
     dependencies_order_list = sort_app_dependencies(dependencies_list)
 
     final_list = []
     for app_dep in dependencies_order_list:
-        for app in app_oap_list:
-            if app["version_key"] == app_dep:
-                final_list.append(app)
+        for app_oap in app_oap_list:
+            if app_dep == app_oap["app_key"]:
+                final_list.append(app_oap)
 
     return final_list
 
@@ -80,7 +79,7 @@ def deploy_apps_oap(artifact_dir :str, dest_env: str, osp_tool_path: str, creden
         oap_file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
         deploy_app_oap(osp_tool_path, oap_file_path, dest_env, credentials)
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest :list, dep_note: str, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest :list, dep_note: str, osp_tool_path: str, credentials: str, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str):
 
     app_data_list = []  # will contain the applications to deploy details from LT
     to_deploy_app_keys = []  # will contain the app keys for the apps tagged
@@ -89,6 +88,9 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
     # Builds the Probe endpoint
     probe_endpoint = build_probe_endpoint(cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)
+
+    # Gets the environment key for the source environment
+    src_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, source_env)
 
     # If the manifest file is being used, the app versions MUST come from that file
     # Or else you might not be deploying the same app versions that were deployed in
@@ -103,6 +105,16 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     export_apps_oap(artifact_dir, lt_endpoint, lt_token, src_env_key, source_env, app_oap_list)
 
     sorted_oap_list = generate_deployment_order(artifact_dir, probe_endpoint, app_oap_list)
+
+    deploy_res = ""
+    for oap in sorted_oap_list:
+        if sorted_oap_list.index(oap) == 0:
+            deploy_res = "      " + str(sorted_oap_list.index(oap)) + ". " + oap["app_name"] +"("+ oap["version_key"]+")\n"
+        else:     
+            deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)) + ". " + oap["app_name"] +"("+ oap["version_key"]+")\n"
+
+    print("\nDeployment Order:\n{}".format(deploy_res))   
+
      #deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
  
 
