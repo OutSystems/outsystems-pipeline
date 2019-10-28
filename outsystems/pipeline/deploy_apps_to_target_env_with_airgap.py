@@ -15,18 +15,13 @@ else:  # Else just add the project dir
 
 # Custom Modules
 # Variables
-from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE, APPLICATION_OAP_FOLDER, APPLICATION_OAP_FILE
+from outsystems.vars.file_vars import ARTIFACT_FOLDER, APPLICATION_OAP_FOLDER, APPLICATION_OAP_FILE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION, DEPLOYMENT_MESSAGE
-from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
-    REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
-    DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 from outsystems.vars.cicd_vars import PROBE_HTTP_PROTO, PROBE_API_ENDPOINT, PROBE_API_VERSION
 
 # Functions
-from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
-from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_version, export_app_oap
-from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
-    send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
+from outsystems.lifetime.lifetime_environments import get_environment_key
+from outsystems.lifetime.lifetime_applications import export_app_oap
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.cicd_probe.cicd_base import build_probe_endpoint
@@ -34,9 +29,6 @@ from outsystems.osp_tool.osp_base import deploy_app_oap
 from outsystems.cicd_probe.cicd_dependencies import get_app_dependencies, sort_app_dependencies
 from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deployment_based_on_manifest, generate_regular_deployment
 
-# Exceptions
-from outsystems.exceptions.no_deployments import NoDeploymentsError
-from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 
 ############################################################## SCRIPT ##############################################################
 
@@ -49,7 +41,6 @@ def generate_oap_list(app_data_list :list):
     for app in app_data_list:
         filename = "{}{}".format(app["VersionKey"], APPLICATION_OAP_FILE)
         app_oap_list.append({"app_name": app["Name"], "app_version": app["Version"], "app_key": app["Key"], "version_key": app["VersionKey"], "filename": filename})
-        print("{} application with version {}, to be exported as {}".format(app["Name"], app["Version"], filename))
     return app_oap_list
 
 
@@ -57,6 +48,8 @@ def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key 
     for app in app_oap_list:
         file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
         export_app_oap(file_path, lt_endpoint, lt_token, env_key, app_key=app["app_key"], app_version_key=app["version_key"])
+
+        print("{} application with version {}, exported as {}".format(app["app_name"], app["app_version"], app["filename"]))
 
 def generate_deployment_order(artifact_dir :str, probe_endpoint: str, app_oap_list: list):
     dependencies_list = {}
@@ -109,13 +102,13 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     deploy_res = ""
     for oap in sorted_oap_list:
         if sorted_oap_list.index(oap) == 0:
-            deploy_res = "      " + str(sorted_oap_list.index(oap)) + ". " + oap["app_name"] +"("+ oap["version_key"]+")\n"
+            deploy_res = "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +"("+ oap["version_key"]+")\n"
         else:     
-            deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)) + ". " + oap["app_name"] +"("+ oap["version_key"]+")\n"
+            deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +"("+ oap["version_key"]+")\n"
 
     print("\nDeployment Order:\n{}".format(deploy_res))   
 
-     #deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
+    deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
  
 
 # End of main()
@@ -192,11 +185,10 @@ if __name__ == "__main__":
         manifest_file = None
     # Parse Deployment Message
     dep_note = args.deploy_msg
-    # Parse Airgap Option
-
+    # Parse OSP Tool path
     osp_tool_path = args.osp_tool_path
+    # Parse Credentials for OSP Tool
     credentials = args.airgap_user + " " + args.airgap_pass
-
     # Parse the CICD Probe API endpoint
     cicd_api_endpoint = args.cicd_probe_endpoint
     # Parse the CICD Probe Url and split the CICD Probe hostname from the HTTP protocol
