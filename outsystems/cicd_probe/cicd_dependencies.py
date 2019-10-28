@@ -17,9 +17,6 @@ def get_app_dependencies(artifact_dir: str, probe_endpoint: str, application_ver
     # Builds the API params
     params = {"ApplicationName": application_name, "ApplicationVersion": application_version}
 
-    #TEST MARTELADA
-    probe_endpoint = "https://csdevops11-reg.outsystems.net/CI_CDProbe/rest/v1"
-
     # Sends the request
     response = send_probe_get_request(
         probe_endpoint, GET_APPLICATION_DEPENDENCIES_ENDPOINT, params)
@@ -29,7 +26,9 @@ def get_app_dependencies(artifact_dir: str, probe_endpoint: str, application_ver
        response = response["response"]
        dependencies_list = []
        for dependencie in response:
-           dependencies_list.append(dependencie["ApplicationKey"])
+           dependencies_list.append(dependencie["ApplicationName"])
+           print("{} depends on: {}".format(application_name, dependencie["ApplicationName"]))
+
        return set(dependencies_list)
     else:
         raise NotImplementedError(
@@ -38,7 +37,11 @@ def get_app_dependencies(artifact_dir: str, probe_endpoint: str, application_ver
 #TODO try catch circular cenas
 def sort_app_dependencies(dep_list: list):
     deployment_order = []
+    try:
+        deployment_order = toposort_flatten(dep_list)
+        return deployment_order
+    except:
+        raise CircularDependencyError(
+            "Circular dependencies exist among these items: {}".format(deployment_order))
 
-    deployment_order = toposort_flatten(dep_list)
-    return deployment_order[::-1]
-
+  

@@ -26,3 +26,8 @@ def send_probe_get_request(probe_api: str, probe_endpoint: str, url_params: str)
                 "GET {}: The JSON response could not be parsed. Response: {}".format(request_string, response.text))
 
     return response_obj
+
+# Method that builds the Probe endpoint based on the host
+def build_probe_endpoint(cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: int):
+    # Builds the endpoint for Probe and returns it
+    return "{}://{}/{}/v{}".format(cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)
