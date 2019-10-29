@@ -19,8 +19,10 @@ from outsystems.vars.file_vars import ARTIFACT_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 
 # Functions
+from outsystems.file_helpers.file import load_data
 from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
+from outsystems.lifetime.lifetime_applications import set_application_version
 
 
 ############################################################## SCRIPT ##############################################################
