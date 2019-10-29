@@ -12,7 +12,6 @@ if "WORKSPACE" in os.environ:
     sys.path.append(os.environ['WORKSPACE'])
 else:  # Else just add the project dir
     sys.path.append(os.getcwd())
-sys.path.append("C:\\Users\\dmc\\Documents\\github\\outsystems-pipeline")
 
 # Custom Modules
 # Variables
@@ -33,10 +32,7 @@ from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deploy
 
 ############################################################## SCRIPT ##############################################################
 
-# TODO comment the new functions
 #  Exports the OAP files of a given list of aplications
-
-
 def generate_oap_list(app_data_list :list):
     app_oap_list = []
     for app in app_data_list:
@@ -45,28 +41,23 @@ def generate_oap_list(app_data_list :list):
     return app_oap_list
 
 
-def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, env_name :str, app_oap_list :list):
+def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, app_oap_list :list):
     print("Application Scope:")
     for app in app_oap_list:
         file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
         export_app_oap(file_path, lt_endpoint, lt_token, env_key, app_key=app["app_key"], app_version_key=app["version_key"])
-
         print("     {} application with version {}, exported as {}".format(app["app_name"], app["app_version"], app["filename"]))
 
 def generate_deployment_order(artifact_dir :str, probe_endpoint: str, app_oap_list: list):
     dependencies_list = {}
-
     for app in app_oap_list:
         dependencies_list[app["app_key"]] = get_app_dependencies(artifact_dir, probe_endpoint, app["version_key"], app["app_name"], app["app_version"])
-
     dependencies_order_list = sort_app_dependencies(dependencies_list)
-
     final_list = []
     for app_dep in dependencies_order_list:
         for app_oap in app_oap_list:
             if app_dep == app_oap["app_key"]:
                 final_list.append(app_oap)
-
     return final_list
 
 def deploy_apps_oap(artifact_dir :str, dest_env: str, osp_tool_path: str, credentials: str, app_oap_list: list):
@@ -94,9 +85,8 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     else:
         app_data_list = generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, apps)
 
-
     app_oap_list = generate_oap_list(app_data_list)
-    export_apps_oap(artifact_dir, lt_endpoint, lt_token, src_env_key, source_env, app_oap_list)
+    export_apps_oap(artifact_dir, lt_endpoint, lt_token, src_env_key, app_oap_list)
 
     sorted_oap_list = generate_deployment_order(artifact_dir, probe_endpoint, app_oap_list)
 
@@ -108,7 +98,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
     print("\nDeployment Order:\n{}".format(deploy_res))   
 
-    #deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
+    deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
  
 
 # End of main()
