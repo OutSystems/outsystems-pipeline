@@ -12,6 +12,7 @@ if "WORKSPACE" in os.environ:
     sys.path.append(os.environ['WORKSPACE'])
 else:  # Else just add the project dir
     sys.path.append(os.getcwd())
+sys.path.append("C:\\Users\\dmc\\Documents\\github\\outsystems-pipeline")
 
 # Custom Modules
 # Variables
@@ -45,11 +46,12 @@ def generate_oap_list(app_data_list :list):
 
 
 def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, env_name :str, app_oap_list :list):
+    print("Application Scope:")
     for app in app_oap_list:
         file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
         export_app_oap(file_path, lt_endpoint, lt_token, env_key, app_key=app["app_key"], app_version_key=app["version_key"])
 
-        print("{} application with version {}, exported as {}".format(app["app_name"], app["app_version"], app["filename"]))
+        print("     {} application with version {}, exported as {}".format(app["app_name"], app["app_version"], app["filename"]))
 
 def generate_deployment_order(artifact_dir :str, probe_endpoint: str, app_oap_list: list):
     dependencies_list = {}
@@ -75,7 +77,6 @@ def deploy_apps_oap(artifact_dir :str, dest_env: str, osp_tool_path: str, creden
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest :list, dep_note: str, osp_tool_path: str, credentials: str, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str):
 
     app_data_list = []  # will contain the applications to deploy details from LT
-    to_deploy_app_keys = []  # will contain the app keys for the apps tagged
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -102,13 +103,12 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     deploy_res = ""
     for oap in sorted_oap_list:
         if sorted_oap_list.index(oap) == 0:
-            deploy_res = "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +"("+ oap["version_key"]+")\n"
+            deploy_res = "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
         else:     
-            deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +"("+ oap["version_key"]+")\n"
-
+            deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
     print("\nDeployment Order:\n{}".format(deploy_res))   
 
-    deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
+    #deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
  
 
 # End of main()
@@ -138,17 +138,17 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--manifest_file", type=str,
                         help="(optional) Manifest file path, used if you have a split pipeline for CI and CD, where the CI pipeline will generate the deployment manifest file.")
     parser.add_argument("-o", "--osp_tool_path", type=str, required=True,
-                        help="(optional) TODO")
+                        help="OSP Tool file path")
     parser.add_argument("-user", "--airgap_user", type=str, required=True,
-                        help="(optional) TODO")
+                        help="Username with priveleges to deploy applications on target environment")
     parser.add_argument("-pass", "--airgap_pass", type=str, required=True,
-                        help="(optional) TODO")
+                        help="Password of the Username with priveleges to deploy applications on target environment")
     parser.add_argument("-pu", "--cicd_probe_url", type=str, required=True,
-                        help="(optional) TODO")
+                        help="URL of the environment where the CI/CD Probe is installed (without the API endpoint).")
     parser.add_argument("-pv", "--cicd_probe_version", type=str, default=PROBE_API_VERSION,
-                        help="(optional) TODO")
+                        help="(optional) CI/CD Probe API version number.")
     parser.add_argument("-pe", "--cicd_probe_endpoint", type=str, default=PROBE_API_ENDPOINT,
-                        help="(optional) TODO")
+                        help="(optional) Used to set the API endpoint for CI/CD Probe, without the version.")
 
     args = parser.parse_args()
     
