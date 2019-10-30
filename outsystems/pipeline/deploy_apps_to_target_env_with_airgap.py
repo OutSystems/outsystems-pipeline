@@ -42,11 +42,11 @@ def generate_oap_list(app_data_list :list):
 
 
 def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, app_oap_list :list):
-    print("Application Scope:")
+    print("Application Scope:", flush=True)
     for app in app_oap_list:
         file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
         export_app_oap(file_path, lt_endpoint, lt_token, env_key, app_key=app["app_key"], app_version_key=app["version_key"])
-        print("     {} application with version {}, exported as {}".format(app["app_name"], app["app_version"], app["filename"]))
+        print("     {} application with version {}, exported as {}".format(app["app_name"], app["app_version"], app["filename"]), flush=True)
 
 def generate_deployment_order(artifact_dir :str, probe_endpoint: str, app_oap_list: list):
     dependencies_list = {}
@@ -96,7 +96,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             deploy_res = "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
         else:     
             deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
-    print("\nDeployment Order:\n{}".format(deploy_res))   
+    print("\nDeployment Order:\n{}".format(deploy_res), flush=True)   
 
     deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
  
