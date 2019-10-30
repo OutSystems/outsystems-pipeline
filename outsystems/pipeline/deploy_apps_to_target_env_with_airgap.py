@@ -2,8 +2,6 @@
 import sys
 import os
 import argparse
-from pkg_resources import parse_version
-from time import sleep
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -18,21 +16,18 @@ else:  # Else just add the project dir
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, APPLICATION_OAP_FOLDER, APPLICATION_OAP_FILE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION, DEPLOYMENT_MESSAGE
 from outsystems.vars.cicd_vars import PROBE_HTTP_PROTO, PROBE_API_ENDPOINT, PROBE_API_VERSION
-
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_applications import export_app_oap
-from outsystems.file_helpers.file import store_data, load_data
+from outsystems.file_helpers.file import load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.cicd_probe.cicd_base import build_probe_endpoint
 from outsystems.osp_tool.osp_base import deploy_app_oap
 from outsystems.cicd_probe.cicd_dependencies import get_app_dependencies, sort_app_dependencies
 from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deployment_based_on_manifest, generate_regular_deployment
 
-
 ############################################################## SCRIPT ##############################################################
 
-#  Exports the OAP files of a given list of aplications
 def generate_oap_list(app_data_list :list):
     app_oap_list = []
     for app in app_data_list:
@@ -64,6 +59,7 @@ def deploy_apps_oap(artifact_dir :str, dest_env: str, osp_tool_path: str, creden
     for app in app_oap_list:
         oap_file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
         deploy_app_oap(osp_tool_path, oap_file_path, dest_env, credentials)
+
 
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest :list, dep_note: str, osp_tool_path: str, credentials: str, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str):
 
@@ -100,7 +96,6 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
  
-
 # End of main()
 
 
