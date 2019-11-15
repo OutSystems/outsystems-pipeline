@@ -2,8 +2,6 @@
 import sys
 import os
 import argparse
-from pkg_resources import parse_version
-from time import sleep
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module

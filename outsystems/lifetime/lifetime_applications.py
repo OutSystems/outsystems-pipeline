@@ -192,7 +192,7 @@ def set_application_version(endpoint: str, auth_token: str, env_key: str, app_ke
     elif status_code == APPLICATION_VERSION_CREATE_NO_ENVIRONMENT_CODE:
         raise EnvironmentNotFoundError(
             "Can't find the application or target environment. Details: {}.".format(response["response"]))
-    elif status_code == VAPPLICATION_ERSION_CREATE_FAILED_CODE:
+    elif status_code == APPLICATION_VERSION_CREATE_FAILED_CODE:
         raise ServerError(
             "Failed to tag an application, or Failed to create a new version. Details: {}".format(response["response"]))
     else:
