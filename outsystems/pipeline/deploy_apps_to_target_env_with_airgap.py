@@ -80,16 +80,18 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     else:
         app_data_list = generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, apps)
 
+    # Export binary files
     app_oap_list = generate_oap_list(app_data_list)
     export_apps_oap(artifact_dir, lt_endpoint, lt_token, src_env_key, app_oap_list)
 
+    # Generate deployment order
     sorted_oap_list = generate_deployment_order(artifact_dir, probe_endpoint, app_oap_list)
 
-    deploy_res = ""
+    print("\nDeployment Order:\n", flush=True)  
     for oap in sorted_oap_list:
-        deploy_res += "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
-    print("\nDeployment Order:\n{}".format(deploy_res), flush=True)  
+        print("      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n", flush=True)
 
+    # Deploy binary files to target environment
     deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
 
 # End of main()
