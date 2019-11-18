@@ -171,7 +171,6 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
 
 
 def set_application_version(endpoint: str, auth_token: str, env_key: str, app_key: str, change_log: str, app_version: str):
-
     query = "{}/{}/{}/{}/{}".format(ENVIRONMENTS_ENDPOINT,
                                  env_key, ENVIRONMENT_APPLICATIONS_ENDPOINT, app_key, APPLICATION_VERSIONS_ENDPOINT)
 
@@ -198,8 +197,6 @@ def set_application_version(endpoint: str, auth_token: str, env_key: str, app_ke
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
-
-
 
 
 # Exports the OAP of a given application version.
