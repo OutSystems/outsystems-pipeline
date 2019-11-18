@@ -87,7 +87,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     deploy_res = ""
     for oap in sorted_oap_list:
-        deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
+        deploy_res += "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
     print("\nDeployment Order:\n{}".format(deploy_res), flush=True)  
 
     deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
