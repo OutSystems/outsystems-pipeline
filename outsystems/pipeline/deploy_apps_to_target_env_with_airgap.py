@@ -35,7 +35,6 @@ def generate_oap_list(app_data_list :list):
         app_oap_list.append({"app_name": app["Name"], "app_version": app["Version"], "app_key": app["Key"], "version_key": app["VersionKey"], "filename": filename})
     return app_oap_list
 
-
 def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, app_oap_list :list):
     print("Application Scope:", flush=True)
     for app in app_oap_list:
@@ -88,14 +87,11 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     deploy_res = ""
     for oap in sorted_oap_list:
-        if sorted_oap_list.index(oap) == 0:
-            deploy_res = "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
-        else:     
-            deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
-    print("\nDeployment Order:\n{}".format(deploy_res), flush=True)   
+        deploy_res =  deploy_res + "      " + str(sorted_oap_list.index(oap)+1) + ". " + oap["app_name"] +" ("+ oap["version_key"]+")\n"
+    print("\nDeployment Order:\n{}".format(deploy_res), flush=True)  
 
     deploy_apps_oap(artifact_dir, dest_env, osp_tool_path, credentials, sorted_oap_list)
- 
+
 # End of main()
 
 
@@ -190,6 +186,5 @@ if __name__ == "__main__":
     # Parse CICD Probe API Version
     cicd_version = args.cicd_probe_version
 
-    
     # Calls the main script
     main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note, osp_tool_path, credentials, cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)
