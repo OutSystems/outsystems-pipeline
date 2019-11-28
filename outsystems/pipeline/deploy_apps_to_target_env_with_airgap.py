@@ -26,6 +26,7 @@ from outsystems.osp_tool.osp_base import deploy_app_oap
 from outsystems.cicd_probe.cicd_dependencies import get_app_dependencies, sort_app_dependencies
 from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deployment_based_on_manifest, generate_regular_deployment
 
+
 ############################################################## SCRIPT ##############################################################
 
 def generate_oap_list(app_data_list :list):
@@ -35,12 +36,14 @@ def generate_oap_list(app_data_list :list):
         app_oap_list.append({"app_name": app["Name"], "app_version": app["Version"], "app_key": app["Key"], "version_key": app["VersionKey"], "filename": filename})
     return app_oap_list
 
+
 def export_apps_oap(artifact_dir :str, lt_endpoint: str, lt_token: str, env_key :str, app_oap_list :list):
     print("Application Scope:", flush=True)
     for app in app_oap_list:
         file_path = os.path.join(artifact_dir, APPLICATION_OAP_FOLDER, app["filename"])
         export_app_oap(file_path, lt_endpoint, lt_token, env_key, app_key=app["app_key"], app_version_key=app["version_key"])
         print("     {} application with version {}, exported as {}".format(app["app_name"], app["app_version"], app["filename"]), flush=True)
+
 
 def generate_deployment_order(artifact_dir :str, probe_endpoint: str, app_oap_list: list):
     dependencies_list = {}
@@ -53,6 +56,7 @@ def generate_deployment_order(artifact_dir :str, probe_endpoint: str, app_oap_li
             if app_dep == app_oap["app_key"]:
                 final_list.append(app_oap)
     return final_list
+
 
 def deploy_apps_oap(artifact_dir :str, dest_env: str, osp_tool_path: str, credentials: str, app_oap_list: list):
     for app in app_oap_list:
@@ -123,7 +127,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--osp_tool_path", type=str, required=True,
                         help="OSP Tool file path")
     parser.add_argument("-user", "--airgap_user", type=str, required=True,
-                        help="Username with priveleges to deploy applications on target environment")
+                        help="Username with privileges to deploy applications on target environment")
     parser.add_argument("-pass", "--airgap_pass", type=str, required=True,
                         help="Password of the Username with priveleges to deploy applications on target environment")
     parser.add_argument("-pu", "--cicd_probe_url", type=str, required=True,

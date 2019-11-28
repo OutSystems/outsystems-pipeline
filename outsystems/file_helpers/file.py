@@ -30,8 +30,7 @@ def load_data(artifact_dir: str, filename: str):
         with open(filename, "r") as infile:
             return json.load(infile)
     raise FileNotFoundError(
-        "The file with filename {} does not exist.".format(filename)
-    )
+        "The file with filename {} does not exist.".format(filename))
 
 
 def check_file(artifact_dir: str, filename: str):
