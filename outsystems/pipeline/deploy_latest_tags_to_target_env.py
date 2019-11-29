@@ -51,10 +51,10 @@ def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, l
             try:
                 get_application_version(artifact_dir, lt_endpoint, lt_token, False, deployed_app["VersionKey"], app_name=deployed_app["ApplicationName"])
             except AppDoesNotExistError:
-                print("Application {} with version {} no longer exists in {}. The manifest no longer reflects the current state of the environment. Aborting!".format(deployed_app["ApplicationName"], deployed_app["Version"], src_env_name))
+                print("Application {} with version {} no longer exists in {}. The manifest no longer reflects the current state of the environment. Aborting!".format(deployed_app["ApplicationName"], deployed_app["Version"], src_env_name), flush=True)
                 sys.exit(1)
             except Exception as error:
-                print("Error trying to validate if the application {} exists in the {} environment.\nError: {}".format(deployed_app["ApplicationName"], src_env_name, error))
+                print("Error trying to validate if the application {} exists in the {} environment.\nError: {}".format(deployed_app["ApplicationName"], src_env_name, error), flush=True)
                 sys.exit(1)
 
             # Add it to the app data list
@@ -105,19 +105,19 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
                         app_in_env_data = get_application_version(artifact_dir, lt_endpoint, lt_token, False, app_in_env["BaseApplicationVersionKey"], app_key=app["Key"])
                         # If the version in the environment is bigger than the one in the manifest -> stale pipeline -> abort
                         if parse_version(app_in_env_data["Version"]) > parse_version(app["Version"]):
-                            print("The deployment manifest is stale. The Application {} needs to be deployed with version {} but then environment {} has the version {}.\nReason: VersionTag is inferior to the VersionTag already deployed.\nAborting the pipeline.".format(app["Name"], app["Version"], env_name, app_in_env_data["Version"]))
+                            print("The deployment manifest is stale. The Application {} needs to be deployed with version {} but then environment {} has the version {}.\nReason: VersionTag is inferior to the VersionTag already deployed.\nAborting the pipeline.".format(app["Name"], app["Version"], env_name, app_in_env_data["Version"]), flush=True)
                             sys.exit(1)
                         elif parse_version(app_in_env_data["Version"]) == parse_version(app["Version"]):
-                            print("Skipping application {} with version {}, since it's already deployed in {} environment.\nReason: VersionTag is equal.".format(app["Name"], app["Version"], env_name))
+                            print("Skipping application {} with version {}, since it's already deployed in {} environment.\nReason: VersionTag is equal.".format(app["Name"], app["Version"], env_name), flush=True)
                         else:
                             # Generated app_keys for deployment plan based on the running version
                             app_keys.append(generate_deploy_app_key(lt_api_version, app["VersionKey"]))
-                            print("Adding application {} with version {}, to be deployed in {} environment.".format(app["Name"], app["Version"], env_name))
+                            print("Adding application {} with version {}, to be deployed in {} environment.".format(app["Name"], app["Version"], env_name), flush=True)
                     else:
-                        print("Skipping application {} with version {}, since it's already deployed in {} environment.\nReason: VersionKey is equal.".format(app["Name"], app["Version"], env_name))
+                        print("Skipping application {} with version {}, since it's already deployed in {} environment.\nReason: VersionKey is equal.".format(app["Name"], app["Version"], env_name), flush=True)
         except AppDoesNotExistError:
             app_keys.append(generate_deploy_app_key(lt_api_version, app["VersionKey"]))
-            print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env))
+            print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env), flush=True)
     return app_keys
 
 
@@ -146,7 +146,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Check if there are apps to be deployed
     if len(to_deploy_app_keys) == 0:
-        print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env))
+        print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env), flush=True)
         sys.exit(0)
 
     # Write the names and keys of the application versions to be deployed
@@ -164,32 +164,32 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                     to_deploy_app_info.append(app)
             else:
                 raise NotImplementedError("Please make sure the API version is compatible with the module.")
-    print("Creating deployment plan from {} to {} including applications: {} ({}).".format(source_env, dest_env, to_deploy_app_names, to_deploy_app_info))
+    print("Creating deployment plan from {} to {} including applications: {} ({}).".format(source_env, dest_env, to_deploy_app_names, to_deploy_app_info), flush=True)
 
     wait_counter = 0
     deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
     while len(deployments) > 0:
         if wait_counter >= QUEUE_TIMEOUT_IN_SECS:
-            print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.")
+            print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
             sys.exit(1)
         sleep(SLEEP_PERIOD_IN_SECS)
         wait_counter += SLEEP_PERIOD_IN_SECS
-        print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter))
+        print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
         deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
 
     # LT is free to deploy
     # Send the deployment plan and grab the key
     dep_plan_key = send_deployment(artifact_dir, lt_endpoint, lt_token, lt_api_version, to_deploy_app_keys, dep_note, source_env, dest_env)
-    print("Deployment plan {} created successfully.".format(dep_plan_key))
+    print("Deployment plan {} created successfully.".format(dep_plan_key), flush=True)
 
     # Check if created deployment plan has conflicts
     dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)
     if len(dep_details["ApplicationConflicts"]) > 0:
         store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
-        print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE))
+        print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE), flush=True)
         # Abort previously created deployment plan to target environment
         delete_deployment(lt_endpoint, lt_token, dep_plan_key)
-        print("Deployment plan {} was deleted successfully.".format(dep_plan_key))
+        print("Deployment plan {} was deleted successfully.".format(dep_plan_key), flush=True)
         sys.exit(1)
 
     # Check if outdated consumer applications (outside of deployment plan) should be redeployed and start the deployment plan execution
@@ -199,7 +199,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=REDEPLOY_OUTDATED_APPS)
     else:
         raise NotImplementedError("Please make sure the API version is compatible with the module.")
-    print("Deployment plan {} started being executed.".format(dep_plan_key))
+    print("Deployment plan {} started being executed.".format(dep_plan_key), flush=True)
 
     # Sleep thread until deployment has finished
     wait_counter = 0
@@ -211,23 +211,23 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             # Check deployment status is pending approval. Force it to continue (if 2-Step deployment is enabled)
             if dep_status["DeploymentStatus"] == DEPLOYMENT_WAITING_STATUS:
                 continue_deployment(lt_endpoint, lt_token, dep_plan_key)
-                print("Deployment plan {} resumed execution.".format(dep_plan_key))
+                print("Deployment plan {} resumed execution.".format(dep_plan_key), flush=True)
             elif dep_status["DeploymentStatus"] in DEPLOYMENT_ERROR_STATUS_LIST:
-                print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]))
+                print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]), flush=True)
                 store_data(artifact_dir, DEPLOY_ERROR_FILE, dep_status)
                 sys.exit(1)
             else:
                 # If it reaches here, it means the deployment was successful
-                print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]))
+                print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]), flush=True)
                 # Exit the script to continue with the pipeline
                 sys.exit(0)
         # Deployment status is still running. Go back to sleep.
         sleep(SLEEP_PERIOD_IN_SECS)
         wait_counter += SLEEP_PERIOD_IN_SECS
-        print("{} secs have passed since the deployment started...".format(wait_counter))
+        print("{} secs have passed since the deployment started...".format(wait_counter), flush=True)
 
     # Deployment timeout reached. Exit script with error
-    print("Timeout occurred while deployment plan is still in {} status.".format(DEPLOYMENT_RUNNING_STATUS))
+    print("Timeout occurred while deployment plan is still in {} status.".format(DEPLOYMENT_RUNNING_STATUS), flush=True)
     sys.exit(1)
 
 

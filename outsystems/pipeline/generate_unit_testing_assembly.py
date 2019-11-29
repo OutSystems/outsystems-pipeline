@@ -56,7 +56,7 @@ def main(artifact_dir: str, apps: list, bdd_http_proto: str, bdd_url: str, bdd_a
                           "WebFlows": test_endpoint["BDDTestEndpointsInfo"]["WebFlows"]}]
             bdd_modules += len(test_endpoint["BDDTestEndpointsInfo"]
                                ["WebFlows"])
-    print("{} BDD module(s) found.".format(bdd_modules))
+    print("{} BDD module(s) found.".format(bdd_modules), flush=True)
 
     # Get the tests to run (just for presentation)
     for bdd in bdd_test:  # For each BDD test
@@ -64,12 +64,12 @@ def main(artifact_dir: str, apps: list, bdd_http_proto: str, bdd_url: str, bdd_a
             for webflow in bdd["WebFlows"]:  # For each webflow
                 if "WebScreens" in webflow:  # Sanity check to see if there are actual webscreens in tests
                     test_list += webflow["WebScreens"]
-    print("{} BDD endpoint(s) scanned successfully.".format(len(test_list)))
+    print("{} BDD endpoint(s) scanned successfully.".format(len(test_list)), flush=True)
 
     # Get the names of the tests to run (just for presentation)
     for test in test_list:
         test_names.append(test["Name"])
-    print("Tests to run:{}".format(test_names))
+    print("Tests to run:{}".format(test_names), flush=True)
 
     # For each test, generate the URL to query the BDD framework, to be used in the test class
     for bdd in bdd_test:  # For each BDD test

@@ -27,10 +27,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Get Environments
     get_environments(artifact_dir, lt_endpoint, lt_token)
-    print("OS Environments data retrieved successfully.")
+    print("OS Environments data retrieved successfully.", flush=True)
     # Get Applications without extra data
     get_applications(artifact_dir, lt_endpoint, lt_token, False)
-    print("OS Applications data retrieved successfully.")
+    print("OS Applications data retrieved successfully.", flush=True)
 
 
 if __name__ == "__main__":
