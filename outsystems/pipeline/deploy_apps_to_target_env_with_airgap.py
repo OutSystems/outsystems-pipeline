@@ -122,7 +122,7 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--app_list", type=str, required=True,
                         help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-f", "--manifest_file", type=str,
-                        help="(optional) Manifest file path, used if you have a split pipeline for CI and CD, where the CI pipeline will generate the deployment manifest file.")
+                        help="(optional) Manifest file path, used to promote the same application versions throughout the pipeline execution.")
     parser.add_argument("-o", "--osp_tool_path", type=str, required=True,
                         help="OSP Tool file path")
     parser.add_argument("-user", "--airgap_user", type=str, required=True,
