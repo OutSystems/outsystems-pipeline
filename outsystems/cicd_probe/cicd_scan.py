@@ -27,3 +27,4 @@ def scan_bdd_test_endpoint(artifact_dir: str, endpoint: str, application_name: s
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
+            

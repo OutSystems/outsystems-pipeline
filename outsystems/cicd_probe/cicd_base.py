@@ -4,12 +4,9 @@ import requests
 # Custom Modules
 from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
 
-
 # Method that builds the CICD Probe endpoint based on the environment host
 def build_probe_endpoint(probe_http_proto: str, probe_url: str, probe_api_endpoint: str, probe_api_version: int):
-    # Builds the endpoint for CICD Probe and returns it
     return "{}://{}/{}/v{}".format(probe_http_proto, probe_url, probe_api_endpoint, probe_api_version)
-
 
 # Sends a GET request to LT, with url_params
 def send_probe_get_request(probe_api: str, probe_endpoint: str, url_params: str):
@@ -26,3 +23,7 @@ def send_probe_get_request(probe_api: str, probe_endpoint: str, url_params: str)
                 "GET {}: The JSON response could not be parsed. Response: {}".format(request_string, response.text))
 
     return response_obj
+
+# Method that builds the Probe endpoint based on the host
+def build_probe_endpoint(cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: int):
+    return "{}://{}/{}/v{}".format(cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)
