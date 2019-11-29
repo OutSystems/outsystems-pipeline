@@ -28,12 +28,12 @@ from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 # Exceptions
-from outsystems.exceptions.no_deployments import NoDeploymentsError
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
+
 
 ############################################################## SCRIPT ##############################################################
 # Function that will generate the app key portion of the deployment for LifeTime, based on the API level
-def generate_deploy_app_key(lt_api_version :int, app_version_key :str, deploy_zone=""):
+def generate_deploy_app_key(lt_api_version: int, app_version_key: str, deploy_zone=""):
     if lt_api_version == 1:  # LT for OS version < 11
         return app_version_key
     elif lt_api_version == 2:  # LT for OS v11
@@ -41,8 +41,9 @@ def generate_deploy_app_key(lt_api_version :int, app_version_key :str, deploy_zo
     else:
         raise NotImplementedError("Please make sure the API version is compatible with the module.")
 
+
 # Function that will build the info required for a deployment based on a manifest file
-def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, lt_token: str, src_env_key :str, src_env_name :str, app_list :list, manifest :list):
+def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, lt_token: str, src_env_key: str, src_env_name: str, app_list: list, manifest: list):
     app_data_list = []  # will contain the applications details from the manifest
 
     for deployed_app in manifest:
@@ -50,21 +51,22 @@ def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, l
             try:
                 get_application_version(artifact_dir, lt_endpoint, lt_token, False, deployed_app["VersionKey"], app_name=deployed_app["ApplicationName"])
             except AppDoesNotExistError:
-                print("Application {} with version {} no longer exists in {}. The manifest no longer reflects the current state of the environment. Aborting!".format(deployed_app["ApplicationName"],deployed_app["Version"],src_env_name))
+                print("Application {} with version {} no longer exists in {}. The manifest no longer reflects the current state of the environment. Aborting!".format(deployed_app["ApplicationName"], deployed_app["Version"], src_env_name))
                 sys.exit(1)
             except Exception as error:
                 print("Error trying to validate if the application {} exists in the {} environment.\nError: {}".format(deployed_app["ApplicationName"], src_env_name, error))
                 sys.exit(1)
-            
+
             # Add it to the app data list
             app_data_list.append({'Name': deployed_app["ApplicationName"], 'Key': deployed_app["ApplicationKey"], 'Version': deployed_app["Version"], 'VersionKey': deployed_app["VersionKey"]})
 
     return app_data_list
 
+
 # Function that will build the info required for a deployment based on the latest versions of the apps in the src environment
-def generate_regular_deployment(artifact_dir: str, lt_endpoint: str, lt_token: str, src_env_key :str, app_list :list):
+def generate_regular_deployment(artifact_dir: str, lt_endpoint: str, lt_token: str, src_env_key: str, app_list: list):
     app_data_list = []  # will contain the applications to deploy details from LT
-    deployment_manifest = [] # will store the deployment plan, that may be used in later stages of the pipeline
+    deployment_manifest = []  # will store the deployment plan, that may be used in later stages of the pipeline
 
     # Creates a list with the details for the apps you want to deploy
     for app_name in app_list:
@@ -79,15 +81,16 @@ def generate_regular_deployment(artifact_dir: str, lt_endpoint: str, lt_token: s
 
         # Add app to manifest, since this is a regular deployment
         deployment_manifest.append(deployed)
-    
+
     # Store the manifest to be used in other stages of the pipeline
     filename = "{}/{}".format(DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE)
     store_data(ARTIFACT_FOLDER, filename, deployment_manifest)
-    
+
     return app_data_list
 
+
 # Function to check if target environment already has the application versions to be deployed
-def check_if_can_deploy(artifact_dir :str, lt_endpoint: str, lt_api_version :str, lt_token: str, env_key :str, env_name :str, app_data_list :list):
+def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str, lt_token: str, env_key: str, env_name: str, app_data_list: list):
     app_keys = []  # will contain the application keys to create the deployment plan
     for app in app_data_list:
         # get the status of the app in the target env, to check if they were deployed
@@ -117,7 +120,8 @@ def check_if_can_deploy(artifact_dir :str, lt_endpoint: str, lt_api_version :str
             print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], dest_env))
     return app_keys
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest :list, dep_note: str):
+
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, dep_note: str):
 
     app_data_list = []  # will contain the applications to deploy details from LT
     to_deploy_app_keys = []  # will contain the app keys for the apps tagged
@@ -139,7 +143,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         app_data_list = generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, apps)
 
     to_deploy_app_keys = check_if_can_deploy(artifact_dir, lt_endpoint, lt_api_version, lt_token, dest_env_key, dest_env, app_data_list)
-    
+
     # Check if there are apps to be deployed
     if len(to_deploy_app_keys) == 0:
         print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env))
@@ -255,7 +259,7 @@ if __name__ == "__main__":
                         help="(optional) Manifest file path, used if you have a split pipeline for CI and CD, where the CI pipeline will generate the deployment manifest file.")
 
     args = parser.parse_args()
-    
+
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the API endpoint
@@ -289,6 +293,6 @@ if __name__ == "__main__":
         manifest_file = None
     # Parse Deployment Message
     dep_note = args.deploy_msg
-    
+
     # Calls the main script
     main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note)

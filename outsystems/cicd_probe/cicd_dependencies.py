@@ -1,6 +1,5 @@
 # Python Modules
-import os
-from toposort import toposort_flatten
+from toposort import toposort_flatten, CircularDependencyError
 
 # Custom Modules
 # Functions
@@ -20,11 +19,11 @@ def get_app_dependencies(artifact_dir: str, probe_endpoint: str, application_ver
     status_code = response["http_status"]
 
     if status_code == PROBE_DEPENDENCIES_SUCCESS_CODE:
-       response = response["response"]
-       dependencies_list = []
-       for dependency in response:
-           dependencies_list.append(dependency["ApplicationKey"])
-       return set(dependencies_list)
+        response = response["response"]
+        dependencies_list = []
+        for dependency in response:
+            dependencies_list.append(dependency["ApplicationKey"])
+        return set(dependencies_list)
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))

@@ -18,7 +18,7 @@ from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDP
 
 # Functions
 from outsystems.file_helpers.file import load_data
-from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
+from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_applications import set_application_version
 
@@ -37,6 +37,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["Version"], dest_env), flush=True)
 
 # End of main()
+
 
 if __name__ == "__main__":
     # Argument menu / parsing
@@ -59,7 +60,7 @@ if __name__ == "__main__":
                         help="Manifest file path, used if you have a split pipeline for CI and CD, where the CI pipeline will generate the deployment manifest file.")
 
     args = parser.parse_args()
-    
+
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the API endpoint
@@ -86,6 +87,6 @@ if __name__ == "__main__":
     apps = _apps.split(',')
     # Parse Manifest file
     manifest_file = load_data("", args.manifest_file)
-    
+
     # Calls the main script
     main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, manifest_file)
