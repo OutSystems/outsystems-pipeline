@@ -27,7 +27,7 @@ from outsystems.cicd_probe.cicd_dependencies import get_app_dependencies, sort_a
 from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deployment_based_on_manifest, generate_regular_deployment
 
 
-############################################################## SCRIPT ##############################################################
+# ############################################################# SCRIPT ##############################################################
 def generate_oap_list(app_data_list: list):
     app_oap_list = []
     for app in app_data_list:

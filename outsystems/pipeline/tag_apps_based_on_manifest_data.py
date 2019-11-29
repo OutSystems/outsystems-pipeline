@@ -23,7 +23,7 @@ from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_applications import set_application_version
 
 
-############################################################## SCRIPT ##############################################################
+# ############################################################# SCRIPT ##############################################################
 
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, app_list: list, dep_manifest: list):
     # Builds the LifeTime endpoint

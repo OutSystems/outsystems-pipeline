@@ -31,7 +31,7 @@ from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 
 
-############################################################## SCRIPT ##############################################################
+# ############################################################# SCRIPT ##############################################################
 # Function that will generate the app key portion of the deployment for LifeTime, based on the API level
 def generate_deploy_app_key(lt_api_version: int, app_version_key: str, deploy_zone=""):
     if lt_api_version == 1:  # LT for OS version < 11
