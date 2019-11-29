@@ -27,15 +27,21 @@ echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
 echo "Building the test endpoints"
-python3 outsystems/pipeline/generate_unit_testing_assembly.py --artifacts "$artifacts" --app_list "$app_list" --cicd_probe_env $cicd_url --bdd_framework_env $bdd_url
+python3 -m outsystems.pipeline.generate_unit_testing_assembly --artifacts "$artifacts" --app_list "$app_list" --cicd_probe_env $cicd_url --bdd_framework_env $bdd_url
+
+# Store the exit status from the command above, to make it the exit status of this script
+status_code=$?
 
 echo "Leave the Virtual Environment for now"
 deactivate
 
-echo "Stashing the *.cache generated in the pipeline logs"
-cache_files=$PWD/$artifacts/**/*.cache
-for cfile in $cache_files
-do
-    echo "Stashing $cfile"
-    echo "##vso[task.uploadfile]$cfile"
-done
+#### For Azure DevOps, uncomment the next lines ####
+#echo "Stashing the *.cache generated in the pipeline logs"
+#cache_files=$PWD/$artifacts/**/*.cache
+#for cfile in $cache_files
+#do
+#    echo "Stashing $cfile"
+#    echo "##vso[task.uploadfile]$cfile"
+#done
+
+exit $status_code

@@ -35,28 +35,34 @@ echo "Switch to Virtual Environment"
 source $env_name/bin/activate
 
 echo "Deploy apps to $dest_env"
-python3 outsystems/pipeline/deploy_latest_tags_to_target_env.py --artifacts "$artifacts" --lt_url $lt_url --lt_token $lt_token --lt_api_version $lt_api --source_env "$source_env" --destination_env "$dest_env" --app_list "$app_list" --deploy_msg "$dep_msg"
+python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts "$artifacts" --lt_url $lt_url --lt_token $lt_token --lt_api_version $lt_api --source_env "$source_env" --destination_env "$dest_env" --app_list "$app_list" --deploy_msg "$dep_msg"
+
+# Store the exit status from the command above, to make it the exit status of this script
+status_code=$?
 
 echo "Leave the Virtual Environment for now"
 deactivate
 
-echo "Stashing the *.cache generated in the pipeline logs"
-cache_files=$PWD/$artifacts/**/*.cache
-for cfile in $cache_files
-do
-    echo "Stashing $cfile"
-    echo "##vso[task.uploadfile]$cfile"
-done
+#### For Azure DevOps, uncomment the next lines ####
+#echo "Stashing the *.cache generated in the pipeline logs"
+#cache_files=$PWD/$artifacts/**/*.cache
+#for cfile in $cache_files
+#do
+#    echo "Stashing $cfile"
+#    echo "##vso[task.uploadfile]$cfile"
+#done
 
-cache_files=$PWD/$artifacts/*.cache
-for cfile in $cache_files
-do
-    echo "Stashing $cfile"
-    echo "##vso[task.uploadfile]$cfile"
-done
+#cache_files=$PWD/$artifacts/*.cache
+#for cfile in $cache_files
+#do
+#    echo "Stashing $cfile"
+#    echo "##vso[task.uploadfile]$cfile"
+#done
 
-conflicts_file=$PWD/$artifacts/DeploymentConflicts
-if test -f "$conflicts_file"; then
-    echo "Stashing $conflicts_file"
-    echo "##vso[task.uploadfile]$conflicts_file"
-fi
+#conflicts_file=$PWD/$artifacts/DeploymentConflicts
+#if test -f "$conflicts_file"; then
+#    echo "Stashing $conflicts_file"
+#    echo "##vso[task.uploadfile]$conflicts_file"
+#fi
+
+exit $status_code
