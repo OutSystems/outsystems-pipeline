@@ -25,6 +25,8 @@ from outsystems.cicd_probe.cicd_base import build_probe_endpoint
 from outsystems.osp_tool.osp_base import deploy_app_oap
 from outsystems.cicd_probe.cicd_dependencies import get_app_dependencies, sort_app_dependencies
 from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deployment_based_on_manifest, generate_regular_deployment
+# Exceptions
+from outsystems.exceptions.invalid_parameters import InvalidParametersError
 
 
 # ############################################################# SCRIPT ##############################################################
@@ -66,6 +68,9 @@ def deploy_apps_oap(artifact_dir: str, dest_env: str, osp_tool_path: str, creden
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, dep_note: str, osp_tool_path: str, credentials: str, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str):
 
     app_data_list = []  # will contain the applications to deploy details from LT
+
+    if lt_api_version == 1:  # LT for OS version < 11
+        raise InvalidParametersError("Air Gap deployments are not supported for Deployment API v1")
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
