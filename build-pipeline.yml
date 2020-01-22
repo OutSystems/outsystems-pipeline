@@ -2,18 +2,18 @@
 # Create and test a Python code on multiple Python versions
 # Uploads the package with a new version to Pypi.org
 
-trigger:
-  batch: true # Batch the changes if there are many commits in a short burst
-  branches:
-    include: # Only use the master branch
-    - master
-  paths:
-    include: # Only includes the outsystems pipeline code as trigger
-      - outsystems/*
-      - build/*
-      - setup.py
-    exclude: # Excludes everything else
-      - /*
+trigger: none
+#  batch: true # Batch the changes if there are many commits in a short burst
+#  branches:
+#    include: # Only use the master branch
+#    - master
+#  paths:
+#    include: # Only includes the outsystems pipeline code as trigger
+#      - outsystems/*
+#      - build/*
+#      - setup.py
+#    exclude: # Excludes everything else
+#      - /*
 
 # Exclude pull requests
 pr: none
