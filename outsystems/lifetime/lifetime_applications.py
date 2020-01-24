@@ -1,5 +1,6 @@
 # Python Modules
 import os
+import json
 
 # Custom Modules
 # Exceptions
@@ -11,14 +12,17 @@ from outsystems.exceptions.not_enough_permissions import NotEnoughPermissionsErr
 from outsystems.exceptions.environment_not_found import EnvironmentNotFoundError
 from outsystems.exceptions.app_version_error import AppVersionsError
 # Functions
-from outsystems.file_helpers.file import store_data, load_data, clear_cache
-from outsystems.lifetime.lifetime_base import send_get_request
+from outsystems.file_helpers.file import store_data, load_data, clear_cache, download_oap
+from outsystems.lifetime.lifetime_base import send_get_request, send_post_request
 # Variables
 from outsystems.vars.file_vars import APPLICATION_FOLDER, APPLICATIONS_FILE, APPLICATION_FILE, APPLICATION_VERSIONS_FILE, APPLICATION_VERSION_FILE
 from outsystems.vars.lifetime_vars import APPLICATIONS_ENDPOINT, APPLICATION_VERSIONS_ENDPOINT, APPLICATIONS_SUCCESS_CODE, \
     APPLICATIONS_EMPTY_CODE, APPLICATIONS_FLAG_FAILED_CODE, APPLICATIONS_FAILED_CODE, APPLICATION_SUCCESS_CODE, \
     APPLICATION_FLAG_FAILED_CODE, APPLICATION_NO_PERMISSION_CODE, APPLICATION_FAILED_CODE, APPLICATION_VERSION_SUCCESS_CODE, \
-    APPLICATION_VERSION_INVALID_CODE, APPLICATION_VERSION_NO_PERMISSION_CODE, APPLICATION_VERSION_FAILED_CODE, APPLICATION_VERSION_FAILED_LIST_CODE
+    APPLICATION_VERSION_INVALID_CODE, APPLICATION_VERSION_NO_PERMISSION_CODE, APPLICATION_VERSION_FAILED_CODE, \
+    APPLICATION_VERSION_FAILED_LIST_CODE, APPLICATION_VERSIONS_CONTENT, APPLICATION_VERSIONS_EMPTY_CODE, \
+    ENVIRONMENTS_ENDPOINT, ENVIRONMENT_APPLICATIONS_ENDPOINT, APPLICATION_VERSION_CREATE_SUCCESS_CODE, APPLICATION_VERSION_CREATE_INVALID_CODE, \
+    APPLICATION_VERSION_CREATE_NO_PERMISSION_CODE, APPLICATION_VERSION_CREATE_NO_ENVIRONMENT_CODE, APPLICATION_VERSION_CREATE_FAILED_CODE
 
 
 # Returns a list of applications that exist in the infrastructure.
@@ -165,6 +169,69 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
             break
 
     return app_data
+
+
+def set_application_version(endpoint: str, auth_token: str, env_key: str, app_key: str, change_log: str, app_version: str):
+    query = "{}/{}/{}/{}/{}".format(ENVIRONMENTS_ENDPOINT,
+                                    env_key, ENVIRONMENT_APPLICATIONS_ENDPOINT, app_key, APPLICATION_VERSIONS_ENDPOINT)
+
+    version_request = {"ChangeLog": change_log,
+                       "Version": app_version, "MobileVersions": None}
+
+    response = send_post_request(endpoint, auth_token, query, json.dumps(version_request))
+
+    status_code = int(response["http_status"])
+    if status_code == APPLICATION_VERSION_CREATE_SUCCESS_CODE:
+        return response["response"]
+    elif status_code == APPLICATION_VERSION_CREATE_INVALID_CODE:
+        raise InvalidParametersError("The request is invalid. Check the body of the request for errors. Body: {}. Details: {}.".format(
+            version_request, response["response"]))
+    elif status_code == APPLICATION_VERSION_CREATE_NO_PERMISSION_CODE:
+        raise NotEnoughPermissionsError(
+            "You don't have enough permissions to create the version. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSION_CREATE_NO_ENVIRONMENT_CODE:
+        raise EnvironmentNotFoundError(
+            "Can't find the application or target environment. Details: {}.".format(response["response"]))
+    elif status_code == APPLICATION_VERSION_CREATE_FAILED_CODE:
+        raise ServerError(
+            "Failed to tag an application, or Failed to create a new version. Details: {}".format(response["response"]))
+    else:
+        raise NotImplementedError(
+            "There was an error. Response from server: {}".format(response))
+
+
+# Exports the OAP of a given application version.
+def export_app_oap(file_path: str, endpoint: str, auth_token: str, env_key: str, app_key: str, app_version_key: str):
+    query = "{}/{}/{}/{}/{}".format(APPLICATIONS_ENDPOINT,
+                                    app_key, APPLICATION_VERSIONS_ENDPOINT, app_version_key, APPLICATION_VERSIONS_CONTENT)
+    # Sends the request
+    response = send_get_request(endpoint, auth_token, query, None)
+
+    status_code = int(response["http_status"])
+    if status_code == APPLICATIONS_SUCCESS_CODE:
+        # Stores the result
+        url_string = response["response"]
+        url_string = url_string["url"]
+        download_oap(file_path, auth_token, url_string)
+        return
+    elif status_code == APPLICATION_VERSION_NO_PERMISSION_CODE:
+        raise NotEnoughPermissionsError(
+            "You don't have enough permissions to see the details of that application. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSION_INVALID_CODE:
+        raise AppVersionsError(
+            "The request is invalid for the given keys. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSIONS_EMPTY_CODE:
+        raise AppDoesNotExistError(
+            "No binary available for given keys. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSION_FAILED_CODE:
+        raise EnvironmentNotFoundError(
+            "Failed to retrieve the application. Details: {}".format(response["response"]))
+    elif status_code == APPLICATION_VERSION_FAILED_LIST_CODE:
+        raise ServerError(
+            "Failed to download the oap of the application version. Details: {}".format(response["response"]))
+    else:
+        raise NotImplementedError(
+            "There was an error. Response from server: {}".format(response))
 
 
 # ---------------------- PRIVATE METHODS ----------------------

@@ -8,6 +8,16 @@ LONG_DESCRIPTION = '''The outsystems-pipeline Python package provides functions 
 Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline>`_ on GitHub for instructions on how to build example OutSystems CI/CD pipelines with common DevOps automation tools, as well as documentation that will help you adapt the examples to your particular scenarios.
 
 
+What's new
+==========
+
+**Deployment Manifest** 
+ * Used to promote the same application versions throughout the pipeline execution.
+
+**Air Gap Support**
+ * To deploy OutSystems Applications to a target environment without using the Deployment API.
+
+
 Installing and upgrading
 ========================
 
