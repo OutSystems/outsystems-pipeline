@@ -23,7 +23,7 @@ Added new functions to support Air Gap deployment scenarios:
 
 New jenkins templates that include:
 * Lockable resources - Each stage has a semaphore to guarantee that the target environment does not have any ongoing deployment
-* Milestones - Previous builds will be discarded when reached a given pipeline milestone
+* Milestones - Ongoing builds of the same pipeline will be discarded whenever a newer build reaches a given pipeline milestone
 * Multi-agent configuration - Ability to define different agents for different stages
 
 #### Bug fixes
