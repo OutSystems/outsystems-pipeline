@@ -11,7 +11,7 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Deployment Manifest** 
+**Deployment Manifest**
  * Used to promote the same application versions throughout the pipeline execution.
 
 **Air Gap Support**
