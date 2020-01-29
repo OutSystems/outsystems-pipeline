@@ -1,5 +1,5 @@
 pipeline {
-  agent any
+  agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents. A dedicated agent will be allocated for the entire pipeline run.
   parameters {
     // App List Parameters -> automatically filled by LT Trigger plugin
     string(name: 'ApplicationScope', defaultValue: '', description: 'Comma-separated list of LifeTime applications to deploy.')
@@ -37,10 +37,8 @@ pipeline {
     stage('Install Python Dependencies') {
       steps {
         echo "Create ${env.ArtifactsFolder} Folder"
+        // Create folder for storing artifacts
         powershell "mkdir ${env.ArtifactsFolder}"
-        // Only the virtual environment needs to be installed at the system level
-        echo "Install Python Virtual environments"
-        powershell 'pip install -q -I virtualenv --user'
         // Install the rest of the dependencies at the environment level and not the system level
         withPythonEnv('python') {
           echo "Install Python requirements"
@@ -57,7 +55,9 @@ pipeline {
           powershell "python -m outsystems.pipeline.fetch_lifetime_data --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}"
           echo 'Deploying latest application tags to Regression...'
           // Deploy the application list, with tests, to the Regression environment
-          powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevelopmentEnvironment}\" --destination_env \"${env.RegressionEnvironment}\" --app_list \"${params.ApplicationScopeWithTests}\""
+          lock('deployment-plan-REG') {          
+            powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevelopmentEnvironment}\" --destination_env \"${env.RegressionEnvironment}\" --app_list \"${params.ApplicationScopeWithTests}\""
+          }
         }
       }
       post {
@@ -77,6 +77,9 @@ pipeline {
       }
     }
     stage('Run Regression') {
+      when { 
+        expression { return params.ApplicationScope != params.ApplicationScopeWithTests } 
+      }
       steps {
         withPythonEnv('python') {
           echo 'Generating URLs for BDD testing...'
@@ -104,12 +107,18 @@ pipeline {
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Acceptance...'
           // Deploy the application list, without tests, to the Acceptance environment
-          powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegressionEnvironment}\" --destination_env \"${env.AcceptanceEnvironment}\" --app_list \"${params.ApplicationScope}\""
+          lock('deployment-plan-ACC') {
+            powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegressionEnvironment}\" --destination_env \"${env.AcceptanceEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\""
+          }
         }
-        // Wrap the confirm option in a timeout to avoid hanging Jenkins forever
+        // Define milestone before approval gate to manage concurrent builds 
+        milestone(ordinal: 40, label: 'before-approval')
+        // Wrap the confirm option in a timeout to avoid hanging Jenkins forever        
         timeout(time:1, unit:'DAYS') {
           input 'Accept changes and deploy to Production?'
         }
+        // Discard previous builds that have not been accepted yet 
+        milestone(ordinal: 50, label: 'after-approval')
       }
       post {
         always {
@@ -129,7 +138,9 @@ pipeline {
         withPythonEnv('python') {
           echo 'Deploying latest application tags to Pre-Production...'
           // Deploy the application list, without tests, to the Pre-Production environment
-          powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.AcceptanceEnvironment}\" --destination_env \"${env.PreProductionEnvironment}\" --app_list \"${params.ApplicationScope}\""
+          lock('deployment-plan-PRE') {
+            powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.AcceptanceEnvironment}\" --destination_env \"${env.PreProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\""
+          }
         }
       }
       post {
@@ -148,9 +159,11 @@ pipeline {
     stage('Deploy Production') {
       steps {
         withPythonEnv('python') {
-           echo 'Deploying latest application tags to Production...'
-           // Deploy the application list, without tests, to the Production environment
-          powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.PreProductionEnvironment}\" --destination_env \"${env.ProductionEnvironment}\" --app_list \"${params.ApplicationScope}\""
+          echo 'Deploying latest application tags to Production...'
+          // Deploy the application list, without tests, to the Production environment
+          lock('deployment-plan-PRD') {
+            powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.PreProductionEnvironment}\" --destination_env \"${env.ProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\""
+          }
         }
       }
       post {
