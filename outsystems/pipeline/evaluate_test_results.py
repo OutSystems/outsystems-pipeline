@@ -31,7 +31,7 @@ class BDDTestRunner(unittest.TestCase):
 def format_error_report(error_obj):
     description = ""
     if not error_obj["ErrorMessage"]:
-        description += "\nBDD Test Suite failed {} scenarios (in {})\n".format(error_obj["FailedScenarios"], error_obj["FailedScenarios"]+error_obj["SuccessfulScenarios"])
+        description += "\nBDD Test Suite failed {} scenarios (in {})\n".format(error_obj["FailedScenarios"], error_obj["FailedScenarios"] + error_obj["SuccessfulScenarios"])
         for failure in error_obj["FailureReports"]:
             description += failure
     else:
