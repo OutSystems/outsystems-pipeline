@@ -19,8 +19,10 @@ python -m venv $PythonEnv --clear
 Write-Host "Switch to Virtual Environment"
 . .\$PythonEnv\Scripts\Activate.ps1
 
-Write-Host "Install Python requirements"
-pip install -q -I -r $RequirementsFile
+Write-Host "Installing wheel Package"
+pip install -U wheel
+Write-Host "Install OutSystems Pipeline Package"
+pip install -U outsystems-pipeline
 
 Write-Host "Leave the Virtual Environment for now"
 deactivate

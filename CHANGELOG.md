@@ -7,6 +7,36 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## December 6th, 2019
+
+### Deployment Manifest
+
+Included the generation of a Deployment Manifest artifact that can be used to promote the same application versions throughout the pipeline execution.
+
+### Air Gap Support
+
+Added new functions to support Air Gap deployment scenarios: 
+* deploy_apps_to_target_env_with_airgap - Deploy OutSystems Applications to a target environment without using the Deployment API
+* tag_apps_based_on_manifest_data - Syncronize LifeTime application versions from a Manifest file to target LifeTime
+
+### New Jenkins Templates
+
+New jenkins templates that include:
+* Lockable resources - Each stage has a semaphore to guarantee that the target environment does not have any ongoing deployment
+* Milestones - Ongoing builds of the same pipeline will be discarded whenever a newer build reaches a given pipeline milestone
+* Multi-agent configuration - Ability to define different agents for different stages
+
+#### Bug fixes
+
+* Fixed a bug to flush print messages instead of being displayed only at the end of an execution.
+
+## June 26th, 2019
+
+#### Bug fixes
+
+* Fixed a bug when the pipeline was used without tests. The evaluate test results module would give an error. Now it creates an empty junit-result.xml. The pipeline assumes that, if no tests are run, the pipeline is OK.
+* Fixed bug where the pipeline would fail if there was a saved plan on LifeTime. Now, saved plans are treated as "LifeTime is busy" and can timeout the pipeline execution.
+
 ## June 5th, 2019
 
 #### Bug fixes

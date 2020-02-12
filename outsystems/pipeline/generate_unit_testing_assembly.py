@@ -1,5 +1,7 @@
 # Python Modules
-import sys, os, argparse
+import sys
+import os
+import argparse
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -21,7 +23,7 @@ from outsystems.file_helpers.file import store_data
 # Functions
 # Variables
 
-############################################################## VARS ##############################################################
+# ---------------------- VARS ----------------------
 # Set script local variables
 bdd_test = []  # will contain the BDD Framework tests for each app
 bdd_modules = 0  # will count the number of bdd tests
@@ -29,10 +31,10 @@ test_names = []  # will contain the names of the tests to run
 test_list = []  # will contain the webflows output from BDD for the application
 test_urls = []  # will contain the urls for the BDD framework
 
-############################################################## SCRIPT ##############################################################
+
+# ---------------------- SCRIPT ----------------------
 def main(artifact_dir: str, apps: list, bdd_http_proto: str, bdd_url: str, bdd_api_endpoint: str, bdd_version: int,
          cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: int):
-
     # use the script variables
     global bdd_test, bdd_modules, test_names, test_list, test_urls
 
@@ -46,7 +48,7 @@ def main(artifact_dir: str, apps: list, bdd_http_proto: str, bdd_url: str, bdd_a
         # Removes whitespaces in the beginning and end of the string
         app = app.strip()
         response = scan_bdd_test_endpoint(artifact_dir, probe_endpoint, app)
-        if(len(response) == 0):
+        if len(response) == 0:
             continue  # It has no test suites, continue the loop
         for test_endpoint in response:
             # Get the BDD test endpoints information
@@ -54,26 +56,26 @@ def main(artifact_dir: str, apps: list, bdd_http_proto: str, bdd_url: str, bdd_a
                           "WebFlows": test_endpoint["BDDTestEndpointsInfo"]["WebFlows"]}]
             bdd_modules += len(test_endpoint["BDDTestEndpointsInfo"]
                                ["WebFlows"])
-    print("{} BDD module(s) found.".format(bdd_modules))
+    print("{} BDD module(s) found.".format(bdd_modules), flush=True)
 
     # Get the tests to run (just for presentation)
     for bdd in bdd_test:  # For each BDD test
-        if "WebFlows" in bdd: # Sanity check to see if there are actual webflows in tests
+        if "WebFlows" in bdd:  # Sanity check to see if there are actual webflows in tests
             for webflow in bdd["WebFlows"]:  # For each webflow
-                if "WebScreens" in webflow: # Sanity check to see if there are actual webscreens in tests
+                if "WebScreens" in webflow:  # Sanity check to see if there are actual webscreens in tests
                     test_list += webflow["WebScreens"]
-    print("{} BDD endpoint(s) scanned successfully.".format(len(test_list)))
+    print("{} BDD endpoint(s) scanned successfully.".format(len(test_list)), flush=True)
 
     # Get the names of the tests to run (just for presentation)
     for test in test_list:
         test_names.append(test["Name"])
-    print("Tests to run:{}".format(test_names))
+    print("Tests to run:{}".format(test_names), flush=True)
 
     # For each test, generate the URL to query the BDD framework, to be used in the test class
     for bdd in bdd_test:  # For each BDD test
-        if "WebFlows" in bdd: # Sanity check to see if there are actual webflows in tests
+        if "WebFlows" in bdd:  # Sanity check to see if there are actual webflows in tests
             for webflow in bdd["WebFlows"]:  # For each webflow
-                if "WebScreens" in webflow: # Sanity check to see if there are actual webscreens in tests
+                if "WebScreens" in webflow:  # Sanity check to see if there are actual webscreens in tests
                     for webscreen in webflow["WebScreens"]:  # for each webscreen
                         test_endpoint = build_bdd_test_endpoint(
                             bdd_endpoint, bdd["EspaceName"], webscreen["Name"])
@@ -84,6 +86,7 @@ def main(artifact_dir: str, apps: list, bdd_http_proto: str, bdd_url: str, bdd_a
     filename = os.path.join(BDD_FRAMEWORK_FOLDER,
                             BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)
     store_data(artifact_dir, filename, test_urls)
+
 
 # end of main()
 

@@ -1,5 +1,7 @@
 # Python Modules
-import xunitparser, json, os, requests, sys, argparse
+import os
+import sys
+import argparse
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -11,11 +13,12 @@ else:  # Else just add the project dir
 
 # Custom Modules
 from outsystems.vars.file_vars import ARTIFACT_FOLDER
-from outsystems.file_helpers.file import check_file, load_data
+from outsystems.file_helpers.file import load_data
 from outsystems_integrations.slack.send_slack_message import send_slack_message
 
-############################################################## SCRIPT ##############################################################
-def main(artifact_dir: str, error_file_name :str, slack_hook: str, slack_channels: list, pipeline_type: str, pipeline_status :bool, msg_title: str, message :str):
+
+# ---------------------- SCRIPT ----------------------
+def main(artifact_dir: str, error_file_name: str, slack_hook: str, slack_channels: list, pipeline_type: str, pipeline_status: bool, msg_title: str, message: str):
     slack_message = message
     if error_file_name:
         try:
@@ -27,6 +30,8 @@ def main(artifact_dir: str, error_file_name :str, slack_hook: str, slack_channel
             slack_message += "\nCould not load the file {} in the {} directory".format(error_file_name, artifact_dir)
 
     send_slack_message(slack_hook, slack_channels, pipeline_type, msg_title, pipeline_status, slack_message)
+
+
 # End of main()
 
 if __name__ == "__main__":

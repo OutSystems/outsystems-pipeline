@@ -8,14 +8,15 @@ from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
 # Variables
 from outsystems.vars.lifetime_vars import LIFETIME_SSL_CERT_VERIFY
 
+
 # Method that builds the LifeTime endpoint based on the LT host
 def build_lt_endpoint(lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int):
     # Builds the endpoint for LT and returns it
     return "{}://{}/{}/v{}".format(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
 
+
 # Sends a GET request to LT, with url_params
-def send_get_request(lt_api: str, token: str, api_endpoint: str, url_params: str):
-    response_obj = {}
+def send_get_request(lt_api: str, token: str, api_endpoint: str, url_params: dict):
     # Auth token + content type json
     headers = {'content-type': 'application/json',
                'authorization': 'Bearer ' + token}
@@ -31,9 +32,9 @@ def send_get_request(lt_api: str, token: str, api_endpoint: str, url_params: str
                 "GET {}: The JSON response could not be parsed. Response: {}".format(request_string, response.text))
     return response_obj
 
+
 # Sends a POST request to LT, with a payload. The json part is ignored
 def send_post_request(lt_api: str, token: str, api_endpoint: str, payload: str):
-    response_obj = {}
     # Auth token + content type json
     headers = {'content-type': 'application/json',
                'authorization': 'Bearer ' + token}
@@ -51,9 +52,9 @@ def send_post_request(lt_api: str, token: str, api_endpoint: str, payload: str):
             response_obj["response"] = json.loads('"{}"'.format(response.text))
     return response_obj
 
+
 # Sends a DELETE request to LT
 def send_delete_request(lt_api: str, token: str, api_endpoint: str):
-    response_obj = {}
     # Auth token + content type json
     headers = {'content-type': 'application/json',
                'authorization': 'Bearer ' + token}
