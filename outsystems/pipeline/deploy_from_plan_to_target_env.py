@@ -29,7 +29,7 @@ from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_
     delete_deployment, start_deployment, continue_deployment, get_running_deployment
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
-from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deploy_app_key, check_if_can_deploy
+from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deploy_app_key, check_if_can_deploy, generate_regular_deployment
 # Exceptions
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 
@@ -91,14 +91,14 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Generate the Manifest file based on the information
     # contained within the deployment plan.
-    app_data_list = generate_manifest_based_on_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, deployment_plan_key)
+    # app_data_list = generate_manifest_based_on_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, deployment_plan_key)
 
-    to_deploy_app_keys = check_if_can_deploy(artifact_dir, lt_endpoint, lt_api_version, lt_token, dest_env_key, dest_env, app_data_list)
+    # to_deploy_app_keys = check_if_can_deploy(artifact_dir, lt_endpoint, lt_api_version, lt_token, dest_env_key, dest_env, app_data_list)
     
     # Check if there are apps to be deployed
-    if len(to_deploy_app_keys) == 0:
-        print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env), flush=True)
-        sys.exit(0)
+    # if len(to_deploy_app_keys) == 0:
+    #    print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env), flush=True)
+    #    sys.exit(0)
 
     # Wait until the LifeTime server is ready to deploy
     # wait_counter = 0
