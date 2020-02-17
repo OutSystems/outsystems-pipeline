@@ -154,10 +154,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 store_data(artifact_dir, DEPLOY_ERROR_FILE, dep_status)
                 sys.exit(1)
             else:
+	            # Create the manifest file based on the running versions of source environment, after tagging.
+                generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, apps)
                 # If it reaches here, it means the deployment was successful
                 print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]), flush=True)
-				# Create the manifest file based on the running versions of target environment
-                generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key, apps)
                 # Exit the script to continue with the pipeline
                 sys.exit(0)
         # Deployment status is still running. Go back to sleep.
