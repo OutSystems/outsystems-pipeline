@@ -60,7 +60,7 @@
                 "targetType": "inline",
                 "filePath": "",
                 "arguments": "",
-                "script": "$ApplicationScope = Get-Content -Path $(ArtifactsReleaseFolder)\\ApplicationScope.cache\n\npython -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"$(ArtifactsReleaseFolder)\"  --lt_url $(LifeTimeHostname)  --lt_token $(LifeTimeServiceAccountToken)  --lt_api_version $(LifeTimeAPIVersion)  --source_env $(SourceEnvironment)  --destination_env $(DestinationEnvironment) --manifest_file $(System.DefaultWorkingDirectory)\\_$(Build.DefinitionName)\\$(ArtifactName)\\deployment_manifest.cache --app_list $ApplicationScope",
+                "script": "$ApplicationScope = Get-Content -Path \"$(ArtifactsReleaseFolder)\\ApplicationScope.cache\"\n\npython -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"$(ArtifactsReleaseFolder)\"  --lt_url $(LifeTimeHostname)  --lt_token $(LifeTimeServiceAccountToken)  --lt_api_version $(LifeTimeAPIVersion)  --source_env $(SourceEnvironment)  --destination_env $(DestinationEnvironment) --manifest_file \"$(System.DefaultWorkingDirectory)\\_$(Build.DefinitionName)\\$(ArtifactName)\\deployment_manifest.cache\" --app_list \"$ApplicationScope\"",
                 "errorActionPreference": "stop",
                 "failOnStderr": "false",
                 "ignoreLASTEXITCODE": "false",
