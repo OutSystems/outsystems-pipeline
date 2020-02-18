@@ -2,7 +2,6 @@
 import sys
 import os
 import argparse
-from pkg_resources import parse_version
 from time import sleep
 
 # Workaround for Jenkins:
@@ -13,8 +12,6 @@ if "WORKSPACE" in os.environ:
 else:  # Else just add the project dir
     sys.path.append(os.getcwd())
 
-sys.path.append("C:\\Users\\jfg\\source\\repos\\OutSystems\\outsystems-pipeline")
-
 # Custom Modules
 # Variables
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE
@@ -23,63 +20,23 @@ from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 # Functions
-from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
-from outsystems.lifetime.lifetime_applications import get_application_version, get_application_data
+from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
-    delete_deployment, start_deployment, continue_deployment, get_running_deployment
+    delete_deployment, start_deployment, continue_deployment
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
-from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deploy_app_key, check_if_can_deploy, generate_regular_deployment
+from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_regular_deployment
 # Exceptions
-from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
+from outsystems.exceptions.invalid_parameters import InvalidParametersError
 
 
 # ############################################################# SCRIPT ##############################################################
 
 
-# Function that will build the info required for a deployment based on the latest versions of the apps in the src environment
-def generate_manifest_based_on_deployment(artifact_dir: str, lt_endpoint: str, lt_token: str, src_env_key: str, deployment_plan_key: str):
-    app_data_list = []  # will contain the applications to deploy details from LT
-    deployment_manifest = []  # will store the deployment plan, that may be used in later stages of the pipeline
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_plan_key: str, dep_note: str):
 
-    # Get the details of the Deployment Plan (we're interested in the list of applications and versions)
-    dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, deployment_plan_key)
-    app_list = dep_details["Deployment"]["ApplicationOperations"]
-    print(dep_details)
-    # Creates a list with the details for the apps you want to deploy
-    for app_oper in app_list:
-        
-        # Gather applications and version details required for the manifest
-        app_key = app_oper["ApplicationKey"]
-        app_name = get_application_data(artifact_dir, lt_endpoint, lt_token, False, app_key=app_key)["Name"]
-        version_key = app_oper["ApplicationVersionKey"]
-        version_name = get_application_version(artifact_dir, lt_endpoint, lt_token, False, version_key, app_key=app_key)["Version"]
-
-        # Add it to the app data list
-        app_data_list.append({'Name': app_name, 'Key': app_key, 'Version': version_name, 'VersionKey': version_key})
-
-        app_data = {
-                "ApplicationName": app_name,
-                "ApplicationKey": app_key,
-                "Version": version_name,
-                "VersionKey": version_key
-            }
-        #print(app_data)
-        # Add app to manifest, since this is a regular deployment
-        deployment_manifest.append(app_data)
-
-    # Store the manifest to be used in other stages of the pipeline
-    filename = "{}/{}".format(DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE)
-    store_data(ARTIFACT_FOLDER, filename, deployment_manifest)
-
-    return app_data_list
-
-
-
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, deployment_plan_key: str, dep_note: str):
-
-    app_data_list = []  # will contain the applications to deploy details from LT
-    to_deploy_app_keys = []  # will contain the app keys for the apps tagged
+    if lt_api_version == 1:  # LT for OS version < 11
+        raise InvalidParametersError("Triggering the Pipeline from a previously saved Deployment Plan is only supported for Deployment API v2 or higher.")
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -89,37 +46,12 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Gets the environment key for the destination environment
     dest_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, dest_env)
 
-    # Generate the Manifest file based on the information
-    # contained within the deployment plan.
-    # app_data_list = generate_manifest_based_on_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, deployment_plan_key)
-
-    # to_deploy_app_keys = check_if_can_deploy(artifact_dir, lt_endpoint, lt_api_version, lt_token, dest_env_key, dest_env, app_data_list)
-    
-    # Check if there are apps to be deployed
-    # if len(to_deploy_app_keys) == 0:
-    #    print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env), flush=True)
-    #    sys.exit(0)
-
-    # Wait until the LifeTime server is ready to deploy
-    # wait_counter = 0
-    # deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
-    # while len(deployments) > 0:
-    #     if wait_counter >= QUEUE_TIMEOUT_IN_SECS:
-    #         print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
-    #         sys.exit(1)
-    #     sleep(SLEEP_PERIOD_IN_SECS)
-    #     wait_counter += SLEEP_PERIOD_IN_SECS
-    #     print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
-    #     deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
-
     # LT is free to deploy.
     # Initiate the process.
-    dep_plan_key = deployment_plan_key
 
     # Check if created deployment plan has conflicts.
-    # It should have already been validated when the
-    # the Team Lead created it in LifeTime, but we
-    # can double check it here.
+    # It should have already been validated when it was
+    # created in LifeTime, but we can double check it here.
     dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)
     if len(dep_details["ApplicationConflicts"]) > 0:
         store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
@@ -154,8 +86,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 store_data(artifact_dir, DEPLOY_ERROR_FILE, dep_status)
                 sys.exit(1)
             else:
-	            # Create the manifest file based on the running versions of source environment, after tagging.
-                generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, src_env_key, apps)
+                # Note: Only works in LifeTime API version 2 or higher, because the sync happens before the deployment has finished.
+                # For version 1 you would need to add a sleep, but even then it may not always work if tagging does not finish in time.
+                print("Generating the manifest file based on the running versions of the destination environment.", flush=True)
+                generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key, apps)
                 # If it reaches here, it means the deployment was successful
                 print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]), flush=True)
                 # Exit the script to continue with the pipeline
