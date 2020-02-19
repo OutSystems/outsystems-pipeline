@@ -18,7 +18,7 @@ from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_FOLDER, DEPLOY
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION, DEPLOYMENT_MESSAGE
 from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
-    DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
+    DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE, SYNC_TIMEOUT_IN_SECS
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
@@ -34,9 +34,6 @@ from outsystems.exceptions.invalid_parameters import InvalidParametersError
 
 
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_plan_key: str, dep_note: str):
-
-    if lt_api_version == 1:  # LT for OS version < 11
-        raise InvalidParametersError("Triggering the Pipeline from a previously saved Deployment Plan is only supported for Deployment API v2 or higher.")
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -61,11 +58,14 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         print("Deployment plan {} was deleted successfully.".format(dep_plan_key), flush=True)
         sys.exit(1)
     
-    # Check if outdated consumer applications (outside of deployment plan) should be redeployed and start the deployment plan execution
+    print("Starting Deployment plan {}...".format(dep_plan_key), flush=True)
     if lt_api_version == 1:  # LT for OS version < 11
         start_deployment(lt_endpoint, lt_token, dep_plan_key)
     elif lt_api_version == 2:  # LT for OS v11
-        start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=REDEPLOY_OUTDATED_APPS)
+        # Always start the deployment through V1, since V2 does not allow the "Tag & Deploy" scenario.
+        lt_endpoint_v1 = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, 1)
+        print("Force using API v1 to start the deployment since v2 does not allow 'Tag & Deploy' scenarios.", flush=True)
+        start_deployment(lt_endpoint_v1, lt_token, dep_plan_key)
     else:
         raise NotImplementedError("Please make sure the API version is compatible with the module.")
     print("Deployment plan {} started being executed.".format(dep_plan_key), flush=True)
@@ -86,8 +86,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 store_data(artifact_dir, DEPLOY_ERROR_FILE, dep_status)
                 sys.exit(1)
             else:
-                # Note: Only works in LifeTime API version 2 or higher, because the sync happens before the deployment has finished.
-                # For version 1 you would need to add a sleep, but even then it may not always work if tagging does not finish in time.
+                # For version 1 we need to add a sleep to wait for the sync to finish in target environment.
+                if lt_api_version == 1:
+                    print("Waiting {} seconds for synchronization process to end...".format(SYNC_TIMEOUT_IN_SECS), flush=True)
+                    sleep(SYNC_TIMEOUT_IN_SECS)
                 print("Generating the manifest file based on the running versions of the destination environment.", flush=True)
                 generate_regular_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key, apps)
                 # If it reaches here, it means the deployment was successful

@@ -2,6 +2,7 @@
 QUEUE_TIMEOUT_IN_SECS = 1800
 DEPLOYMENT_TIMEOUT_IN_SECS = 3600
 SLEEP_PERIOD_IN_SECS = 20
+SYNC_TIMEOUT_IN_SECS = 60 # Max seconds to wait for version synchronization to finish after deployment (for lifetime api v1)
 REDEPLOY_OUTDATED_APPS = True
 DEPLOYMENT_STATUS_LIST = ["saved", "running", "needs_user_intervention", "aborting"]
 DEPLOYMENT_ERROR_STATUS_LIST = ["aborted", "finished_with_errors"]
