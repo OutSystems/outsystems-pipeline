@@ -32,6 +32,8 @@ pipeline {
     // Regression URL Specification
     ProbeEnvironmentURL = 'https://regression-env.acmecorp.com/'
     BddEnvironmentURL = 'https://regression-env.acmecorp.com/'
+    // OutSystems PyPI package version
+    OSPackageVersion = '0.3.0'
   }
   stages {
     stage('Install Python Dependencies') {
@@ -42,7 +44,7 @@ pipeline {
         // Install the rest of the dependencies at the environment level and not the system level
         withPythonEnv('python') {
           echo "Install Python requirements"
-          powershell 'pip install -U outsystems-pipeline'
+          powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
         }
       }
     }
