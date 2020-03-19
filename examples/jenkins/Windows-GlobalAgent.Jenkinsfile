@@ -41,6 +41,9 @@ pipeline {
         echo "Create ${env.ArtifactsFolder} Folder"
         // Create folder for storing artifacts
         powershell "mkdir ${env.ArtifactsFolder}"
+        // Only the virtual environment needs to be installed at the system level
+        echo "Install Python Virtual environments"
+        powershell 'pip install -q -I virtualenv --user'
         // Install the rest of the dependencies at the environment level and not the system level
         withPythonEnv('python') {
           echo "Install Python requirements"
