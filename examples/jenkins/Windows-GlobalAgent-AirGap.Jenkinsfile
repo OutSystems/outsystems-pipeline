@@ -36,7 +36,7 @@ pipeline {
     // OutSystems PyPI package version
     OSPackageVersion = '0.3.0'
     // AirGap Specific Variables
-    OSPToolPath = 'C:\\Tools\\OSPTool\\OSPTool.com'
+    OSPToolPath = 'C:\\Program Files\\Common Files\\OutSystems\\11.0\\OSPTool.com'
     AirGapUser = 'air_gap_user'
     AirGapPass = credentials('AirGapPass')
     PreProductionEnvironmentHostName = 'preprod.acmecorp.com'
