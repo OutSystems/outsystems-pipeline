@@ -1,5 +1,5 @@
 pipeline {
-  agent none // Each pipeline stage must specify which local agent will run the stage  
+  agent none // Each pipeline stage must specify which local agent will run the stage
   parameters {
     // App List Parameters -> automatically filled by LT Trigger plugin
     string(name: 'ApplicationScope', defaultValue: '', description: 'Comma-separated list of LifeTime applications to deploy.')
@@ -39,14 +39,14 @@ pipeline {
     stage('Get and Deploy Latest Tags') {
       agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents
       steps {
-        echo "Pipeline run triggered remotely by '${params.TriggeredBy}' for the following applications (including tests): '${params.ApplicationScopeWithTests}'"       
+        echo "Pipeline run triggered remotely by '${params.TriggeredBy}' for the following applications (including tests): '${params.ApplicationScopeWithTests}'"
         echo "Create ${env.ArtifactsFolder} Folder"
         // Create folder for storing artifacts
         powershell "mkdir ${env.ArtifactsFolder}"
         // Only the virtual environment needs to be installed at the system level
         echo "Install Python Virtual environments"
         powershell 'pip install -q -I virtualenv --user'
-        withPythonEnv('python') {          
+        withPythonEnv('python') {
           echo "Install Python requirements"
           // Install the rest of the dependencies at the environment level and not the system level
           powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
@@ -75,7 +75,7 @@ pipeline {
             archiveArtifacts artifacts: "DeploymentConflicts"
           }
         }
-        // Delete artifacts folder to avoid impacts in subsquent builds 
+        // Delete artifacts folder to avoid impacts in subsquent builds
         cleanup {
           dir ("${env.ArtifactsFolder}") {
             deleteDir()
@@ -84,8 +84,8 @@ pipeline {
       }
     }
     stage('Run Regression') {
-      when { 
-        expression { return params.ApplicationScope != params.ApplicationScopeWithTests } 
+      when {
+        expression { return params.ApplicationScope != params.ApplicationScopeWithTests }
       }
       agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents
       steps {
@@ -95,7 +95,7 @@ pipeline {
         // Only the virtual environment needs to be installed at the system level
         echo "Install Python Virtual environments"
         powershell 'pip install -q -I virtualenv --user'
-        withPythonEnv('python') {          
+        withPythonEnv('python') {
           echo "Install Python requirements"
           // Install the rest of the dependencies at the environment level and not the system level
           powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
@@ -137,7 +137,7 @@ pipeline {
         // Only the virtual environment needs to be installed at the system level
         echo "Install Python Virtual environments"
         powershell 'pip install -q -I virtualenv --user'
-        withPythonEnv('python') {          
+        withPythonEnv('python') {
           echo "Install Python requirements"
           // Install the rest of the dependencies at the environment level and not the system level
           powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
@@ -169,13 +169,13 @@ pipeline {
     stage('Accept Changes') {
       agent none // Approval gates do not require allocating an agent from the pool
       steps {
-        // Define milestone before approval gate to manage concurrent builds 
+        // Define milestone before approval gate to manage concurrent builds
         milestone(ordinal: 40, label: 'before-approval')
-        // Wrap the confirm option in a timeout to avoid hanging Jenkins forever        
+        // Wrap the confirm option in a timeout to avoid hanging Jenkins forever
         timeout(time:1, unit:'DAYS') {
           input 'Accept changes and deploy to Production?'
         }
-        // Discard previous builds that have not been accepted yet 
+        // Discard previous builds that have not been accepted yet
         milestone(ordinal: 50, label: 'after-approval')
       }
     }
@@ -192,7 +192,7 @@ pipeline {
         // Only the virtual environment needs to be installed at the system level
         echo "Install Python Virtual environments"
         powershell 'pip install -q -I virtualenv --user'
-        withPythonEnv('python') {          
+        withPythonEnv('python') {
           echo "Install Python requirements"
           // Install the rest of the dependencies at the environment level and not the system level
           powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
@@ -234,7 +234,7 @@ pipeline {
         // Only the virtual environment needs to be installed at the system level
         echo "Install Python Virtual environments"
         powershell 'pip install -q -I virtualenv --user'
-        withPythonEnv('python') {          
+        withPythonEnv('python') {
           echo "Install Python requirements"
           // Install the rest of the dependencies at the environment level and not the system level
           powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""

@@ -60,7 +60,7 @@ pipeline {
           powershell "python -m outsystems.pipeline.fetch_lifetime_data --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}"
           echo 'Deploying latest application tags to Regression...'
           // Deploy the application list, with tests, to the Regression environment
-          lock('deployment-plan-REG') {          
+          lock('deployment-plan-REG') {
             powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevelopmentEnvironment}\" --destination_env \"${env.RegressionEnvironment}\" --app_list \"${params.ApplicationScopeWithTests}\""
           }
         }
@@ -82,8 +82,8 @@ pipeline {
       }
     }
     stage('Run Regression') {
-      when { 
-        expression { return params.ApplicationScope != params.ApplicationScopeWithTests } 
+      when {
+        expression { return params.ApplicationScope != params.ApplicationScopeWithTests }
       }
       steps {
         withPythonEnv('python') {
@@ -116,13 +116,13 @@ pipeline {
             powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegressionEnvironment}\" --destination_env \"${env.AcceptanceEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\""
           }
         }
-        // Define milestone before approval gate to manage concurrent builds 
+        // Define milestone before approval gate to manage concurrent builds
         milestone(ordinal: 40, label: 'before-approval')
-        // Wrap the confirm option in a timeout to avoid hanging Jenkins forever        
+        // Wrap the confirm option in a timeout to avoid hanging Jenkins forever
         timeout(time:1, unit:'DAYS') {
           input 'Accept changes and deploy to Production?'
         }
-        // Discard previous builds that have not been accepted yet 
+        // Discard previous builds that have not been accepted yet
         milestone(ordinal: 50, label: 'after-approval')
       }
       post {
@@ -186,7 +186,7 @@ pipeline {
     }
   }
   post {
-    always { 
+    always {
       echo 'Deleting artifacts folder content...'
       dir ("${env.ArtifactsFolder}") {
         deleteDir()
