@@ -32,6 +32,8 @@ pipeline {
     // Regression URL Specification
     ProbeEnvironmentURL = 'https://regression-env.acmecorp.com/'
     BddEnvironmentURL = 'https://regression-env.acmecorp.com/'
+    // OutSystems PyPI package version
+    OSPackageVersion = '0.3.1'
   }
   stages {
     stage('Install Python Dependencies') {
@@ -44,11 +46,11 @@ pipeline {
         // Install the rest of the dependencies
         withPythonEnv('python3') {
           echo "Install Python requirements"
-          sh 'pip3 install -U outsystems-pipeline'
+          sh "pip3 install -U outsystems-pipeline=='${params.OSPackageVersion}'"
         }
       }
     }
-    stage('Get Latest Tags') {
+    stage('Get and Deploy Latest Tags') {
       steps {
         withPythonEnv('python3') {
           echo "Pipeline run triggered remotely by '${params.TriggeredBy}' for the following applications (including tests): '${params.ApplicationScopeWithTests}'"
