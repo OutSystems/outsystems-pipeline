@@ -91,7 +91,7 @@ pipeline {
         always {
           withPythonEnv('python3') {
             echo "Publishing JUnit test results..."
-            junit(testResults: "${env.ArtifactsFolder}\\junit-result.xml", allowEmptyResults: true)
+            junit(testResults: "${env.ArtifactsFolder}/junit-result.xml", allowEmptyResults: true)
           }
           dir ("${env.ArtifactsFolder}") {
             archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
