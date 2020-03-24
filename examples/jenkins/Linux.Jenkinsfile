@@ -46,7 +46,7 @@ pipeline {
         // Install the rest of the dependencies
         withPythonEnv('python3') {
           echo "Install Python requirements"
-          sh "pip3 install -U outsystems-pipeline=='${params.OSPackageVersion}'"
+          sh "pip3 install -U outsystems-pipeline==\"${params.OSPackageVersion}\""
         }
       }
     }
