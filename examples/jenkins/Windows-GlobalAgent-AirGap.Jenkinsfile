@@ -34,7 +34,7 @@ pipeline {
     ProbeEnvironmentURL = 'https://regression-env.acmecorp.com/'
     BddEnvironmentURL = 'https://regression-env.acmecorp.com/'
     // OutSystems PyPI package version
-    OSPackageVersion = '0.3.0'
+    OSPackageVersion = '0.3.1'
     // AirGap Specific Variables
     OSPToolPath = 'C:\\Program Files\\Common Files\\OutSystems\\11.0\\OSPTool.com'
     AirGapUser = 'air_gap_user'

@@ -33,7 +33,7 @@ pipeline {
     ProbeEnvironmentURL = 'https://regression-env.acmecorp.com/'
     BddEnvironmentURL = 'https://regression-env.acmecorp.com/'
     // OutSystems PyPI package version
-    OSPackageVersion = '0.3.0'
+    OSPackageVersion = '0.3.1'
   }
   stages {
     stage('Install Python Dependencies') {
