@@ -42,7 +42,7 @@ pipeline {
         sh "mkdir ${env.ArtifactsFolder}"
         // Only the virtual environment needs to be installed at the system level
         echo "Install Python Virtual environments"
-        sh 'pip3 install -q -I virtualenv'
+        sh 'pip3 install -q -I virtualenv --user'
         // Install the rest of the dependencies
         withPythonEnv('python3') {
           echo "Install Python requirements"
