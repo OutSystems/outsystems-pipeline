@@ -1,0 +1,274 @@
+{
+    "tasks": [
+        {
+            "environment": {},
+            "displayName": "Get OutSystems Pipeline Library",
+            "alwaysRun": false,
+            "continueOnError": false,
+            "condition": "succeeded()",
+            "enabled": true,
+            "timeoutInMinutes": 0,
+            "inputs": {
+                "targetType": "inline",
+                "filePath": "",
+                "arguments": "",
+                "script": "pip install -U outsystems-pipeline==$(OSPackageVersion)",
+                "errorActionPreference": "stop",
+                "failOnStderr": "false",
+                "ignoreLASTEXITCODE": "false",
+                "pwsh": "false",
+                "workingDirectory": ""
+            },
+            "task": {
+                "id": "e213ff0f-5d5c-4791-802d-52ea3e7be1f1",
+                "versionSpec": "2.*",
+                "definitionType": "task"
+            }
+        },
+        {
+            "environment": {},
+            "displayName": "Copy Deployment Manifest to working directory",
+            "alwaysRun": false,
+            "continueOnError": false,
+            "condition": "succeeded()",
+            "enabled": true,
+            "timeoutInMinutes": 0,
+            "inputs": {
+                "SourceFolder": "$(System.DefaultWorkingDirectory)\\_$(Build.DefinitionName)\\$(ArtifactName)",
+                "Contents": "**",
+                "TargetFolder": "$(ArtifactsReleaseFolder)",
+                "CleanTargetFolder": "false",
+                "OverWrite": "false",
+                "flattenFolders": "false",
+                "preserveTimestamp": "false"
+            },
+            "task": {
+                "id": "5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c",
+                "versionSpec": "2.*",
+                "definitionType": "task"
+            }
+        },
+        {
+            "environment": {},
+            "displayName": "AIRGAP Deploy to Destination Environment",
+            "alwaysRun": false,
+            "continueOnError": false,
+            "condition": "succeeded()",
+            "enabled": true,
+            "timeoutInMinutes": 0,
+            "inputs": {
+                "targetType": "inline",
+                "filePath": "",
+                "arguments": "",
+                "script": "$ApplicationScope = Get-Content -Path $(ArtifactsReleaseFolder)\\ApplicationScope.cache\n\npython -m outsystems.pipeline.deploy_apps_to_target_env_with_airgap --artifacts \"$(ArtifactsReleaseFolder)\"  --lt_url $(LifeTimeHostname)  --lt_token $(LifeTimeServiceAccountToken)  --lt_api_version $(LifeTimeAPIVersion)  --source_env $(SourceEnvironment) --destination_env $(DestinationEnvironment)  --manifest_file $(System.DefaultWorkingDirectory)\\_$(Build.DefinitionName)\\$(ArtifactName)\\deployment_manifest.cache --app_list $ApplicationScope --osp_tool_path \"$(OSPToolPath)\" --airgap_user $(AirGapUser) --airgap_pass $(AirGapPass) --cicd_probe_url $(ProbeHostname)",
+                "errorActionPreference": "stop",
+                "failOnStderr": "false",
+                "ignoreLASTEXITCODE": "false",
+                "pwsh": "false",
+                "workingDirectory": ""
+            },
+            "task": {
+                "id": "e213ff0f-5d5c-4791-802d-52ea3e7be1f1",
+                "versionSpec": "2.*",
+                "definitionType": "task"
+            }
+        },
+        {
+            "environment": {},
+            "displayName": "Stash generated *.cache files into pipeline logs",
+            "alwaysRun": false,
+            "continueOnError": true,
+            "condition": "always()",
+            "enabled": true,
+            "timeoutInMinutes": 0,
+            "inputs": {
+                "targetType": "inline",
+                "filePath": "",
+                "arguments": "",
+                "script": "Write-Host \"Stashing the *.cache generated in the pipeline logs\"\n$cache_files = Get-ChildItem -Path \"$(ArtifactsReleaseFolder)\\*.cache\" -Recurse\nforeach ($cfile in $cache_files) {\n    Write-Host \"Stashing $cfile\"\n    Write-Output \"##vso[task.uploadfile]$cfile\"\n}",
+                "errorActionPreference": "stop",
+                "failOnStderr": "false",
+                "ignoreLASTEXITCODE": "false",
+                "pwsh": "false",
+                "workingDirectory": ""
+            },
+            "task": {
+                "id": "e213ff0f-5d5c-4791-802d-52ea3e7be1f1",
+                "versionSpec": "2.*",
+                "definitionType": "task"
+            }
+        }
+    ],
+    "runsOn": [
+        "Agent",
+        "DeploymentGroup"
+    ],
+    "revision": 1,
+    "name": "AIRGAP_OS_deploy_to_destination_env",
+    "version": {
+        "major": 1,
+        "minor": 0,
+        "patch": 0,
+        "isTest": false
+    },
+    "friendlyName": "AIRGAP_OS_deploy_to_destination_env",
+    "description": "",
+    "category": "Deploy",
+    "definitionType": "metaTask",
+    "author": "CS DevOps OutSystems",
+    "demands": [],
+    "groups": [],
+    "inputs": [
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "AirGapPass",
+            "label": "AirGapPass",
+            "defaultValue": "$(AirGapPass)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "AirGapUser",
+            "label": "AirGapUser",
+            "defaultValue": "$(AirGapUser)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "ArtifactName",
+            "label": "ArtifactName",
+            "defaultValue": "$(ArtifactName)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "ArtifactsReleaseFolder",
+            "label": "ArtifactsReleaseFolder",
+            "defaultValue": "$(ArtifactsReleaseFolder)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "DestinationEnvironment",
+            "label": "DestinationEnvironment",
+            "defaultValue": "$(DestinationEnvironment)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "LifeTimeAPIVersion",
+            "label": "LifeTimeAPIVersion",
+            "defaultValue": "$(LifeTimeAPIVersion)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "LifeTimeHostname",
+            "label": "LifeTimeHostname",
+            "defaultValue": "$(LifeTimeHostname)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "LifeTimeServiceAccountToken",
+            "label": "LifeTimeServiceAccountToken",
+            "defaultValue": "$(LifeTimeServiceAccountToken)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "OSPackageVersion",
+            "label": "OSPackageVersion",
+            "defaultValue": "$(OSPackageVersion)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "OSPToolPath",
+            "label": "OSPToolPath",
+            "defaultValue": "$(OSPToolPath)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "ProbeHostname",
+            "label": "ProbeHostname",
+            "defaultValue": "$(ProbeHostname)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        },
+        {
+            "aliases": [],
+            "options": {},
+            "properties": {},
+            "name": "SourceEnvironment",
+            "label": "SourceEnvironment",
+            "defaultValue": "$(SourceEnvironment)",
+            "required": true,
+            "type": "string",
+            "helpMarkDown": "",
+            "groupName": ""
+        }
+    ],
+    "satisfies": [],
+    "sourceDefinitions": [],
+    "dataSourceBindings": [],
+    "instanceNameFormat": "Task group: AIRGAP_OS_deploy_to_destination_env",
+    "preJobExecution": {},
+    "execution": {},
+    "postJobExecution": {}
+}
