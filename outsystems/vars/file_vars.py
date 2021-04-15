@@ -47,7 +47,8 @@ BDD_FRAMEWORK_FOLDER = "bdd_data"
 JUNIT_TEST_RESULTS_FILE = "junit-result.xml"
 
 # Architecture Dashboard vars
-AD_INFRA_FILE = "ad.infra.cache"
-AD_APP_FILE = ".ad.app.cache"
+AD_FILE_PREFIX = "TechDebt"
+AD_INFRA_FILE = "ad.infrastructure.cache"
+AD_APP_FILE_EXTENSION = ".ad.application.cache"
 AD_MODULE_FILE = ".ad.module.cache"
 AD_FOLDER = "tech_debt_data"
