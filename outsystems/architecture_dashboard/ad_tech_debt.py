@@ -11,7 +11,7 @@ from outsystems.file_helpers.file import store_data
 # Variables
 from outsystems.vars.ad_vars import AD_API_ENDPOINT, AD_API_SUCCESS_CODE, AD_HTTP_PROTO, AD_API_HOST, AD_API_VERSION, \
     AD_API_UNAUTHORIZED_CODE, AD_APP_ENDPOINT, AD_APP_SUCCESS_CODE
-from outsystems.vars.file_vars import AD_FOLDER, AD_INFRA_FILE, AD_APP_FILE_EXTENSION, AD_FILE_PREFIX
+from outsystems.vars.file_vars import AD_FOLDER, AD_FILE_PREFIX , AD_INFRA_FILE, AD_APP_FILE
 
 
 # Returns the infrastructure technical debt summary
@@ -50,7 +50,7 @@ def get_app_techdebt(artifact_dir: str, api_key: str, activation_code: str, app:
     # Process the response based on the status code returned from the server
     if status_code == AD_APP_SUCCESS_CODE:
         # Stores the result
-        filename = "{}.{}{}".format(AD_FILE_PREFIX, app["ApplicationName"], AD_APP_FILE_EXTENSION)
+        filename = "{}.{}{}".format(AD_FILE_PREFIX, app["ApplicationName"], AD_APP_FILE)
         filename = os.path.join(AD_FOLDER, filename)
         store_data(artifact_dir, filename, response["response"])
         return response["response"]
