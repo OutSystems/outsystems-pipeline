@@ -55,7 +55,7 @@ def main(artifact_dir: str, activation_code: str, api_key: str, dep_manifest: li
             sys.exit(0)
         else:
             retry_counter += 1
-            print("Tentative {} out of {} - Code Analysis does not include the latest code changes. Trying again in {} minutes...".format(retry_counter, MAX_RETRIES, int(SLEEP_PERIOD_IN_SECS / 60)), flush=True)
+            print("Code Analysis does not include the latest code changes. Trying again in {} minutes... (tentative {} out of {})".format(int(SLEEP_PERIOD_IN_SECS / 60), retry_counter, MAX_RETRIES), flush=True)
             sleep(SLEEP_PERIOD_IN_SECS)
 
             print("Deleting old code analysis cached files...", flush=True)
