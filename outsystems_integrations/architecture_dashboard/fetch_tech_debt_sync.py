@@ -51,21 +51,21 @@ def main(artifact_dir: str, activation_code: str, api_key: str, dep_manifest: li
                 last_analysis_time = app_analysis_time
 
         if last_tag_time < last_analysis_time:
-            print("Exiting, Code Analysis includes latest code changes.".format(last_tag_time), flush=True)
+            print("Success: Code Analysis includes latest code changes.".format(last_tag_time), flush=True)
             sys.exit(0)
         else:
             retry_counter += 1
             print("Tentative {} out of {} - Code Analysis does not include the latest code changes. Trying again in {} minutes...".format(retry_counter, MAX_RETRIES, int(SLEEP_PERIOD_IN_SECS / 60)), flush=True)
             sleep(SLEEP_PERIOD_IN_SECS)
 
-            print("Deleting old Code Analysis cached files...", flush=True)
+            print("Deleting old code analysis cached files...", flush=True)
             # Clear Code Analysis cached data
             for app in dep_manifest:
                 filename = "{}.{}{}".format(AD_FILE_PREFIX, app["ApplicationName"], AD_APP_FILE)
                 filename = os.path.join(AD_FOLDER, filename)
                 clear_cache(artifact_dir, filename)
 
-    print("Error - Max tries reached out.", flush=True)
+    print("Error: Max tries reached out.", flush=True)
     sys.exit(1)
 
 # End of main()
