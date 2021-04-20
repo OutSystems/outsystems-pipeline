@@ -11,7 +11,7 @@ from outsystems.file_helpers.file import store_data
 # Variables
 from outsystems.vars.ad_vars import AD_API_ENDPOINT, AD_API_SUCCESS_CODE, AD_HTTP_PROTO, AD_API_HOST, AD_API_VERSION, \
     AD_API_UNAUTHORIZED_CODE, AD_APP_ENDPOINT, AD_APP_SUCCESS_CODE
-from outsystems.vars.file_vars import AD_FOLDER, AD_FILE_PREFIX , AD_INFRA_FILE, AD_APP_FILE
+from outsystems.vars.file_vars import AD_FOLDER, AD_FILE_PREFIX, AD_INFRA_FILE, AD_APP_FILE
 
 
 # Returns the infrastructure technical debt summary
