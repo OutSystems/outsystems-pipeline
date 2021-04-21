@@ -1,6 +1,6 @@
 # Base Architecture Dashboard API Variables
 AD_HTTP_PROTO = "https"
-AD_API_HOST = "archpp.outsystems.com"
+AD_API_HOST = "architecture.outsystems.com"
 AD_API_ENDPOINT = "ArchitectureDashboardAPI/rest/Infrastructure"
 AD_API_VERSION = "1"
 
