@@ -7,6 +7,14 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## April 22nd, 2021
+
+### Code Analysis with Architecture Dashboard
+
+Added new functions to fetch Code Analysis results from Architecture Dashboard: 
+* fetch_tech_debt - Fetches last code analysis information from the Architecture Dashboard API (either for all infrastructure or for the applications on the Manifest file)
+* fetch_tech_debt_sync - Compares the Manifest file applications tag creation datetime with the Architecture Dashboards' last analysis datetime to assure the analysis includes the last tagged code changes.
+
 ## December 6th, 2019
 
 ### Deployment Manifest
