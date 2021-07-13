@@ -1,4 +1,8 @@
 # Map virtual drive specific
-LOCAL_DRIVE = "E:"
-REMOTE_DRIVE = "E$"
-BINARY_DIRECTORY = r"OutSystems\Platform Server"
+REMOTE_DRIVE = "E"
+OUTSYSTEMS_DIR = "OutSystems"
+PLAT_SERVER_DIR = "Platform Server"
+CUSTOM_HANDLERS_DIR = "customHandlers"
+REPOSITORY_DIR = "repository"
+SHARE_DIR = "share"
+FULL_DIR = "full"

@@ -16,19 +16,53 @@ else:  # Else just add the project dir
 # Variables
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, MODULES_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
-from outsystems.vars.os_vars import LOCAL_DRIVE, BINARY_DIRECTORY
+from outsystems.vars.os_vars import REMOTE_DRIVE, OUTSYSTEMS_DIR, PLAT_SERVER_DIR, SHARE_DIR, FULL_DIR, \
+    REPOSITORY_DIR, CUSTOM_HANDLERS_DIR
 
 # Functions
-from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_applications import _get_application_info
+from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_environments import get_environment_key, _find_environment_url
 from outsystems.lifetime.lifetime_modules import get_modules
 from outsystems.file_helpers.file import load_data
-from outsystems.infrastructure.infrastructure_base import connect_shared_drive, disconnect_shared_drive
 
 
 # ############################################################# SCRIPT ##############################################################
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, fileshare_user: str, fileshare_pass: str, target_env: str, apps: list, dep_manifest: list, inc_pattern: str, exc_pattern: str):
+
+# Recursively copy the entire directory tree
+# Symbolic links in the source tree result in symbolic links in the destination tree
+def get_module_resources(module_name: str, network_dir: str, local_dir: str):
+    network_dir += os.sep + os.path.join(SHARE_DIR, module_name, FULL_DIR)
+    shutil.copytree(network_dir, local_dir, symlinks=True)
+
+
+# The contents of the files pointed to by symbolic links are copied
+# Keeping the original file name
+def replace_local_symlinks(network_dir: str, local_dir: str):
+    for subdir, dirs, files in os.walk(local_dir):
+        for filename in files:
+            filepath = os.path.join(local_dir, subdir, filename)
+
+            # CustomHandlers symlinc file starts with upercase leter
+            # CustomHandlers folder starts with lowercase
+            if filename == CUSTOM_HANDLERS_DIR[0].upper() + CUSTOM_HANDLERS_DIR[1:]:
+                dst_dir = os.path.join(local_dir, CUSTOM_HANDLERS_DIR)
+                src_dir = os.path.join(network_dir, CUSTOM_HANDLERS_DIR)
+
+                os.remove(filepath)
+                shutil.copytree(src_dir, dst_dir, symlinks=True)
+
+            elif os.path.islink(filepath):
+                src_dir = os.path.join(network_dir, REPOSITORY_DIR)
+
+                head, tail = os.path.split(os.readlink(filepath))
+                src_file = os.path.join(src_dir, tail)
+
+                os.remove(filepath)
+                shutil.copy2(src_file, filepath)
+
+
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, drive_letter: str, fileshare_user: str, fileshare_pass: str, target_env: str, apps: list, dep_manifest: list, inc_pattern: str, exc_pattern: str):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -50,9 +84,9 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         if module["Kind"] == "eSpace":
             for module_status in module["ModuleStatusInEnv"]:
                 for app in app_list:
-                    if module_status["ApplicationKey"] == app[1] and module_status["EnvironmentKey"] == target_env_key and module["Name"] not in exc_pattern:  # EXC_PATTERN : CasesSampleData excludes Cases moodule
+                    if module_status["ApplicationKey"] == app[1] and module_status["EnvironmentKey"] == target_env_key and module["Name"] not in exc_pattern:
                         module_list.append(module)
-                    elif module_status["EnvironmentKey"] == target_env_key and module["Name"] in inc_pattern:  # INC_PATTERN : CasesSampleData include Cases module
+                    elif module_status["EnvironmentKey"] == target_env_key and module["Name"] in inc_pattern:
                         module_list.append(module)
 
     # Show final module list
@@ -64,21 +98,26 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Get target environment hostname
     target_env_hostname = _find_environment_url(artifact_dir, lt_endpoint, lt_token, target_env)
 
-    # Create file share to Deployment Controller root folder
-    connect_shared_drive(target_env_hostname, fileshare_user, fileshare_pass)
+    # Set network root path
+    network_dir = os.path.join(target_env_hostname, drive_letter + "$", OUTSYSTEMS_DIR, PLAT_SERVER_DIR)
+
+    # Set network root path for different local OS
+    if os.name == 'nt':
+        network_dir = r'\\{}'.format(network_dir)
+    elif os.name == 'posix':
+        network_dir = r'//{}'.format(network_dir)
+    else:
+        sys.exit(1)
 
     # Copy located files to target location (keep file hierarchy)
     for module in module_list:
-        dst_dir = os.path.join(artifact_dir, MODULES_FOLDER, module["Name"])
-        src_dir = r'{}\{}'.format(LOCAL_DRIVE, os.path.join(BINARY_DIRECTORY, "share", module["Name"], "full"))
-        print("Fetching resources for module '{}'...".format(module["Name"]), flush=True)
+        local_dir = os.path.join(artifact_dir, MODULES_FOLDER, module["Name"])
 
-        # Recursively copy the entire directory tree
-        # The contents and metadata of the linked files are copied to the new tree
-        shutil.copytree(src_dir, dst_dir, symlinks=False)
+        print("[{}] Fetching module resources...".format(module["Name"]), flush=True)
+        get_module_resources(module["Name"], network_dir, local_dir)
 
-    # Remove file share network directory
-    disconnect_shared_drive()
+        print("[{}] Replacing local symbolic links...".format(module["Name"]), flush=True)
+        replace_local_symlinks(network_dir, local_dir)
 
     sys.exit(0)
 # End of main()
@@ -103,6 +142,8 @@ if __name__ == "__main__":
                         help="Comma separated list of apps you want to fetch. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-m", "--manifest_file", type=str,
                         help="(optional) Manifest file path, to be used instead of to app_list.")
+    parser.add_argument("-d", "--drive_letter", type=str, default=REMOTE_DRIVE,
+                        help="(optional) Drive letter where OutSystems platform is installed")
     parser.add_argument("-fu", "--fileshare_user", type=str, required=True,
                         help="Username with priveleges to connect to target environemnt DC")
     parser.add_argument("-fp", "--fileshare_pass", type=str, required=True,
@@ -144,6 +185,8 @@ if __name__ == "__main__":
     else:
         manifest_file = None
     # Parse Fileshare User
+    drive_letter = args.drive_letter
+    # Parse Fileshare User
     fileshare_user = args.fileshare_user
     # Parse Fileshare Pass
     fileshare_pass = args.fileshare_pass
@@ -153,4 +196,4 @@ if __name__ == "__main__":
     exc_pattern = args.exc_pattern
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, fileshare_user, fileshare_pass, target_env, apps, manifest_file, inc_pattern, exc_pattern)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, drive_letter, fileshare_user, fileshare_pass, target_env, apps, manifest_file, inc_pattern, exc_pattern)
