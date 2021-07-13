@@ -45,9 +45,9 @@ def replace_local_symlinks(network_dir: str, local_dir: str):
 
             # CustomHandlers symlinc file starts with upercase leter
             # CustomHandlers folder starts with lowercase
-            if filename == CUSTOM_HANDLERS_DIR[0].upper() + CUSTOM_HANDLERS_DIR[1:]:
+            if filename == CUSTOM_HANDLERS_DIR:
                 dst_dir = os.path.join(local_dir, CUSTOM_HANDLERS_DIR)
-                src_dir = os.path.join(network_dir, CUSTOM_HANDLERS_DIR)
+                src_dir = os.path.join(network_dir, CUSTOM_HANDLERS_DIR[0].lower() + CUSTOM_HANDLERS_DIR[1:])
 
                 os.remove(filepath)
                 shutil.copytree(src_dir, dst_dir, symlinks=True)
@@ -99,6 +99,8 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     target_env_hostname = _find_environment_url(artifact_dir, lt_endpoint, lt_token, target_env)
 
     # Set network root path
+    # csdevops11-reg.outsystems.net\E$\OutSystems\Platform Server
+    # Implement -> receive platform server installation dir (e.g: "E:\folder")
     network_dir = os.path.join(target_env_hostname, drive_letter + "$", OUTSYSTEMS_DIR, PLAT_SERVER_DIR)
 
     # Set network root path for different local OS
@@ -184,7 +186,7 @@ if __name__ == "__main__":
         manifest_file = load_data("", args.manifest_file)
     else:
         manifest_file = None
-    # Parse Fileshare User
+    # Parse Drive letter
     drive_letter = args.drive_letter
     # Parse Fileshare User
     fileshare_user = args.fileshare_user
