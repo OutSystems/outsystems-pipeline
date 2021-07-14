@@ -55,14 +55,17 @@ def replace_local_symlinks(network_dir: str, local_dir: str):
             elif os.path.islink(filepath):
                 src_dir = os.path.join(network_dir, REPOSITORY_DIR)
 
+                # Get symbolic link file name (which includes .dll version id)
                 head, tail = os.path.split(os.readlink(filepath))
                 src_file = os.path.join(src_dir, tail)
 
+                # Replace local (symbolic link) file by the content of the file pointed to by symbolic link
+                # maintaining the original local file name
                 os.remove(filepath)
                 shutil.copy2(src_file, filepath)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, drive_letter: str, fileshare_user: str, fileshare_pass: str, target_env: str, apps: list, dep_manifest: list, inc_pattern: str, exc_pattern: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, installation_dir: str, fileshare_user: str, fileshare_pass: str, target_env: str, apps: list, dep_manifest: list, inc_pattern: str, exc_pattern: str):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -99,9 +102,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     target_env_hostname = _find_environment_url(artifact_dir, lt_endpoint, lt_token, target_env)
 
     # Set network root path
-    # csdevops11-reg.outsystems.net\E$\OutSystems\Platform Server
-    # Implement -> receive platform server installation dir (e.g: "E:\folder")
-    network_dir = os.path.join(target_env_hostname, drive_letter + "$", OUTSYSTEMS_DIR, PLAT_SERVER_DIR)
+    network_dir = os.path.join(target_env_hostname, installation_dir.replace(":", "$"))
 
     # Set network root path for different local OS
     if os.name == 'nt':
@@ -144,8 +145,8 @@ if __name__ == "__main__":
                         help="Comma separated list of apps you want to fetch. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-m", "--manifest_file", type=str,
                         help="(optional) Manifest file path, to be used instead of to app_list.")
-    parser.add_argument("-d", "--drive_letter", type=str, default=REMOTE_DRIVE,
-                        help="(optional) Drive letter where OutSystems platform is installed")
+    parser.add_argument("-i", "--installation_dir", type=str, default=os.path.join(REMOTE_DRIVE + ":", os.sep, OUTSYSTEMS_DIR, PLAT_SERVER_DIR),
+                        help=r'(optional) OutSystems Platform Installation directory. Example: "E:\OutSystems\Platform Server"')
     parser.add_argument("-fu", "--fileshare_user", type=str, required=True,
                         help="Username with priveleges to connect to target environemnt DC")
     parser.add_argument("-fp", "--fileshare_pass", type=str, required=True,
@@ -186,8 +187,8 @@ if __name__ == "__main__":
         manifest_file = load_data("", args.manifest_file)
     else:
         manifest_file = None
-    # Parse Drive letter
-    drive_letter = args.drive_letter
+    # Parse Installation dir
+    installation_dir = args.installation_dir
     # Parse Fileshare User
     fileshare_user = args.fileshare_user
     # Parse Fileshare Pass
@@ -198,4 +199,4 @@ if __name__ == "__main__":
     exc_pattern = args.exc_pattern
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, drive_letter, fileshare_user, fileshare_pass, target_env, apps, manifest_file, inc_pattern, exc_pattern)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, installation_dir, fileshare_user, fileshare_pass, target_env, apps, manifest_file, inc_pattern, exc_pattern)
