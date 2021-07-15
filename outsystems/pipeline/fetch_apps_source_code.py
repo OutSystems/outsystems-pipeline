@@ -16,15 +16,13 @@ else:  # Else just add the project dir
 # Variables
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, MODULES_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
-from outsystems.vars.os_vars import REMOTE_DRIVE, OUTSYSTEMS_DIR, PLAT_SERVER_DIR, SHARE_DIR, FULL_DIR, \
-    REPOSITORY_DIR, CUSTOM_HANDLERS_DIR
+from outsystems.vars.os_vars import REMOTE_DRIVE, OUTSYSTEMS_DIR, PLAT_SERVER_DIR, SHARE_DIR, FULL_DIR, REPOSITORY_DIR
 
 # Functions
 from outsystems.lifetime.lifetime_applications import _get_application_info
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_environments import get_environment_key, _find_environment_url
 from outsystems.lifetime.lifetime_modules import get_modules
-from outsystems.file_helpers.file import load_data
 
 
 # ############################################################# SCRIPT ##############################################################
@@ -42,17 +40,7 @@ def replace_local_symlinks(network_dir: str, local_dir: str):
     for subdir, dirs, files in os.walk(local_dir):
         for filename in files:
             filepath = os.path.join(local_dir, subdir, filename)
-
-            # CustomHandlers symlinc file starts with upercase leter
-            # CustomHandlers folder starts with lowercase
-            if filename == CUSTOM_HANDLERS_DIR:
-                dst_dir = os.path.join(local_dir, CUSTOM_HANDLERS_DIR)
-                src_dir = os.path.join(network_dir, CUSTOM_HANDLERS_DIR[0].lower() + CUSTOM_HANDLERS_DIR[1:])
-
-                os.remove(filepath)
-                shutil.copytree(src_dir, dst_dir, symlinks=True)
-
-            elif os.path.islink(filepath):
+            if os.path.islink(filepath):
                 src_dir = os.path.join(network_dir, REPOSITORY_DIR)
 
                 # Get symbolic link file name (which includes .dll version id)
@@ -65,7 +53,7 @@ def replace_local_symlinks(network_dir: str, local_dir: str):
                 shutil.copy2(src_file, filepath)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, installation_dir: str, fileshare_user: str, fileshare_pass: str, target_env: str, apps: list, dep_manifest: list, inc_pattern: str, exc_pattern: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, installation_dir: str, target_env: str, apps: list, inc_pattern: str, exc_pattern: str):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -114,7 +102,8 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Copy located files to target location (keep file hierarchy)
     for module in module_list:
-        local_dir = os.path.join(artifact_dir, MODULES_FOLDER, module["Name"])
+        # Set local full path direcory
+        local_dir = os.path.join(os.getcwd(), artifact_dir, MODULES_FOLDER, module["Name"])
 
         print("[{}] Fetching module resources...".format(module["Name"]), flush=True)
         get_module_resources(module["Name"], network_dir, local_dir)
@@ -143,14 +132,8 @@ if __name__ == "__main__":
                         help="Name, as displayed in LifeTime, of the target environment where you want to fetch the apps.")
     parser.add_argument("-l", "--app_list", type=str, required=True,
                         help="Comma separated list of apps you want to fetch. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
-    parser.add_argument("-m", "--manifest_file", type=str,
-                        help="(optional) Manifest file path, to be used instead of to app_list.")
     parser.add_argument("-i", "--installation_dir", type=str, default=os.path.join(REMOTE_DRIVE + ":", os.sep, OUTSYSTEMS_DIR, PLAT_SERVER_DIR),
                         help=r'(optional) OutSystems Platform Installation directory. Example: "E:\OutSystems\Platform Server"')
-    parser.add_argument("-fu", "--fileshare_user", type=str, required=True,
-                        help="Username with priveleges to connect to target environemnt DC")
-    parser.add_argument("-fp", "--fileshare_pass", type=str, required=True,
-                        help="Password to connect to target environemnt DC")
     parser.add_argument("-in", "--inc_pattern", type=str,
                         help="(optional) Include pattern for module scope")
     parser.add_argument("-ex", "--exc_pattern", type=str,
@@ -182,21 +165,12 @@ if __name__ == "__main__":
     # Parse App list
     _apps = args.app_list
     apps = _apps.split(',')
-    # Parse Manifest file if it exists
-    if args.manifest_file:
-        manifest_file = load_data("", args.manifest_file)
-    else:
-        manifest_file = None
     # Parse Installation dir
     installation_dir = args.installation_dir
-    # Parse Fileshare User
-    fileshare_user = args.fileshare_user
-    # Parse Fileshare Pass
-    fileshare_pass = args.fileshare_pass
     # Parse Include Pattern
     inc_pattern = args.inc_pattern
     # Parse Exclude Pattern
     exc_pattern = args.exc_pattern
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, installation_dir, fileshare_user, fileshare_pass, target_env, apps, manifest_file, inc_pattern, exc_pattern)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, installation_dir, target_env, apps, inc_pattern, exc_pattern)
