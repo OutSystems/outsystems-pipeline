@@ -16,7 +16,8 @@ else:  # Else just add the project dir
 # Variables
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, MODULES_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
-from outsystems.vars.os_vars import REMOTE_DRIVE, OUTSYSTEMS_DIR, PLAT_SERVER_DIR, SHARE_DIR, FULL_DIR, REPOSITORY_DIR
+from outsystems.vars.os_vars import REMOTE_DRIVE, OUTSYSTEMS_DIR, PLAT_SERVER_DIR, SHARE_DIR, FULL_DIR, \
+    REPOSITORY_DIR, CUSTOM_HANDLERS_DIR
 
 # Functions
 from outsystems.lifetime.lifetime_applications import _get_application_info
@@ -40,7 +41,17 @@ def replace_local_symlinks(network_dir: str, local_dir: str):
     for subdir, dirs, files in os.walk(local_dir):
         for filename in files:
             filepath = os.path.join(local_dir, subdir, filename)
-            if os.path.islink(filepath):
+
+            # CustomHandlers symlinc file starts with upercase leter
+            # CustomHandlers folder starts with lowercase
+            if filename == CUSTOM_HANDLERS_DIR:
+                dst_dir = os.path.join(local_dir, CUSTOM_HANDLERS_DIR)
+                src_dir = os.path.join(network_dir, CUSTOM_HANDLERS_DIR[0].lower() + CUSTOM_HANDLERS_DIR[1:])
+
+                os.remove(filepath)
+                shutil.copytree(src_dir, dst_dir, symlinks=True)
+
+            elif os.path.islink(filepath):
                 src_dir = os.path.join(network_dir, REPOSITORY_DIR)
 
                 # Get symbolic link file name (which includes .dll version id)
