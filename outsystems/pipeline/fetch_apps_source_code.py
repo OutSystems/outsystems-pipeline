@@ -100,7 +100,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Parse target environment hostname
     if not target_env_hostname:
         target_env_hostname = _find_environment_url(artifact_dir, lt_endpoint, lt_token, target_env)
-        
+
     # Set network root path
     network_dir = os.path.join(target_env_hostname, installation_dir.replace(":", "$"))
 
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                         help="Name, as displayed in LifeTime, of the target environment where you want to fetch the apps.")
     parser.add_argument("-l", "--app_list", type=str, required=True,
                         help="Comma separated list of apps you want to fetch. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
-    parser.add_argument("-h", "--target_env_hostname", type=str,
+    parser.add_argument("-th", "--target_env_hostname", type=str,
                         help=r'(optional) Target environemnt hostname. Example: "<environemnt_hostname>"')
     parser.add_argument("-i", "--installation_dir", type=str, default=os.path.join(REMOTE_DRIVE + ":", os.sep, OUTSYSTEMS_DIR, PLAT_SERVER_DIR),
                         help=r'(optional) OutSystems Platform Installation directory. Example: "E:\OutSystems\Platform Server"')
