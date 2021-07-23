@@ -64,7 +64,7 @@ def replace_local_symlinks(network_dir: str, local_dir: str):
                 shutil.copy2(src_file, filepath)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, installation_dir: str, target_env: str, apps: list, inc_pattern: str, exc_pattern: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env_hostname: str, installation_dir: str, target_env: str, apps: list, inc_pattern: str, exc_pattern: str):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -97,9 +97,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         print(" - {}".format(module["Name"]))
     print("", flush=True)
 
-    # Get target environment hostname
-    target_env_hostname = _find_environment_url(artifact_dir, lt_endpoint, lt_token, target_env)
-
+    # Parse target environment hostname
+    if not target_env_hostname:
+        target_env_hostname = _find_environment_url(artifact_dir, lt_endpoint, lt_token, target_env)
+        
     # Set network root path
     network_dir = os.path.join(target_env_hostname, installation_dir.replace(":", "$"))
 
@@ -143,6 +144,8 @@ if __name__ == "__main__":
                         help="Name, as displayed in LifeTime, of the target environment where you want to fetch the apps.")
     parser.add_argument("-l", "--app_list", type=str, required=True,
                         help="Comma separated list of apps you want to fetch. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
+    parser.add_argument("-h", "--target_env_hostname", type=str,
+                        help=r'(optional) Target environemnt hostname. Example: "<environemnt_hostname>"')
     parser.add_argument("-i", "--installation_dir", type=str, default=os.path.join(REMOTE_DRIVE + ":", os.sep, OUTSYSTEMS_DIR, PLAT_SERVER_DIR),
                         help=r'(optional) OutSystems Platform Installation directory. Example: "E:\OutSystems\Platform Server"')
     parser.add_argument("-in", "--inc_pattern", type=str,
@@ -176,6 +179,8 @@ if __name__ == "__main__":
     # Parse App list
     _apps = args.app_list
     apps = _apps.split(',')
+    # Parse Hostname dir
+    target_env_hostname = args.target_env_hostname
     # Parse Installation dir
     installation_dir = args.installation_dir
     # Parse Include Pattern
@@ -184,4 +189,4 @@ if __name__ == "__main__":
     exc_pattern = args.exc_pattern
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, installation_dir, target_env, apps, inc_pattern, exc_pattern)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env_hostname, installation_dir, target_env, apps, inc_pattern, exc_pattern)
