@@ -3,6 +3,7 @@ import sys
 import os
 import argparse
 import shutil
+import subprocess
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -64,7 +65,17 @@ def replace_local_symlinks(network_dir: str, local_dir: str):
                 shutil.copy2(src_file, filepath)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env_hostname: str, installation_dir: str, target_env: str, apps: list, inc_pattern: str, exc_pattern: str):
+# Connect to shared drive, use given credentials
+def connect_network_dir(network_path: str, network_user: str, network_pass: str):
+    subprocess.call(r'net use "{}" /user:{} {}'.format(network_path, network_user, network_pass), shell=True)
+
+
+# Disconnect shared drive
+def diconnect_network_dir(network_path: str):
+    subprocess.call(r'net use {} /delete'.format(network_path), shell=True)
+
+
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env_hostname: str, installation_dir: str, network_user: str, network_pass: str, target_env: str, apps: list, inc_pattern: str, exc_pattern: str):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -112,6 +123,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     else:
         sys.exit(1)
 
+    print('network_dir: {}'.format(network_dir), flush=True)
+    if network_user and network_pass:
+        connect_network_dir(network_dir, network_user, network_pass)
+
     # Copy located files to target location (keep file hierarchy)
     for module in module_list:
         # Set local full path direcory
@@ -123,6 +138,9 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         print("[{}] Replacing local symbolic links...".format(module["Name"]), flush=True)
         replace_local_symlinks(network_dir, local_dir)
 
+    if network_user and network_pass:
+        diconnect_network_dir(network_dir)
+
     sys.exit(0)
 # End of main()
 
@@ -132,7 +150,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--artifacts", type=str, default=ARTIFACT_FOLDER,
                         help="Name of the artifacts folder. Default: \"Artifacts\"")
-    parser.add_argument("-u", "--lt_url", type=str, required=True,
+    parser.add_argument("-lu", "--lt_url", type=str, required=True,
                         help="URL for LifeTime environment, without the API endpoint. Example: \"https://<lifetime_host>\"")
     parser.add_argument("-lt", "--lt_token", type=str, required=True,
                         help="Token for LifeTime API calls.")
@@ -148,6 +166,10 @@ if __name__ == "__main__":
                         help=r'(optional) Target environemnt hostname. Example: "<environemnt_hostname>"')
     parser.add_argument("-i", "--installation_dir", type=str, default=os.path.join(REMOTE_DRIVE + ":", os.sep, OUTSYSTEMS_DIR, PLAT_SERVER_DIR),
                         help=r'(optional) OutSystems Platform Installation directory. Example: "E:\OutSystems\Platform Server"')
+    parser.add_argument("-u", "--network_user", type=str,
+                        help=r'(optional) Network connection Username.')
+    parser.add_argument("-p", "--network_pass", type=str,
+                        help=r'(optional) Network connection Password')
     parser.add_argument("-in", "--inc_pattern", type=str,
                         help="(optional) Include pattern for module scope")
     parser.add_argument("-ex", "--exc_pattern", type=str,
@@ -183,10 +205,14 @@ if __name__ == "__main__":
     target_env_hostname = args.target_env_hostname
     # Parse Installation dir
     installation_dir = args.installation_dir
+    # Parse Network Username
+    network_user = args.network_user
+    # Parse Network Password
+    network_pass = args.network_pass
     # Parse Include Pattern
     inc_pattern = args.inc_pattern
     # Parse Exclude Pattern
     exc_pattern = args.exc_pattern
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env_hostname, installation_dir, target_env, apps, inc_pattern, exc_pattern)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env_hostname, installation_dir, network_user, network_pass, target_env, apps, inc_pattern, exc_pattern)
