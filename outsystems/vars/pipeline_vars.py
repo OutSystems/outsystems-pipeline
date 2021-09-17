@@ -11,3 +11,6 @@ DEPLOYMENT_RUNNING_STATUS = "running"
 # Pipeline files variables
 CONFLICTS_FILE = "DeploymentConflicts"
 DEPLOY_ERROR_FILE = "DeploymentErrors"
+
+# Pipeline requests variables
+SSL_CERT_VERIFY = True
