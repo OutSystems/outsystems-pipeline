@@ -3,7 +3,7 @@ import requests
 
 # Custom Modules
 # Functions
-from outsystems.configurations.pipeline_configurations import get_ssl_cert_verify_value
+from outsystems.configurations.pipeline_configurations import get_conf_value
 # Exceptions
 from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
 # Variables
@@ -32,7 +32,7 @@ def send_bdd_get_request(bdd_api: str, bdd_endpoint: str, url_params: str):
 # Runs the test on the BDD Framework app
 def send_bdd_get_run_request(test_endpoint: str, url_params: str):
     # Send the request
-    response = requests.get(test_endpoint, params=url_params, verify=get_ssl_cert_verify_value())
+    response = requests.get(test_endpoint, params=url_params, verify=get_conf_value("SSL_CERT_VERIFY"))
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:

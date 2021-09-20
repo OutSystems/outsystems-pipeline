@@ -3,7 +3,7 @@ import requests
 
 # Custom Modules
 # Functions
-from outsystems.configurations.pipeline_configurations import get_ssl_cert_verify_value
+from outsystems.configurations.pipeline_configurations import get_conf_value
 # Exceptions
 from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
 
@@ -18,7 +18,7 @@ def send_probe_get_request(probe_api: str, probe_endpoint: str, url_params: str)
     # Format the request URL to include the api endpoint
     request_string = "{}/{}".format(probe_api, probe_endpoint)
     # Send the request
-    response = requests.get(request_string, params=url_params, verify=get_ssl_cert_verify_value())
+    response = requests.get(request_string, params=url_params, verify=get_conf_value("SSL_CERT_VERIFY"))
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:

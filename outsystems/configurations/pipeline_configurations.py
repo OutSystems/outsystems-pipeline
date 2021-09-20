@@ -31,10 +31,10 @@ def get_conf_value(conf: str):
 
     # if not, try to retrieve it from the config file
     elif "OS_PIPELINE_CONFIG_FILE" in os.environ:
-        config = ConfigParser()
-        config.read(os.environ["OS_PIPELINE_CONFIG_FILE"])
-        if config.has_section('PIPELINE_CONFIG'):
-            details_dict = dict(config.items('PIPELINE_CONFIG'))
+        config_file = ConfigParser()
+        config_file.read(os.environ["OS_PIPELINE_CONFIG_FILE"])
+        if config_file.has_section('PIPELINE_CONFIG'):
+            details_dict = dict(config_file.items('PIPELINE_CONFIG'))
             if conf.lower() in details_dict:
                 global_config[conf] = details_dict[conf.lower()]
 
@@ -45,5 +45,4 @@ def get_conf_value(conf: str):
         elif conf == "DEPLOYMENT_TIMEOUT_IN_SECS":
             global_config[conf] = DEPLOYMENT_TIMEOUT_IN_SECS
 
-    print(global_config[conf])
     return global_config[conf]
