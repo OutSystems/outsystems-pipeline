@@ -27,7 +27,7 @@ from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_
     send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
-from outsystems.configurations.pipeline_configurations import get_deployment_timeout_in_secs_value
+from outsystems.configurations.pipeline_configurations import get_conf_value
 # Exceptions
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 
@@ -204,7 +204,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Sleep thread until deployment has finished
     wait_counter = 0
-    deployment_timeout = get_deployment_timeout_in_secs_value()
+    deployment_timeout = get_conf_value("DEPLOYMENT_TIMEOUT_IN_SECS")
     while wait_counter < deployment_timeout:
         # Check Deployment Plan status.
         dep_status = get_deployment_status(
