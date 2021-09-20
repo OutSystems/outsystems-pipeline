@@ -9,20 +9,14 @@ from outsystems.vars.pipeline_vars import SSL_CERT_VERIFY, DEPLOYMENT_TIMEOUT_IN
 from outsystems.exceptions.configuration_not_found import ConfigurationNotFoundError
 
 
-def create_global_conf():
-    global global_config
-    if "global_config" not in globals():
-        global_config = {}
-
-
 # Returns the configuration value which may be defined in a properties file.
 def get_conf_value(conf: str):
 
-    # verify valid configurations
+    # verify if given conf is settable via conf_file
     if conf not in ("SSL_CERT_VERIFY", "DEPLOYMENT_TIMEOUT_IN_SECS"):
         raise ConfigurationNotFoundError
 
-    create_global_conf()
+    _create_global_conf()
     global global_config
 
     # if config value already has been define in global dict then return it
@@ -46,3 +40,11 @@ def get_conf_value(conf: str):
             global_config[conf] = DEPLOYMENT_TIMEOUT_IN_SECS
 
     return global_config[conf]
+
+
+# ---------------------- PRIVATE METHODS ----------------------
+# Private method to create a globel dict if it does not already exists.
+def _create_global_conf():
+    global global_config
+    if "global_config" not in globals():
+        global_config = {}
