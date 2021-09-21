@@ -204,7 +204,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Sleep thread until deployment has finished
     wait_counter = 0
-    deployment_timeout = get_conf_value("DEPLOYMENT_TIMEOUT_IN_SECS")
+    deployment_timeout = int(get_conf_value("DEPLOYMENT_TIMEOUT_IN_SECS"))
     while wait_counter < deployment_timeout:
         # Check Deployment Plan status.
         dep_status = get_deployment_status(

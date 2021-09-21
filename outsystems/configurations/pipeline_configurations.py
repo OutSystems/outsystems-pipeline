@@ -13,24 +13,23 @@ def get_conf_value(conf: str):
     _create_global_conf()
     global global_config
 
-    # if config value already has been define in global dict then return it
+    # If config value already has been defined in global dict then return its value
     if conf in global_config:
-        print("return default value: {} -> {}".format(conf, global_config[conf]), flush=True)
         return global_config[conf]
 
-    # if not, try to retrieve it from the config file
+    # Check if config file path is defined in the env var
+    # Retrieve the config value from the config file
     elif "OS_PIPELINE_CONFIG_FILE" in os.environ:
         config_file = ConfigParser()
         config_file.read(os.environ["OS_PIPELINE_CONFIG_FILE"])
         if config_file.has_section('PIPELINE_CONFIG'):
             details_dict = dict(config_file.items('PIPELINE_CONFIG'))
             if conf.lower() in details_dict:
-                print("set value from config file: {} -> {}".format(conf, global_config[conf]), flush=True)
                 global_config[conf] = details_dict[conf.lower()]
+                print("Configuration overridden: '{}' has now the value '{}'".format(conf, global_config[conf]), flush=True)
 
     # If configuration is not yet defined at this moment then set it to its default value
     if conf not in global_config:
-        print("return default value: {} -> {}".format(conf, global_config[conf]), flush=True)
         global_config[conf] = eval(conf)
 
     return global_config[conf]

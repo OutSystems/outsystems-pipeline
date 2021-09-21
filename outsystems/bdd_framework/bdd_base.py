@@ -32,7 +32,7 @@ def send_bdd_get_request(bdd_api: str, bdd_endpoint: str, url_params: str):
 # Runs the test on the BDD Framework app
 def send_bdd_get_run_request(test_endpoint: str, url_params: str):
     # Send the request
-    response = requests.get(test_endpoint, params=url_params, verify=get_conf_value("SSL_CERT_VERIFY"))
+    response = requests.get(test_endpoint, params=url_params, verify=bool(get_conf_value("SSL_CERT_VERIFY")))
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:

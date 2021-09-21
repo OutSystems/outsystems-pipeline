@@ -22,7 +22,7 @@ def send_get_request(lt_api: str, token: str, api_endpoint: str, url_params: dic
                'authorization': 'Bearer ' + token}
     # Format the request URL to include the api endpoint
     request_string = "{}/{}".format(lt_api, api_endpoint)
-    response = requests.get(request_string, params=url_params, headers=headers, verify=get_conf_value("SSL_CERT_VERIFY"))
+    response = requests.get(request_string, params=url_params, headers=headers, verify=bool(get_conf_value("SSL_CERT_VERIFY")))
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:
@@ -41,7 +41,7 @@ def send_post_request(lt_api: str, token: str, api_endpoint: str, payload: str):
     # Format the request URL to include the api endpoint
     request_string = "{}/{}".format(lt_api, api_endpoint)
     response = requests.post(
-        request_string, data=payload, json=None, headers=headers, verify=get_conf_value("SSL_CERT_VERIFY"))
+        request_string, data=payload, json=None, headers=headers, verify=bool(get_conf_value("SSL_CERT_VERIFY")))
     response_obj = {"http_status": response.status_code, "response": {}}
     # Since LT API POST requests do not reply with native JSON, we have to make it ourselves
     if len(response.text) > 0:
@@ -60,7 +60,7 @@ def send_delete_request(lt_api: str, token: str, api_endpoint: str):
                'authorization': 'Bearer ' + token}
     # Format the request URL to include the api endpoint
     request_string = "{}/{}".format(lt_api, api_endpoint)
-    response = requests.delete(request_string, headers=headers, verify=get_conf_value("SSL_CERT_VERIFY"))
+    response = requests.delete(request_string, headers=headers, verify=bool(get_conf_value("SSL_CERT_VERIFY")))
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:

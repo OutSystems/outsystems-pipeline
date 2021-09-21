@@ -18,7 +18,7 @@ def send_probe_get_request(probe_api: str, probe_endpoint: str, url_params: str)
     # Format the request URL to include the api endpoint
     request_string = "{}/{}".format(probe_api, probe_endpoint)
     # Send the request
-    response = requests.get(request_string, params=url_params, verify=get_conf_value("SSL_CERT_VERIFY"))
+    response = requests.get(request_string, params=url_params, verify=bool(get_conf_value("SSL_CERT_VERIFY")))
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:
