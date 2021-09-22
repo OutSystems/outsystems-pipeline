@@ -26,7 +26,7 @@ def get_conf_value(conf: str):
             details_dict = dict(config_file.items('PIPELINE_CONFIG'))
             if conf.lower() in details_dict:
                 global_config[conf] = details_dict[conf.lower()]
-                print("Configuration overridden: '{}' has now the value '{}'".format(conf, global_config[conf]), flush=True)
+                print("[PIPELINE_CONFIG] Configuration overridden: '{}' has now the value '{}'".format(conf, global_config[conf]), flush=True)
 
     # If configuration is not yet defined at this moment then set it to its default value
     if conf not in global_config:
