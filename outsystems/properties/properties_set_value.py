@@ -4,6 +4,7 @@
 # Functions
 from outsystems.properties.properties_base import send_properties_put_request
 # Variables
+from outsystems.vars.properties_vars import SET_SITE_PROPERTY_VALUE_SUCCESS_CODE
 
 
 def set_site_property_value(lt_url: str, token: str, module_key: str, environment_key: str, site_property_key: str, site_property_value: str):

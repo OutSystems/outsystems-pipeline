@@ -58,7 +58,7 @@ def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, l
         try:
             get_application_version(artifact_dir, lt_endpoint, lt_token, False, deployed_app["VersionKey"], app_name=deployed_app["ApplicationName"])
         except AppDoesNotExistError:
-            print("Application {} with version {} no longer exists in {}. The manifest no longer reflects the current state of the environment. Aborting!".format(deployed_app["ApplicationName"], deployed_app["Version"], src_env_name), flush=True)
+            print("Application {} with version {} no longer exists in {}. The manifest no longer reflects the current state of the environment. Aborting!".format(deployed_app["ApplicationName"], deployed_app["VersionNumber"], src_env_name), flush=True)
             sys.exit(1)
         except Exception as error:
             print("Error trying to validate if the application {} exists in the {} environment.\nError: {}".format(deployed_app["ApplicationName"], src_env_name, error), flush=True)

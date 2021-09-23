@@ -26,13 +26,13 @@ def get_configuration_items_for_environment(manifest: dict, target_env_key: str)
             if target_value:
                 # Add it to the config items list
                 config_items.append({                    
-                    MODULE_KEY: cfg_item[MANIFEST_MODULE_KEY], 
-                    MODULE_NAME: cfg_item[MANIFEST_MODULE_NAME], 
-                    CONFIG_ITEM_KEY: cfg_item[MANIFEST_CONFIG_ITEM_KEY], 
-                    CONFIG_ITEM_NAME: cfg_item[MANIFEST_CONFIG_ITEM_NAME], 
-                    CONFIG_ITEM_TYPE: cfg_item[MANIFEST_CONFIG_ITEM_TYPE], 
-                    CONFIG_ITEM_TARGET_VALUE: target_value[MANIFEST_CONFIG_ITEM_TARGET_VALUE],
-                    ENVIRONMENT_NAME: target_value[MANIFEST_ENVIRONMENT_NAME]
+                    MANIFEST_MODULE_KEY: cfg_item[MANIFEST_MODULE_KEY], 
+                    MANIFEST_MODULE_NAME: cfg_item[MANIFEST_MODULE_NAME], 
+                    MANIFEST_CONFIG_ITEM_KEY: cfg_item[MANIFEST_CONFIG_ITEM_KEY], 
+                    MANIFEST_CONFIG_ITEM_NAME: cfg_item[MANIFEST_CONFIG_ITEM_NAME], 
+                    MANIFEST_CONFIG_ITEM_TYPE: cfg_item[MANIFEST_CONFIG_ITEM_TYPE], 
+                    MANIFEST_CONFIG_ITEM_TARGET_VALUE: target_value[MANIFEST_CONFIG_ITEM_TARGET_VALUE],
+                    MANIFEST_ENVIRONMENT_NAME: target_value[MANIFEST_ENVIRONMENT_NAME]
                 })
 
     return config_items
