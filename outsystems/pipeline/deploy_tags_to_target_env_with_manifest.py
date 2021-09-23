@@ -18,7 +18,7 @@ else:  # Else just add the project dir
 # Variables
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
-from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_TAGS, MANIFEST_FLAG_IS_TEST_APPLICATION, MANIFEST_CONFIG_ITEM_KEY, \
+from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFEST_FLAG_IS_TEST_APPLICATION, MANIFEST_CONFIG_ITEM_KEY, \
     MANIFEST_CONFIG_ITEM_NAME, MANIFEST_CONFIG_ITEM_TARGET_VALUE, MANIFEST_CONFIG_ITEM_TYPE, MANIFEST_ENVIRONMENT_NAME, MANIFEST_MODULE_KEY 
 from outsystems.vars.properties_vars import PROPERTY_TYPE_SITE_PROPERTY
 from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
@@ -52,7 +52,7 @@ def generate_deploy_app_key(lt_api_version: int, app_version_key: str, deploy_zo
 def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, lt_token: str, src_env_key: str, src_env_name: str, manifest: list, include_test_apps: bool):
     app_data_list = []  # will contain the applications details from the manifest
 
-    for deployed_app in manifest[MANIFEST_APPLICATION_TAGS]:      
+    for deployed_app in manifest[MANIFEST_APPLICATION_VERSIONS]:      
         if not(include_test_apps) and deployed_app[MANIFEST_FLAG_IS_TEST_APPLICATION]:
             continue   
         try:
@@ -84,7 +84,7 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
                     if app_in_env["BaseApplicationVersionKey"] != app["VersionKey"]:
                         # The version is not the one deployed -> need to compare the version tag
                         app_in_env_data = get_application_version(artifact_dir, lt_endpoint, lt_token, False, app_in_env["BaseApplicationVersionKey"], app_key=app["Key"])
-                        # If the version in the environment is bigger than the one in the manifest -> stale pipeline -> abort
+                        # If the version in the environment is higher than the one in the manifest -> stale pipeline -> abort
                         if parse_version(app_in_env_data["Version"]) > parse_version(app["Version"]):
                             print("The deployment manifest is stale. The Application {} needs to be deployed with version {} but then environment {} has the version {}.\nReason: VersionTag is inferior to the VersionTag already deployed.\nAborting the pipeline.".format(app["Name"], app["Version"], env_name, app_in_env_data["Version"]), flush=True)
                             sys.exit(1)
@@ -115,7 +115,7 @@ def apply_configuration_values_to_target_env(artifact_dir: str, lt_url: str, lt_
     if config_items:
         print("Applying new values to configuration items in {} (Label: {})...".format(target_env_tuple[0], target_env_label), flush=True)
     else:
-        print("No configuration item values for {} (Label: {}) were found in the manifest.".format(target_env_tuple[0], target_env_label), flush=True)      
+        print("No configuration item values were found in the manifest for {} (Label: {}).".format(target_env_tuple[0], target_env_label), flush=True)      
 
     # Apply target value for each configuration item according to its type
     for cfg_item in config_items:

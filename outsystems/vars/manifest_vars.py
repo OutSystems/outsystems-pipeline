@@ -1,5 +1,5 @@
 # Manifest sections
-MANIFEST_APPLICATION_TAGS = "ApplicationTags"
+MANIFEST_APPLICATION_VERSIONS = "ApplicationVersions"
 MANIFEST_CONFIGURATION_ITEMS = "ConfigurationItems"
 MANIFEST_ENVIRONMENT_DEFINITIONS = "EnvironmentDefinitions"
 
