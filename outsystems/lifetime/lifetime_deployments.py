@@ -199,10 +199,12 @@ def delete_deployment(endpoint: str, auth_token: str, deployment_key: str):
 # Executes the start command in a specified deployment.
 # The initiation of a deployment plan will check if it's valid.
 # The applications to redeploy, if applicable, will also be included in the deployment plan.
+# If continue with errors is allowed, an additional parameter is added to the query string.
 def start_deployment(endpoint: str, auth_token: str, deployment_key: str, **kwargs):
     redeploy = False
     if "redeploy_outdated" not in kwargs:
         redeploy = True
+
     # Builds the API call
     query = "{}/{}/{}".format(DEPLOYMENTS_ENDPOINT,
                               deployment_key, DEPLOYMENT_START_ENDPOINT)
@@ -210,6 +212,10 @@ def start_deployment(endpoint: str, auth_token: str, deployment_key: str, **kwar
     if not redeploy:
         query = "{}?RedeployOutdated={}".format(
             query, kwargs["redeploy_outdated"])
+    # If the parameter to continue with errors has a value of True, that must be included in the call
+    if "continue_with_errors" in kwargs and kwargs["continue_with_errors"]:
+        query = "{}&ContinueWithErrors={}".format(query, True)
+
     # Sends the request
     response = send_post_request(endpoint, auth_token, query, None)
     status_code = int(response["http_status"])

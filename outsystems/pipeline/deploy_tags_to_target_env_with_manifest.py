@@ -23,7 +23,7 @@ from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFES
 from outsystems.vars.properties_vars import PROPERTY_TYPE_SITE_PROPERTY
 from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
-    DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
+    DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE, ALLOW_CONTINUE_WITH_ERRORS
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_app_version
 from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_version
@@ -188,19 +188,26 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Check if created deployment plan has conflicts
     dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)
-    if len(dep_details["ApplicationConflicts"]) > 0:
+    has_conflicts = len(dep_details["ApplicationConflicts"]) > 0
+    if has_conflicts:
         store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
-        print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE), flush=True)
-        # Abort previously created deployment plan to target environment
-        delete_deployment(lt_endpoint, lt_token, dep_plan_key)
-        print("Deployment plan {} was deleted successfully.".format(dep_plan_key), flush=True)
-        sys.exit(1)
+        if not ALLOW_CONTINUE_WITH_ERRORS or lt_api_version == 1:
+            print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE), flush=True)
+            # Abort previously created deployment plan to target environment
+            delete_deployment(lt_endpoint, lt_token, dep_plan_key)
+            print("Deployment plan {} was deleted successfully.".format(dep_plan_key), flush=True)
+            sys.exit(1)
+        else:
+            print("Deployment plan {} has conflicts but will continue with errors. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE), flush=True)
 
     # Check if outdated consumer applications (outside of deployment plan) should be redeployed and start the deployment plan execution
     if lt_api_version == 1:  # LT for OS version < 11
         start_deployment(lt_endpoint, lt_token, dep_plan_key)
     elif lt_api_version == 2:  # LT for OS v11
-        start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=REDEPLOY_OUTDATED_APPS)
+        if has_conflicts:
+            start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=False, continue_with_errors=True)
+        else:
+            start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=REDEPLOY_OUTDATED_APPS)
     else:
         raise NotImplementedError("Please make sure the API version is compatible with the module.")
     print("Deployment plan {} started being executed.".format(dep_plan_key), flush=True)
