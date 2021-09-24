@@ -296,7 +296,7 @@ if __name__ == "__main__":
     include_test_apps = args.include_test_apps
     # Parse Manifest artifact
     # TODO: Isolate in separate funtion to store manifest as a file
-    trigger_manifest = json.loads(args.manifest_file) 
+    trigger_manifest = json.loads(args.trigger_manifest)
     
     # Calls the main script
     main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env_label, dest_env_label, include_test_apps, trigger_manifest)
