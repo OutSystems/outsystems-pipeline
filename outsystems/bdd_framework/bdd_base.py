@@ -6,6 +6,7 @@ import requests
 from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
 # Variables
 from outsystems.vars.bdd_vars import BDD_TEST_RUNNER_ENDPOINT
+from outsystems.vars.lifetime_vars import LIFETIME_SSL_CERT_VERIFY
 
 
 # Method that builds the BDD Framework endpoint based on the environment host
@@ -30,7 +31,7 @@ def send_bdd_get_request(bdd_api: str, bdd_endpoint: str, url_params: str):
 # Runs the test on the BDD Framework app
 def send_bdd_get_run_request(test_endpoint: str, url_params: str):
     # Send the request
-    response = requests.get(test_endpoint, params=url_params)
+    response = requests.get(test_endpoint, params=url_params, verify=LIFETIME_SSL_CERT_VERIFY)
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:

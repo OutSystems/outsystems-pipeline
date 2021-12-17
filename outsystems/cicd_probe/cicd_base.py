@@ -3,7 +3,7 @@ import requests
 
 # Custom Modules
 from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
-
+from outsystems.vars.lifetime_vars import LIFETIME_SSL_CERT_VERIFY
 
 # Method that builds the CICD Probe endpoint based on the environment host
 def build_probe_endpoint(probe_http_proto: str, probe_url: str, probe_api_endpoint: str, probe_api_version: int):
@@ -15,7 +15,7 @@ def send_probe_get_request(probe_api: str, probe_endpoint: str, url_params: str)
     # Format the request URL to include the api endpoint
     request_string = "{}/{}".format(probe_api, probe_endpoint)
     # Send the request
-    response = requests.get(request_string, params=url_params)
+    response = requests.get(request_string, params=url_params, verify=LIFETIME_SSL_CERT_VERIFY)
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:
