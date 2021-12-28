@@ -16,19 +16,18 @@ else:  # Else just add the project dir
 # Custom Modules
 # Variables
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE
-from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION, DEPLOYMENT_MESSAGE
+from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 # Functions
-from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
-from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_version, get_application_data
+from outsystems.lifetime.lifetime_environments import get_environment_key
+from outsystems.lifetime.lifetime_applications import get_application_version, get_application_data
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
-    send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment, get_saved_deployment
-from outsystems.file_helpers.file import store_data, load_data
+    start_deployment, continue_deployment, get_saved_deployment
+from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 # Exceptions
-from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 from outsystems.exceptions.deployment_not_found import DeploymentNotFoundError
 
 # ############################################################# SCRIPT ##############################################################
@@ -84,7 +83,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Find deployment plan with 'saved' status in destination environment
     deployment = get_saved_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
     if deployment is None:
-        raise DeploymentNotFoundError("Unable to find a created deployment plan in {} environment.".format(dest_env))
+        raise DeploymentNotFoundError("Unable to find a created deployment plan for {} environment.".format(dest_env))
         
     # Grab the key from the deployment plan found
     dep_plan_key = deployment["Key"]
