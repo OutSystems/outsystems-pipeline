@@ -2,7 +2,6 @@
 import sys
 import os
 import argparse
-from pkg_resources import parse_version
 from time import sleep
 
 # Workaround for Jenkins:
@@ -17,8 +16,8 @@ else:  # Else just add the project dir
 # Variables
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
-from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
-    REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
+from outsystems.vars.pipeline_vars import SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, REDEPLOY_OUTDATED_APPS, \
+    DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_key
@@ -31,6 +30,7 @@ from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.exceptions.deployment_not_found import DeploymentNotFoundError
 
 # ############################################################# SCRIPT ##############################################################
+
 
 # Function that will create a manifest file based on the deployment provided as input
 def generate_deployment_manifest(artifact_dir: str, lt_endpoint: str, lt_token: str, deployment: dict):
@@ -46,7 +46,7 @@ def generate_deployment_manifest(artifact_dir: str, lt_endpoint: str, lt_token: 
     for app_operation in app_operations_list:
         # Get details from the application to deploy
         app_to_deploy = get_application_data(artifact_dir, lt_endpoint, lt_token, False, app_key=app_operation["ApplicationKey"])
-        
+
         # Get details from the base version to deploy
         base_version_to_deploy = get_application_version(artifact_dir, lt_endpoint, lt_token, False, app_operation["ApplicationVersionKey"], app_key=app_operation["ApplicationKey"])
 
@@ -72,8 +72,6 @@ def generate_deployment_manifest(artifact_dir: str, lt_endpoint: str, lt_token: 
 
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str):
 
-    to_deploy_app_keys = []  # will contain the app keys for the apps tagged
-
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
 
@@ -84,7 +82,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     deployment = get_saved_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
     if deployment is None:
         raise DeploymentNotFoundError("Unable to find a created deployment plan for {} environment.".format(dest_env))
-        
+
     # Grab the key from the deployment plan found
     dep_plan_key = deployment["Key"]
     print("Deployment plan {} was found.".format(dep_plan_key), flush=True)
