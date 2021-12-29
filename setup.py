@@ -11,11 +11,8 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Deployment Manifest**
- * Used to promote the same application versions throughout the pipeline execution.
-
-**Air Gap Support**
- * To deploy OutSystems Applications to a target environment without using the Deployment API.
+**Start Deployment Plan**
+ * New function to start a deployment plan previously created in LifeTime UI for a target environment.
 
 
 Installing and upgrading
