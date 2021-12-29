@@ -7,6 +7,7 @@ DEPLOYMENT_STATUS_LIST = ["saved", "running", "needs_user_intervention", "aborti
 DEPLOYMENT_ERROR_STATUS_LIST = ["aborted", "finished_with_errors"]
 DEPLOYMENT_WAITING_STATUS = "needs_user_intervention"
 DEPLOYMENT_RUNNING_STATUS = "running"
+DEPLOYMENT_SAVED_STATUS = "saved"
 
 # Pipeline files variables
 CONFLICTS_FILE = "DeploymentConflicts"

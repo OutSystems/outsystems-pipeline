@@ -7,9 +7,17 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## December 29th, 2021
+
+### Start an existing deployment plan
+
+Added new function (start_deployment_to_target_env) to start a deployment plan previously created in LifeTime UI for a target environment. The function also generates a Deployment Manifest artifact which can be reused in subsequent pipeline stages.
+
+**NOTE:** The existing deployment plan must not have "Tag & Deploy" operations, otherwise the LifeTime API will return a 400 error when running the plan.
+
 ## December 6th, 2019
 
-### Deployment Manifest
+### Deployment Manifest artifact
 
 Included the generation of a Deployment Manifest artifact that can be used to promote the same application versions throughout the pipeline execution.
 
@@ -58,7 +66,7 @@ There's a scenario where the LifeTime API can have unexpected behaviors: if you 
 
 ### Package naming changes
 
-In order to prepare for the 1.0 release, there was some name changes that will break the scripts. The cd_pipelines directory was changed to examples and the custom_pipeline package was changed to outysystems_integration.
+In order to prepare for the 1.0 release, there was some name changes that will break the scripts. The cd_pipelines directory was changed to examples and the custom_pipeline package was changed to outsystems_integration.
 
 #### Breaking changes
 
@@ -92,7 +100,7 @@ All the scripts were refactored to be able to be used through parameters. This w
 
 ## March 11th, 2019
 
-### Paramater refactoring
+### Parameter refactoring
 
 In order to increase the portability of the pipeline, it was decided to move away from the environment variables, that were being used in the base Jenkins pipeline, into script parameters. This will allow users to use the Python module by passing the parameters directly with the module call, instead of having to set all the environment variables necessary.
 
