@@ -30,5 +30,3 @@ def send_properties_put_request(lt_url: str, token: str, api_endpoint: str, payl
                 "PUT {}: The JSON response could not be parsed. Response: {}".format(request_string, response.text))
 
     return response_obj
-
-
