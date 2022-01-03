@@ -14,3 +14,4 @@ venv/*
 junit
 dist/*
 VERSION
+app.py

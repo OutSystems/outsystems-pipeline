@@ -16,20 +16,20 @@ else:  # Else just add the project dir
 
 # Custom Modules
 # Variables
-from outsystems.vars.file_vars import ARTIFACT_FOLDER, DEPLOYMENT_FOLDER, DEPLOYMENT_MANIFEST_FILE
+from outsystems.vars.file_vars import ARTIFACT_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFEST_FLAG_IS_TEST_APPLICATION, MANIFEST_CONFIG_ITEM_KEY, \
-    MANIFEST_CONFIG_ITEM_NAME, MANIFEST_CONFIG_ITEM_TARGET_VALUE, MANIFEST_CONFIG_ITEM_TYPE, MANIFEST_ENVIRONMENT_NAME, MANIFEST_MODULE_KEY 
+    MANIFEST_CONFIG_ITEM_NAME, MANIFEST_CONFIG_ITEM_TARGET_VALUE, MANIFEST_CONFIG_ITEM_TYPE, MANIFEST_MODULE_KEY
 from outsystems.vars.properties_vars import PROPERTY_TYPE_SITE_PROPERTY
 from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
     REDEPLOY_OUTDATED_APPS, DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE, ALLOW_CONTINUE_WITH_ERRORS
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_app_version
-from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_version
+from outsystems.lifetime.lifetime_applications import get_application_version
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
     send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
-from outsystems.file_helpers.file import store_data, load_data
+from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.manifest.manifest_base import get_environment_details, get_deployment_notes, get_configuration_items_for_environment
 from outsystems.properties.properties_set_value import set_site_property_value
@@ -52,9 +52,9 @@ def generate_deploy_app_key(lt_api_version: int, app_version_key: str, deploy_zo
 def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, lt_token: str, src_env_key: str, src_env_name: str, manifest: list, include_test_apps: bool):
     app_data_list = []  # will contain the applications details from the manifest
 
-    for deployed_app in manifest[MANIFEST_APPLICATION_VERSIONS]:      
+    for deployed_app in manifest[MANIFEST_APPLICATION_VERSIONS]:
         if not(include_test_apps) and deployed_app[MANIFEST_FLAG_IS_TEST_APPLICATION]:
-            continue   
+            continue
         try:
             get_application_version(artifact_dir, lt_endpoint, lt_token, False, deployed_app["VersionKey"], app_name=deployed_app["ApplicationName"])
         except AppDoesNotExistError:
@@ -104,18 +104,18 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
 
 # Function to apply configuration values to a target environment
 def apply_configuration_values_to_target_env(artifact_dir: str, lt_url: str, lt_token: str, target_env_label: str, trigger_manifest: dict):
-    
+
     # Tuple with (EnvName, EnvKey): target_env_tuple[0] = EnvName; target_env_tuple[1] = EnvKey
     target_env_tuple = get_environment_details(trigger_manifest, target_env_label)
-    
+
     # Get configuration items defined in the manifest for target environment
     config_items = get_configuration_items_for_environment(trigger_manifest, target_env_tuple[1])
 
-    # Check if there are any configuration item values to apply for target environment 
+    # Check if there are any configuration item values to apply for target environment
     if config_items:
         print("Applying new values to configuration items in {} (Label: {})...".format(target_env_tuple[0], target_env_label), flush=True)
     else:
-        print("No configuration item values were found in the manifest for {} (Label: {}).".format(target_env_tuple[0], target_env_label), flush=True)      
+        print("No configuration item values were found in the manifest for {} (Label: {}).".format(target_env_tuple[0], target_env_label), flush=True)
 
     # Apply target value for each configuration item according to its type
     for cfg_item in config_items:
@@ -125,9 +125,10 @@ def apply_configuration_values_to_target_env(artifact_dir: str, lt_url: str, lt_
             if result["Success"]:
                 print("New value successfully applied to configuration item '{}' ({}).".format(cfg_item[MANIFEST_CONFIG_ITEM_NAME], cfg_item[MANIFEST_CONFIG_ITEM_TYPE]), flush=True)
             else:
-                print("Unable to apply new value to configuration item '{}' ({}).\nReason: {}".format(cfg_item[MANIFEST_CONFIG_ITEM_NAME], cfg_item[MANIFEST_CONFIG_ITEM_TYPE], result["Message"]), flush=True)            
+                print("Unable to apply new value to configuration item '{}' ({}).\nReason: {}".format(cfg_item[MANIFEST_CONFIG_ITEM_NAME], cfg_item[MANIFEST_CONFIG_ITEM_TYPE], result["Message"]), flush=True)
         else:
             raise NotImplementedError("Configuration item type '{}' not supported.".format(cfg_item[MANIFEST_CONFIG_ITEM_TYPE]))
+
 
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env_label: str, dest_env_label: str, include_test_apps: bool, trigger_manifest: dict):
 
@@ -144,7 +145,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Retrive the app versions to deploy from the manifest content
     app_data_list = generate_deployment_based_on_manifest(artifact_dir, lt_endpoint, lt_token, src_env_tuple[1], src_env_tuple[0], trigger_manifest, include_test_apps)
-    
+
     # Check if which application versions have not been deployed to destination environment
     to_deploy_app_keys = check_if_can_deploy(artifact_dir, lt_endpoint, lt_api_version, lt_token, dest_env_tuple[1], dest_env_tuple[0], app_data_list)
 
@@ -297,6 +298,6 @@ if __name__ == "__main__":
     # Parse Manifest artifact
     # TODO: Isolate in separate funtion to store manifest as a file
     trigger_manifest = json.loads(args.trigger_manifest)
-    
+
     # Calls the main script
     main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env_label, dest_env_label, include_test_apps, trigger_manifest)
