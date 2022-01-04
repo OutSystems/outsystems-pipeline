@@ -232,7 +232,7 @@ if __name__ == "__main__":
                         help="Label, as configured in the manifest, of the source environment where the apps are.")
     parser.add_argument("-d", "--destination_env_label", type=str, required=True,
                         help="Label, as configured in the manifest, of the destination environment where you want to deploy the apps.")
-    parser.add_argument("-i", "--include_test_apps", type=bool, required=True,
+    parser.add_argument("-i", "--include_test_apps", action='store_true',
                         help="Flag that indicates if applications marked as \"Test Application\" in the manifest are included in the deployment plan.")
     parser.add_argument("-m", "--trigger_manifest", type=str, required=True,
                         help=" Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
