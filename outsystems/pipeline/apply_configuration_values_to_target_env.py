@@ -61,7 +61,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_token: str, targ
             raise NotImplementedError("Configuration item type '{}' not supported.".format(cfg_item[MANIFEST_CONFIG_ITEM_TYPE]))
 
         # Check returned result after setting configuration item value
-        if result["Success"]:
+        if "Success" in result and result["Success"]:
             print("New value successfully applied to configuration item '{}' ({}).".format(cfg_item[MANIFEST_CONFIG_ITEM_NAME], cfg_item[MANIFEST_CONFIG_ITEM_TYPE]), flush=True)
         else:
             print("Unable to apply new value to configuration item '{}' ({}).\nReason: {}".format(cfg_item[MANIFEST_CONFIG_ITEM_NAME], cfg_item[MANIFEST_CONFIG_ITEM_TYPE], result["Message"]), flush=True)
