@@ -4,6 +4,7 @@ import os
 import argparse
 import shutil
 import subprocess
+import xml.etree.ElementTree as ET
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -19,6 +20,7 @@ from outsystems.vars.file_vars import ARTIFACT_FOLDER, MODULES_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.os_vars import REMOTE_DRIVE, OUTSYSTEMS_DIR, PLAT_SERVER_DIR, SHARE_DIR, FULL_DIR, \
     REPOSITORY_DIR, CUSTOM_HANDLERS_DIR
+from outsystems.vars.msbuild_vars import MS_BUILD_NAMESPACE
 
 # Functions
 from outsystems.lifetime.lifetime_applications import _get_application_info
@@ -75,7 +77,79 @@ def diconnect_network_dir(network_path: str):
     subprocess.call(r'net use {} /delete'.format(network_path), shell=True)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env_hostname: str, installation_dir: str, network_user: str, network_pass: str, target_env: str, apps: list, inc_pattern: str, exc_pattern: str):
+# Return a list of  csproj relative paths found in the module solution file
+def csproj_files(module_name: str, local_dir: str):
+
+    # Builds the solution full path
+    sln_file = os.path.join(local_dir, "{}.sln".format(module_name))
+
+    # list of csproj relative paths found in the solution file
+    csprojs = []
+
+    # Read module solution file
+    with open(sln_file, 'rb') as f:
+        line = f.readline()
+        while line:
+            line = f.readline().decode('utf-8')
+            if line.startswith("Project"):
+                # Remove all spaces
+                # Gets line's second object (i.e: csproj relative path)
+                # Removes double quotes
+                csprojs.append(line.replace(" ", "").split(",")[1].strip('\"'))
+
+    return csprojs
+
+
+# Adds to a csproj file all the references (dll) existing in the module bin folder
+def include_all_references(local_dir: str, csproj_dir: str):
+
+    # Builds bin directory full path
+    bin_dir = os.path.join(local_dir, "bin")
+
+    # Builds csproj file full path
+    csproj_file = os.path.join(local_dir, csproj_dir)
+
+    # Read csproj file and identifies first ItemGroup element
+    ET.register_namespace('', MS_BUILD_NAMESPACE)
+    tree = ET.parse(csproj_file)
+    itemgroup_elem = tree.find("./{val}ItemGroup".format(val='{' + MS_BUILD_NAMESPACE + '}'))
+
+    for file in os.listdir(bin_dir):
+        if file.endswith(".dll"):
+            dll_name = os.path.splitext(file)[0]
+
+            # continue if it's the module's own csproj
+            if dll_name == os.path.splitext(os.path.basename(csproj_file))[0]:
+                continue
+
+            # Create Reference structure
+            ref = ET.Element("Reference")
+            ref.set("Include", dll_name)
+
+            # Create Name structure
+            ref_name = ET.Element("Name")
+            ref_name.text = dll_name
+            ref.append(ref_name)
+
+            # Create HintPath structure
+            ref_hintpath = ET.Element("HintPath")
+            # Identify the relpath between module's full dir and csproj file full dir
+            # Adds to the text the dll name
+            ref_hintpath.text = "{}{}".format(os.path.relpath(local_dir, os.path.split(csproj_file)[0]), '\\bin\\' + dll_name + '.dll')
+            ref.append(ref_hintpath)
+
+            # Create Private structure
+            ref_private = ET.Element("Private")
+            ref_private.text = "False"
+            ref.append(ref_private)
+
+            # Append new element to ItemGroup element
+            itemgroup_elem.append(ref)
+
+    tree.write(csproj_file)
+
+
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env_hostname: str, installation_dir: str, network_user: str, network_pass: str, target_env: str, apps: list, inc_pattern: str, exc_pattern: str, include_all_refs: bool):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -138,6 +212,11 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         print("[{}] Replacing local symbolic links...".format(module["Name"]), flush=True)
         replace_local_symlinks(network_dir, local_dir)
 
+        if include_all_refs:
+            print("[{}] Including all assembly references...".format(module["Name"]), flush=True)
+            for csproj in csproj_files(module["Name"], local_dir):
+                include_all_references(local_dir, csproj)
+
     if network_user and network_pass:
         diconnect_network_dir(network_dir)
 
@@ -174,6 +253,8 @@ if __name__ == "__main__":
                         help="(optional) Include pattern for module scope")
     parser.add_argument("-ex", "--exc_pattern", type=str,
                         help="(optional) Exclude pattern for module scope")
+    parser.add_argument("-ref", "--include_all_refs", action='store_true',
+                        help="Flag that indicates if all references need to be added to the csproj file.")
 
     args = parser.parse_args()
 
@@ -213,6 +294,8 @@ if __name__ == "__main__":
     inc_pattern = args.inc_pattern
     # Parse Exclude Pattern
     exc_pattern = args.exc_pattern
+    # Parse Include All References
+    include_all_refs = args.include_all_refs
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env_hostname, installation_dir, network_user, network_pass, target_env, apps, inc_pattern, exc_pattern)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env_hostname, installation_dir, network_user, network_pass, target_env, apps, inc_pattern, exc_pattern, include_all_refs)

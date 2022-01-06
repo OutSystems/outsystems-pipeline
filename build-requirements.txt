@@ -4,3 +4,4 @@ unittest-xml-reporting==2.2.1
 xunitparser==1.3.3
 pytest==4.3.0
 toposort==1.5
+lxml==4.7.1
