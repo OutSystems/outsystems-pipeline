@@ -92,10 +92,9 @@ def csproj_files(module_name: str, local_dir: str):
         while line:
             line = f.readline().decode('utf-8')
             if line.startswith("Project"):
-                # Remove all spaces
                 # Gets line's second object (i.e: csproj relative path)
-                # Removes double quotes
-                csprojs.append(line.replace(" ", "").split(",")[1].strip('\"'))
+                # Removes spaces and double quotes from the begining and end of the string
+                csprojs.append(line.split(",")[1].strip().strip('\"'))
 
     return csprojs
 
@@ -114,6 +113,7 @@ def include_all_references(local_dir: str, csproj_dir: str):
     tree = ET.parse(csproj_file)
     itemgroup_elem = tree.find("./{val}ItemGroup".format(val='{' + MS_BUILD_NAMESPACE + '}'))
 
+    # Iterate through all dlls found in the bin directory
     for file in os.listdir(bin_dir):
         if file.endswith(".dll"):
             dll_name = os.path.splitext(file)[0]
@@ -133,8 +133,8 @@ def include_all_references(local_dir: str, csproj_dir: str):
 
             # Create HintPath structure
             ref_hintpath = ET.Element("HintPath")
-            # Identify the relpath between module's full dir and csproj file full dir
-            # Adds to the text the dll name
+            # Identify the relative path between the module's full dir and csproj file full dir
+            # Adds to the element text the dll relative path
             ref_hintpath.text = "{}{}".format(os.path.relpath(local_dir, os.path.split(csproj_file)[0]), '\\bin\\' + dll_name + '.dll')
             ref.append(ref_hintpath)
 
