@@ -11,8 +11,8 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Start Deployment Plan**
- * New function to start a deployment plan previously created in LifeTime UI for a target environment.
+**Fetch Application Source Code**
+ * New function to extract the source code of LifeTime applications.
 
 
 Installing and upgrading

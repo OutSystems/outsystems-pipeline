@@ -7,6 +7,14 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## January 7th, 2022
+
+### Fetch Application Source Code for SAST Analysis
+
+Added new function (fetch_apps_source_code) to retrieve the source code of a set of LifeTime applications from an environment platform server. The function can also include in the project files all the assembly references found in the 'bin' directory of a given module.
+
+**NOTE:** This function requires network connectivity to the target environment platform server.
+
 ## December 29th, 2021
 
 ### Start an existing deployment plan
