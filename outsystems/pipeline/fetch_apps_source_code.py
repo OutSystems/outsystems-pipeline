@@ -20,7 +20,7 @@ from outsystems.vars.file_vars import ARTIFACT_FOLDER, MODULES_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.os_vars import REMOTE_DRIVE, OUTSYSTEMS_DIR, PLAT_SERVER_DIR, SHARE_DIR, FULL_DIR, \
     REPOSITORY_DIR, CUSTOM_HANDLERS_DIR
-from outsystems.vars.msbuild_vars import MS_BUILD_NAMESPACE
+from outsystems.vars.msbuild_vars import MS_BUILD_NAMESPACE, ASSEMBLY_BLACKLIST
 
 # Functions
 from outsystems.lifetime.lifetime_applications import _get_application_info
@@ -45,7 +45,7 @@ def replace_local_symlinks(network_dir: str, local_dir: str):
         for filename in files:
             filepath = os.path.join(local_dir, subdir, filename)
 
-            # CustomHandlers symlinc file starts with upercase leter
+            # CustomHandlers symlink file starts with upercase leter
             # CustomHandlers folder starts with lowercase
             if filename == CUSTOM_HANDLERS_DIR:
                 dst_dir = os.path.join(local_dir, CUSTOM_HANDLERS_DIR)
@@ -77,13 +77,13 @@ def diconnect_network_dir(network_path: str):
     subprocess.call(r'net use {} /delete'.format(network_path), shell=True)
 
 
-# Return a list of  csproj relative paths found in the module solution file
+# Return the list of csprojs relative path found in the module solution file
 def csproj_files(module_name: str, local_dir: str):
 
     # Builds the solution full path
     sln_file = os.path.join(local_dir, "{}.sln".format(module_name))
 
-    # list of csproj relative paths found in the solution file
+    # Final list of csprojs relative path found in the solution file
     csprojs = []
 
     # Read module solution file
@@ -93,14 +93,20 @@ def csproj_files(module_name: str, local_dir: str):
             line = f.readline().decode('utf-8')
             if line.startswith("Project"):
                 # Gets line's second object (i.e: csproj relative path)
-                # Removes spaces and double quotes from the begining and end of the string
-                csprojs.append(line.split(",")[1].strip().strip('\"'))
+                # Trim spaces and double quotes
+                csproj = line.split(",")[1].strip().strip('\"')
+
+                # Ignore if module's default csproj
+                if(csproj == "{}.csproj".format(module_name)):
+                    continue
+
+                csprojs.append(csproj)
 
     return csprojs
 
 
 # Adds to a csproj file all the references (dll) existing in the module bin folder
-def include_all_references(local_dir: str, csproj_dir: str):
+def include_references(local_dir: str, csproj_dir: str):
 
     # Builds bin directory full path
     bin_dir = os.path.join(local_dir, "bin")
@@ -118,8 +124,13 @@ def include_all_references(local_dir: str, csproj_dir: str):
         if file.endswith(".dll"):
             dll_name = os.path.splitext(file)[0]
 
-            # continue if it's the module's own csproj
-            if dll_name == os.path.splitext(os.path.basename(csproj_file))[0]:
+            # Validate if dll already exists in the csproj
+            dll_exists = (len(tree.findall('./{val}ItemGroup/{val}Reference/[@Include="{dll}"]'.format(val='{' + MS_BUILD_NAMESPACE + '}', dll=dll_name))) > 0)
+
+            # Continue if module's default csproj 
+            # Continue if dll already exists in csproj
+            # Continue if dll exists in blacklist
+            if dll_name == os.path.splitext(os.path.basename(csproj_file))[0] or dll_exists or dll_name in ASSEMBLY_BLACKLIST:
                 continue
 
             # Create Reference structure
@@ -215,7 +226,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         if include_all_refs:
             print("[{}] Including all assembly references...".format(module["Name"]), flush=True)
             for csproj in csproj_files(module["Name"], local_dir):
-                include_all_references(local_dir, csproj)
+                include_references(local_dir, csproj)
 
     if network_user and network_pass:
         diconnect_network_dir(network_dir)
