@@ -71,7 +71,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 # List of the last application tags
                 tag_history_list = [d["Version"] for d in get_application_versions(artifact_dir, lt_endpoint, lt_token, MAX_VERSIONS_TO_RETURN, app_name=app_name)]
 
-                # Finds next available tag number.
+                # Finds next available tag number
                 retries = 0
                 while retries < TAG_APP_MAX_RETRIES:
                     if generated_tag in tag_history_list:
@@ -80,6 +80,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                         set_application_version(lt_endpoint, lt_token, env_key, current_tag["ApplicationKey"], log_msg, generated_tag)
                         print("Application '{}' successfully tagged to version {} on environment '{}'".format(current_tag["ApplicationName"], generated_tag, dest_env), flush=True)
                         break
+                    retries += 1
 
 # End of main()
 
