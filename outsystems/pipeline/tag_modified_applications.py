@@ -30,7 +30,7 @@ def generate_new_version_number(base_version: str):
     # Split tag version digits
     base_version = base_version.split('.')
 
-    # Default values for: Major.Minor.Revison
+    # Default values for Major.Minor.Revison
     maj = base_version[0]
     min = "0"
     rev = "1"
@@ -54,7 +54,6 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Get all applications info
     all_apps = get_applications(artifact_dir, lt_endpoint, lt_token, True)
-    print("OS Applications data retrieved successfully.", flush=True)
 
     for app_name in app_list:
         # Gets application specific details
@@ -80,7 +79,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                         set_application_version(lt_endpoint, lt_token, env_key, current_tag["ApplicationKey"], log_msg, generated_tag)
                         print("Application '{}' successfully tagged to version {} on environment '{}'".format(current_tag["ApplicationName"], generated_tag, dest_env), flush=True)
                         break
+
                     retries += 1
+                    if retries == TAG_APP_MAX_RETRIES:
+                        print("Could not find available tag for Application '{}' ".format(current_tag["ApplicationName"]), flush=True)
 
 # End of main()
 
