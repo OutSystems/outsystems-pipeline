@@ -76,7 +76,18 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                     if generated_tag in tag_history_list:
                         generated_tag = generate_new_version_number(generated_tag)
                     else:
-                        set_application_version(lt_endpoint, lt_token, env_key, current_tag["ApplicationKey"], log_msg, generated_tag)
+                        # Checks if app is mobile and gets mobile info
+                        app_mobile_detail = list(filter(lambda x: x["IsModified"], app_env_detail[0]["MobileAppsStatus"]))
+
+                        # Will contain the List of mobile versions to tag
+                        native_shell_versions = []
+
+                        # Generate new version number for each native shell
+                        if app_mobile_detail:
+                            for native_shell in app_mobile_detail:
+                                native_shell_versions.append({"NativePlatform": native_shell["NativePlatform"], "VersionNumber": generate_new_version_number(native_shell["VersionNumber"]), "VersionDescription": log_msg})
+
+                        set_application_version(lt_endpoint, lt_token, env_key, current_tag["ApplicationKey"], log_msg, generated_tag, native_shell_versions)
                         print("Application '{}' successfully tagged to version {} on environment '{}'".format(current_tag["ApplicationName"], generated_tag, dest_env), flush=True)
                         break
 
