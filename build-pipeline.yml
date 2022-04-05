@@ -70,7 +70,6 @@ jobs:
       architecture: 'x64'
 
   - script: |
-      pip search outsystems-pipeline | grep outsystems-pipeline | grep -oE "\(.*?\)" | tr --delete "()" > VERSION
       if [ "$(ReleaseType)" == "major" ]; then
         python build/version_bumper.py
       else
