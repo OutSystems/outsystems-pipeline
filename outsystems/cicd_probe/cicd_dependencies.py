@@ -35,4 +35,4 @@ def sort_app_dependencies(dep_list: list):
         return toposort_flatten(dep_list)
     except:
         raise CircularDependencyError(
-            "Circular dependencies exist among these items: ".format(dep_list))
+            "There are circular dependencies among the list of applications.")
