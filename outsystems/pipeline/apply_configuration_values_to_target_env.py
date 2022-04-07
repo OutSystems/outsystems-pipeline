@@ -19,9 +19,9 @@ from outsystems.vars.manifest_vars import MANIFEST_CONFIG_ITEM_TYPE, MANIFEST_MO
 from outsystems.vars.properties_vars import PROPERTY_TYPE_SITE_PROPERTY, PROPERTY_TYPE_REST_ENDPOINT, PROPERTY_TYPE_SOAP_ENDPOINT, \
     PROPERTY_TYPE_TIMER_SCHEDULE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO
-from outsystems.vars.file_vars import ARTIFACT_FOLDER, TRIGGER_MANIFEST_FILE
+from outsystems.vars.file_vars import ARTIFACT_FOLDER
 # Functions
-from outsystems.file_helpers.file import store_data, load_data
+from outsystems.file_helpers.file import load_data
 from outsystems.manifest.manifest_base import get_configuration_items_for_environment
 from outsystems.manifest.manifest_base import get_environment_details
 from outsystems.properties.properties_set_value import set_site_property_value, set_rest_endpoint_url, set_soap_endpoint_url, \
@@ -119,7 +119,6 @@ if __name__ == "__main__":
     if args.manifest_file:
         trigger_manifest = load_data("", args.manifest_file)
     else:
-        store_data(artifact_dir, TRIGGER_MANIFEST_FILE, args.trigger_manifest)
         trigger_manifest = json.loads(args.trigger_manifest)
 
     # Calls the main script

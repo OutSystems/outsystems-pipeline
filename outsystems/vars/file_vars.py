@@ -45,6 +45,3 @@ BDD_FRAMEWORK_FOLDER = "bdd_data"
 
 # JUNIT vars
 JUNIT_TEST_RESULTS_FILE = "junit-result.xml"
-
-# Trigger Manifest vars
-TRIGGER_MANIFEST_FILE = "trigger_manifest.cache"

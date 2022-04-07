@@ -16,7 +16,7 @@ else:  # Else just add the project dir
 
 # Custom Modules
 # Variables
-from outsystems.vars.file_vars import ARTIFACT_FOLDER, TRIGGER_MANIFEST_FILE
+from outsystems.vars.file_vars import ARTIFACT_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFEST_FLAG_IS_TEST_APPLICATION
 from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
@@ -276,7 +276,6 @@ if __name__ == "__main__":
     if args.manifest_file:
         trigger_manifest = load_data("", args.manifest_file)
     else:
-        store_data(artifact_dir, TRIGGER_MANIFEST_FILE, args.trigger_manifest)
         trigger_manifest = json.loads(args.trigger_manifest)
 
     # Calls the main script
