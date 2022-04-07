@@ -19,12 +19,15 @@ from outsystems.vars.manifest_vars import MANIFEST_CONFIG_ITEM_TYPE, MANIFEST_MO
 from outsystems.vars.properties_vars import PROPERTY_TYPE_SITE_PROPERTY, PROPERTY_TYPE_REST_ENDPOINT, PROPERTY_TYPE_SOAP_ENDPOINT, \
     PROPERTY_TYPE_TIMER_SCHEDULE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO
-from outsystems.vars.file_vars import ARTIFACT_FOLDER
+from outsystems.vars.file_vars import ARTIFACT_FOLDER, TRIGGER_MANIFEST_FILE
 # Functions
+from outsystems.file_helpers.file import store_data, load_data
 from outsystems.manifest.manifest_base import get_configuration_items_for_environment
 from outsystems.manifest.manifest_base import get_environment_details
 from outsystems.properties.properties_set_value import set_site_property_value, set_rest_endpoint_url, set_soap_endpoint_url, \
     set_timer_schedule
+# Exceptions
+from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistError
 
 
 # Function to apply configuration values to a target environment
@@ -84,9 +87,10 @@ if __name__ == "__main__":
                         help="Service account token for Properties API calls.")
     parser.add_argument("-e", "--target_env_label", type=str, required=True,
                         help="Label, as configured in the manifest, of the target environment where the configuration values will be applied.")
-    parser.add_argument("-m", "--trigger_manifest", type=str, required=True,
-                        help=" Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
-
+    parser.add_argument("-m", "--trigger_manifest", type=str,
+                        help="Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
+    parser.add_argument("-f", "--manifest_file", type=str,
+                        help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
     args = parser.parse_args()
 
     # Parse the artifact directory
@@ -106,9 +110,17 @@ if __name__ == "__main__":
     lt_token = args.lt_token
     # Parse Destination Environment
     target_env_label = args.target_env_label
-    # Parse Manifest artifact
-    # TODO: Isolate in separate funtion to store manifest as a file
-    trigger_manifest = json.loads(args.trigger_manifest)
+
+    # Validate Manifest is being passed either as JSON or as file
+    if not args.trigger_manifest and not args.manifest_file:
+        raise ManifestDoesNotExistError("The manifest was not provided as JSON or as a file. Aborting!")
+
+    # Parse Trigger Manifest artifact
+    if args.manifest_file:
+        trigger_manifest = load_data("", args.manifest_file)
+    else:
+        store_data(artifact_dir, TRIGGER_MANIFEST_FILE, args.trigger_manifest)
+        trigger_manifest = json.loads(args.trigger_manifest)
 
     # Calls the main script
     main(artifact_dir, lt_http_proto, lt_url, lt_token, target_env_label, trigger_manifest)

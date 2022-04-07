@@ -16,7 +16,7 @@ else:  # Else just add the project dir
 
 # Custom Modules
 # Variables
-from outsystems.vars.file_vars import ARTIFACT_FOLDER
+from outsystems.vars.file_vars import ARTIFACT_FOLDER, TRIGGER_MANIFEST_FILE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFEST_FLAG_IS_TEST_APPLICATION
 from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
@@ -27,11 +27,12 @@ from outsystems.lifetime.lifetime_environments import get_environment_app_versio
 from outsystems.lifetime.lifetime_applications import get_application_version
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
     send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
-from outsystems.file_helpers.file import store_data
+from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.manifest.manifest_base import get_environment_details, get_deployment_notes
 # Exceptions
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
+from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistError
 
 
 # ############################################################# SCRIPT ##############################################################
@@ -234,8 +235,10 @@ if __name__ == "__main__":
                         help="Label, as configured in the manifest, of the destination environment where you want to deploy the apps.")
     parser.add_argument("-i", "--include_test_apps", action='store_true',
                         help="Flag that indicates if applications marked as \"Test Application\" in the manifest are included in the deployment plan.")
-    parser.add_argument("-m", "--trigger_manifest", type=str, required=True,
-                        help=" Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
+    parser.add_argument("-m", "--trigger_manifest", type=str,
+                        help="Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
+    parser.add_argument("-f", "--manifest_file", type=str,
+                        help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
 
     args = parser.parse_args()
 
@@ -264,9 +267,17 @@ if __name__ == "__main__":
     dest_env_label = args.destination_env_label
     # Parse Include Test Apps flag
     include_test_apps = args.include_test_apps
-    # Parse Manifest artifact
-    # TODO: Isolate in separate funtion to store manifest as a file
-    trigger_manifest = json.loads(args.trigger_manifest)
+
+    # Validate Manifest is being passed either as JSON or as file
+    if not args.trigger_manifest and not args.manifest_file:
+        raise ManifestDoesNotExistError("The manifest was not provided as JSON or as a file. Aborting!")
+
+    # Parse Trigger Manifest artifact
+    if args.manifest_file:
+        trigger_manifest = load_data("", args.manifest_file)
+    else:
+        store_data(artifact_dir, TRIGGER_MANIFEST_FILE, args.trigger_manifest)
+        trigger_manifest = json.loads(args.trigger_manifest)
 
     # Calls the main script
     main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env_label, dest_env_label, include_test_apps, trigger_manifest)
