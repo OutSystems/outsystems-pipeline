@@ -26,7 +26,7 @@ from outsystems.vars.lifetime_vars import DEPLOYMENTS_ENDPOINT, DEPLOYMENT_STATU
     DEPLOYMENT_DELETE_FAILED_CODE, DEPLOYMENT_ACTION_SUCCESS_CODE, DEPLOYMENT_ACTION_IMPOSSIBLE_CODE, DEPLOYMENT_ACTION_NO_PERMISSION_CODE, \
     DEPLOYMENT_ACTION_NO_DEPLOYMENT_CODE, DEPLOYMENT_ACTION_FAILED_CODE, DEPLOYMENT_PLAN_V1_API_OPS, DEPLOYMENT_PLAN_V2_API_OPS
 from outsystems.vars.file_vars import DEPLOYMENTS_FILE, DEPLOYMENT_FILE, DEPLOYMENT_FOLDER, DEPLOYMENT_STATUS_FILE
-from outsystems.vars.pipeline_vars import DEPLOYMENT_STATUS_LIST
+from outsystems.vars.pipeline_vars import DEPLOYMENT_STATUS_LIST, DEPLOYMENT_SAVED_STATUS
 
 
 # Returns a list of deployments ordered by creation date, from newest to oldest.
@@ -135,6 +135,29 @@ def get_running_deployment(artifact_dir: str, endpoint: str, auth_token: str, de
     except NoDeploymentsError:
         # If there are no deployments, return empty
         return running_deployments
+    except:
+        # Legit exception that needs to be handle -> bubble up
+        raise
+
+
+# Returns the details of the saved deployment plan to a specific target environment or None if nothing is found
+def get_saved_deployment(artifact_dir: str, endpoint: str, auth_token: str, dest_env_key: str):
+    # Date 24h prior to now
+    date = datetime.datetime.now() - datetime.timedelta(days=1)
+    date = date.date()
+    try:
+        latest_deployments = get_deployments(artifact_dir, endpoint, auth_token, date)
+        for deployment in latest_deployments:
+            if deployment["TargetEnvironmentKey"] == dest_env_key:
+                deployment_status = get_deployment_status(artifact_dir, endpoint, auth_token, deployment["Key"])
+                if deployment_status["DeploymentStatus"] in DEPLOYMENT_SAVED_STATUS:
+                    return deployment
+
+        return None
+
+    except NoDeploymentsError:
+        # If there are no deployments, return empty
+        return None
     except:
         # Legit exception that needs to be handle -> bubble up
         raise

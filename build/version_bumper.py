@@ -1,5 +1,6 @@
 import argparse
 import fileinput
+import xmlrpc.client
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -7,9 +8,9 @@ if __name__ == "__main__":
     parser.add_argument("--minor", help="Toggle if you're doing a minor version.", action="store_true")
     args = parser.parse_args()
 
-    with open("VERSION", 'r') as version_file:
-        version = version_file.read().replace('\n', '')
-        version_array = version.split('.')
+    client = xmlrpc.client.ServerProxy('https://pypi.org/pypi')
+    version = client.package_releases('outsystems-pipeline')[0]
+    version_array = version.split('.')
 
     if args.revision:
         if len(version_array) > 2:
