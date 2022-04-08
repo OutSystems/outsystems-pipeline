@@ -43,10 +43,12 @@ jobs:
      python -m pip install flake8
      flake8 .
     displayName: 'Run lint validation'
+
   - script: |
       pip install pytest
       pytest test --doctest-modules --junitxml=junit/test-results.xml
     displayName: 'pytest'
+
   - task: PublishTestResults@2
     inputs:
       testResultsFiles: '**/test-results.xml'
@@ -75,6 +77,7 @@ jobs:
       fi
       python setup.py sdist
     displayName: 'Build sdist'
+
   - script: pip install twine
     displayName: Installing Twine
 
