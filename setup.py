@@ -12,7 +12,8 @@ What's new
 ==========
 
 **Start Deployment Plan**
- * New function to start a deployment plan previously created in LifeTime UI for a target environment.
+ * New function to create and execute a deployment plan based on the app versions on manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
+ * New function to set configuration items values on a target environment based on the values found on manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
 
 Installing and upgrading
 ========================

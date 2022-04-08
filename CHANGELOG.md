@@ -7,6 +7,14 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## April 7th, 2022
+
+### Trigger Manifest with Configuration items
+
+Added new function (deploy_tags_to_target_env_with_manifest) to create and execute a deployment plan based on the app versions on manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
+Added new function (apply_configuration_values_to_target_env) to set configuration items values on a target environment based on the values found on manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
+
+
 ## December 29th, 2021
 
 ### Start an existing deployment plan
