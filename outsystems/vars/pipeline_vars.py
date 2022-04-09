@@ -12,3 +12,7 @@ DEPLOYMENT_SAVED_STATUS = "saved"
 # Pipeline files variables
 CONFLICTS_FILE = "DeploymentConflicts"
 DEPLOY_ERROR_FILE = "DeploymentErrors"
+
+# Application specific variables
+MAX_VERSIONS_TO_RETURN = 10
+TAG_APP_MAX_RETRIES = 5
