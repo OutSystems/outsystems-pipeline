@@ -1,7 +1,7 @@
 pipeline {
-  agent any
+  agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents. A dedicated agent will be allocated for the entire pipeline run.
   parameters {
-    // App List Parameters
+    // Pipeline parameters are automatically filled by LT Trigger plugin
     string(name: 'ApplicationScope', defaultValue: '', description: 'Comma-separated list of LifeTime applications to deploy.')
     string(name: 'ApplicationScopeWithTests', defaultValue: '', description: 'Comma-separated list of LifeTime applications to deploy (including test applications)')
     string(name: 'TriggeredBy', defaultValue: 'N/A', description: 'Name of LifeTime user that triggered the pipeline remotely.')
@@ -11,18 +11,18 @@ pipeline {
     // Artifacts Folder
     ArtifactsFolder = "Artifacts"
     // LifeTime Specific Variables
-    LifeTimeAPIVersion = 2
     LifeTimeHostname = 'lifetime.acmecorp.com'
+    LifeTimeAPIVersion = 2
     // Authentication Specific Variables
     AuthorizationToken = credentials('LifeTimeServiceAccountToken')
     // Environments Specification Variables
     /*
     * Pipeline for 5 Environments:
-    * DevelopmentEnvironment -> Where you develop your applications. This should be the default environment you connect with service studio.
-    * RegressionEnvironment -> Where your automated tests will test your applications.
-    * AcceptanceEnvironment -> Where you run your acceptance tests of your applications.
-    * PreProductionEnvironment -> Where you prepare your apps to go live.
-    * ProductionEnvironment -> Where your apps are live.
+    *   DevelopmentEnvironment    -> Where you develop your applications. This should be the default environment you connect with service studio.
+    *   RegressionEnvironment     -> Where your automated tests will test your applications.
+    *   AcceptanceEnvironment     -> Where you run your acceptance tests of your applications.
+    *   PreProductionEnvironment  -> Where you prepare your apps to go live.
+    *   ProductionEnvironment     -> Where your apps are live.
     */
     DevelopmentEnvironment = 'Development'
     RegressionEnvironment = 'Regression'
@@ -33,20 +33,18 @@ pipeline {
     ProbeEnvironmentURL = 'https://regression-env.acmecorp.com/'
     BddEnvironmentURL = 'https://regression-env.acmecorp.com/'
     // OutSystems PyPI package version
-    OSPackageVersion = '0.3.1'
+    OSPackageVersion = '0.4.0'
   }
   stages {
     stage('Install Python Dependencies') {
       steps {
-        echo "Create Artifacts Folder"
-        sh "mkdir ${env.ArtifactsFolder}"
+        // Create folder for storing artifacts
+        sh script: "mkdir ${env.ArtifactsFolder}", label: 'Create artifacts folder'
         // Only the virtual environment needs to be installed at the system level
-        echo "Install Python Virtual environments"
-        sh 'pip3 install -q -I virtualenv --user'
-        // Install the rest of the dependencies
+        sh script: 'pip3 install -q -I virtualenv --user', label: 'Install Python virtual environments'
+        // Install the rest of the dependencies at the environment level and not the system level
         withPythonEnv('python3') {
-          echo "Install Python requirements"
-          sh "pip3 install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
+          sh script: "pip3 install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
         }
       }
     }
@@ -54,95 +52,63 @@ pipeline {
       steps {
         withPythonEnv('python3') {
           echo "Pipeline run triggered remotely by '${params.TriggeredBy}' for the following applications (including tests): '${params.ApplicationScopeWithTests}'"
-          echo 'Retrieving latest application tags from Development environment...'
-          sh "python3 -m outsystems.pipeline.fetch_lifetime_data --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}"
-          echo 'Deploying latest application tags to Regression...'
-          lock('deployment-plan-REG') {          
-            sh "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevelopmentEnvironment}\" --destination_env \"${env.RegressionEnvironment}\" --app_list \"${params.ApplicationScopeWithTests}\""
-          }
-        }
-      }
-      post {
-        always {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
-          }
-        }
-        failure {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "DeploymentConflicts"
+          // Retrieve the Applications and Environment details from LifeTime
+          sh script: "python3 -m outsystems.pipeline.fetch_lifetime_data --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}", label: 'Retrieve list of Environments and Applications'
+         // Deploy the application list, with tests, to the Regression environment
+          lock('deployment-plan-REG') {
+            sh script: "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevelopmentEnvironment}\" --destination_env \"${env.RegressionEnvironment}\" --app_list \"${params.ApplicationScopeWithTests}\"", label: "Deploy latest application tags (including tests) to ${env.RegressionEnvironment}"
           }
         }
       }
     }
     stage('Run Regression') {
-      when { 
-        expression { return params.ApplicationScope != params.ApplicationScopeWithTests } 
+      when {
+        // Checks if there are any test applications in scope before running the regression stage
+        expression { return params.ApplicationScope != params.ApplicationScopeWithTests }
       }
       steps {
         withPythonEnv('python3') {
-          echo 'Generating URLs for BDD testing...'
-          sh "python3 -m outsystems.pipeline.generate_unit_testing_assembly --artifacts \"${env.ArtifactsFolder}\" --app_list \"${params.ApplicationScopeWithTests}\" --cicd_probe_env ${env.ProbeEnvironmentURL} --bdd_framework_env ${env.BddEnvironmentURL}"
-          echo "Testing the URLs and generating the JUnit results XML..."
-          sh(script: "python3 -m outsystems.pipeline.evaluate_test_results --artifacts \"${env.ArtifactsFolder}\"", returnStatus: true)
+          // Generate the URL endpoints of the BDD tests
+          sh script: "python3 -m outsystems.pipeline.generate_unit_testing_assembly --artifacts \"${env.ArtifactsFolder}\" --app_list \"${params.ApplicationScopeWithTests}\" --cicd_probe_env ${env.ProbeEnvironmentURL} --bdd_framework_env ${env.BddEnvironmentURL}", label: 'Generate URL endpoints for BDD test suites'
+          // Run those tests and generate a JUnit test report
+          sh script: "python3 -m outsystems.pipeline.evaluate_test_results --artifacts \"${env.ArtifactsFolder}\"", returnStatus: true, label: 'Run BDD test suites and generate JUnit test report'          
         }
       }
       post {
         always {
-          withPythonEnv('python3') {
-            echo "Publishing JUnit test results..."
-            junit(testResults: "${env.ArtifactsFolder}/junit-result.xml", allowEmptyResults: true)
-          }
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
-          }
+          // Publish results in JUnit test report
+          junit testResults: "${env.ArtifactsFolder}/junit-result.xml", allowEmptyResults: true, skipPublishingChecks: true
         }
+      }
+    }
+    stage('Deploy Acceptance') {
+      steps {     
+        withPythonEnv('python3') {
+          // Deploy the application list to the Acceptance environment
+          lock('deployment-plan-ACC') {
+            sh script: "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegressionEnvironment}\" --destination_env \"${env.AcceptanceEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}/deployment_data/deployment_manifest.cache\"", label: "Deploy latest application tags to ${env.AcceptanceEnvironment}"
+          }
+        }        
       }
     }
     stage('Accept Changes') {
       steps {
-        withPythonEnv('python3') {
-          echo 'Deploying latest application tags to Acceptance...'
-          lock('deployment-plan-ACC') {          
-            sh "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegressionEnvironment}\" --destination_env \"${env.AcceptanceEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}/deployment_data/deployment_manifest.cache\""
-          }
-          // Wrap the confirm in a timeout to avoid hanging Jenkins forever
-          timeout(time:1, unit:'DAYS') {
+        // Define milestone before approval gate to manage concurrent builds
+        milestone(ordinal: 40, label: 'before-approval')
+        // Wrap the confirm option in a timeout to avoid hanging Jenkins forever
+        timeout(time:1, unit:'DAYS') {
           input 'Accept changes and deploy to Production?'
-           }
-         }
-       }
-      post {
-        always {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
-          }
         }
-        failure {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "DeploymentConflicts"
-           }
-         }
-       }
-     }
+        // Discard previous builds that have not been accepted yet
+        milestone(ordinal: 50, label: 'after-approval')
+      }
+    }
     stage('Deploy Dry-Run') {
       steps {
         withPythonEnv('python3') {
-          echo 'Deploying latest application tags to Pre-Production...'
-          lock('deployment-plan-PRE') {          
-            sh "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.AcceptanceEnvironment}\" --destination_env \"${env.PreProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}/deployment_data/deployment_manifest.cache\""
-          }
-        }
-      }
-      post {
-        always {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
-          }
-        }
-        failure {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "DeploymentConflicts"
+          // Deploy the application list to the Pre-Production environment
+          lock('deployment-plan-PRE') {
+            sh script: "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.AcceptanceEnvironment}\" --destination_env \"${env.PreProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}/deployment_data/deployment_manifest.cache\"", label: "Deploy latest application tags to ${env.PreProductionEnvironment}"
           }
         }
       }
@@ -150,29 +116,29 @@ pipeline {
     stage('Deploy Production') {
       steps {
         withPythonEnv('python3') {
-          echo 'Deploying latest application tags to Production...'
-          lock('deployment-plan-PRD') {          
-            sh "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.PreProductionEnvironment}\" --destination_env \"${env.ProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}/deployment_data/deployment_manifest.cache\""
-          }
-        }
-      }
-      post {
-        always {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
-          }
-        }
-        failure {
-          dir ("${env.ArtifactsFolder}") {
-            archiveArtifacts artifacts: "DeploymentConflicts"
+          // Deploy the application list to the Production environment
+          lock('deployment-plan-PRD') {
+            sh script: "python3 -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.PreProductionEnvironment}\" --destination_env \"${env.ProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}/deployment_data/deployment_manifest.cache\"", label: "Deploy latest application tags to ${env.ProductionEnvironment}"
           }
         }
       }
     }
   }
   post {
-    always { 
-      echo 'Deleting artifacts folder content...'
+    // It will always store the cache files generated, for observability purposes, and notifies the result
+    always {
+      dir ("${env.ArtifactsFolder}") {
+        archiveArtifacts artifacts: "**/*.cache"
+      }
+    }
+    // If there's a failure, tries to store the Deployment conflicts (if exists), for troubleshooting purposes
+    failure {
+      dir ("${env.ArtifactsFolder}") {
+        archiveArtifacts artifacts: 'DeploymentConflicts', allowEmptyArchive: true
+      }
+    }
+    // Delete artifacts folder content
+    cleanup {      
       dir ("${env.ArtifactsFolder}") {
         deleteDir()
       }
