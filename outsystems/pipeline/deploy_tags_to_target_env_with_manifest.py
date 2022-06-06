@@ -100,8 +100,9 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
     return app_keys
 
 
-# Function to check if the deployment is with Prepared status 
+# Function to check if the deployment is with Prepared status
 def check_deployment_two_step_deploy_status(dep_status: dict):
+    print("{}".format(dep_status), flush=True)
     return dep_status["Info"] == "deployment_prepared"
 
 

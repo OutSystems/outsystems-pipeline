@@ -56,8 +56,17 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         # Previously created deployment plan to target environment will NOT be deleted
         sys.exit(1)
 
-    continue_deployment(lt_endpoint, lt_token, dep_plan_key)
-    print("Deployment plan {} resumed execution.".format(dep_plan_key), flush=True)
+    # Check Deployment Plan status.
+    dep_status = get_deployment_status(
+        artifact_dir, lt_endpoint, lt_token, dep_plan_key)
+
+    if dep_status["DeploymentStatus"] == DEPLOYMENT_WAITING_STATUS and dep_status["Info"] == "deployment_prepared":
+        continue_deployment(lt_endpoint, lt_token, dep_plan_key)
+        print("Deployment plan {} resumed execution.".format(dep_plan_key), flush=True)
+    else:
+        print("Deployment plan {} is not in 'Prepared' status".format(dep_plan_key), flush=True)
+        # Previously created deployment plan to target environment will NOT be deleted
+        sys.exit(1)
 
     # Sleep thread until deployment has finished
     wait_counter = 0
