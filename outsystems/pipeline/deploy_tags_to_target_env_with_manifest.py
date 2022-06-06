@@ -100,7 +100,14 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
     return app_keys
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env_label: str, dest_env_label: str, include_test_apps: bool, trigger_manifest: dict):
+# Function to check if the deployment status is in 'needs user intervention' due to 2 step deploy
+def check_deployment_two_step_deploy_status(dep_status: dict):
+    print("I'm at check_deployment_two_step_deploy_status", flush=True)
+    print("{}".format(dep_status), flush=True)
+    return False
+
+
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env_label: str, dest_env_label: str, include_test_apps: bool, trigger_manifest: dict, force_two_step_deployment: bool):
 
     app_data_list = []  # will contain the applications to deploy details from LT
     to_deploy_app_keys = []  # will contain the app keys for the apps tagged
@@ -183,6 +190,8 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         raise NotImplementedError("Please make sure the API version is compatible with the module.")
     print("Deployment plan {} started being executed.".format(dep_plan_key), flush=True)
 
+    # Flag to only alert the user once
+    alert_user = False
     # Sleep thread until deployment has finished
     wait_counter = 0
     while wait_counter < DEPLOYMENT_TIMEOUT_IN_SECS:
@@ -190,10 +199,22 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         dep_status = get_deployment_status(
             artifact_dir, lt_endpoint, lt_token, dep_plan_key)
         if dep_status["DeploymentStatus"] != DEPLOYMENT_RUNNING_STATUS:
-            # Check deployment status is pending approval. Force it to continue (if 2-Step deployment is enabled)
+            # Check deployment status is pending approval.
             if dep_status["DeploymentStatus"] == DEPLOYMENT_WAITING_STATUS:
-                continue_deployment(lt_endpoint, lt_token, dep_plan_key)
-                print("Deployment plan {} resumed execution.".format(dep_plan_key), flush=True)
+                # Check if deployment waiting status is due to 2-Step
+                if check_deployment_two_step_deploy_status(dep_status):
+                    # Force it to continue in case of force_two_step_deployment parameter
+                    if force_two_step_deployment:
+                        continue_deployment(lt_endpoint, lt_token, dep_plan_key)
+                        print("Deployment plan {} resumed execution.".format(dep_plan_key), flush=True)
+                    else:
+                        # Exit the script to continue with the pipeline execution
+                        print("Deployment plan {} first step finished successfully.".format(dep_plan_key), flush=True)
+                        sys.exit(0)
+                # Send notification to alert deployment manual intervention.
+                elif not alert_user:
+                    alert_user = True
+                    print("A manual intervention is required to continue the execution of the deployment plan {}.".format(dep_plan_key), flush=True)
             elif dep_status["DeploymentStatus"] in DEPLOYMENT_ERROR_STATUS_LIST:
                 print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]), flush=True)
                 store_data(artifact_dir, DEPLOY_ERROR_FILE, dep_status)
@@ -239,6 +260,8 @@ if __name__ == "__main__":
                         help="Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
     parser.add_argument("-f", "--manifest_file", type=str,
                         help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
+    parser.add_argument("-c", "--force_two_step_deployment", action='store_true',
+                        help="Force the execution of the 2-Step deployment.")
 
     args = parser.parse_args()
 
@@ -277,6 +300,8 @@ if __name__ == "__main__":
         trigger_manifest = load_data("", args.manifest_file)
     else:
         trigger_manifest = json.loads(args.trigger_manifest)
+    # Parse force two step deploymet flag
+    force_two_step_deployment = args.force_two_step_deployment
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env_label, dest_env_label, include_test_apps, trigger_manifest)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env_label, dest_env_label, include_test_apps, trigger_manifest, force_two_step_deployment)
