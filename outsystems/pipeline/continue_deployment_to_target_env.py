@@ -22,7 +22,7 @@ from outsystems.vars.pipeline_vars import SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, 
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
-    continue_deployment, get_saved_deployment
+    continue_deployment, get_running_deployment
 from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 # Exceptions
@@ -40,9 +40,9 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     dest_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, dest_env)
 
     # Find deployment plan with 'saved' status in destination environment
-    deployment = get_saved_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
+    deployment = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
     if deployment is None:
-        raise DeploymentNotFoundError("Unable to find a created deployment plan for {} environment.".format(dest_env))
+        raise DeploymentNotFoundError("Unable to find a running deployment plan on {} environment.".format(dest_env))
 
     # Grab the key from the deployment plan found
     dep_plan_key = deployment["Key"]
