@@ -44,11 +44,8 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     if deployment is None:
         raise DeploymentNotFoundError("Unable to find a running deployment plan on {} environment.".format(dest_env))
 
-    
-    print("{}".format(deployment), flush=True)
-    
     # Grab the key from the deployment plan found
-    dep_plan_key = deployment["Key"]
+    dep_plan_key = deployment[0]["Key"]
     print("Deployment plan {} was found.".format(dep_plan_key), flush=True)
 
     # Check if created deployment plan has conflicts
