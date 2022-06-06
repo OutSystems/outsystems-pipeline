@@ -48,14 +48,6 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     dep_plan_key = deployment[0]["Key"]
     print("Deployment plan {} was found.".format(dep_plan_key), flush=True)
 
-    # Check if created deployment plan has conflicts
-    dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)
-    if len(dep_details["ApplicationConflicts"]) > 0:
-        store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
-        print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE), flush=True)
-        # Previously created deployment plan to target environment will NOT be deleted
-        sys.exit(1)
-
     # Check Deployment Plan status.
     dep_status = get_deployment_status(
         artifact_dir, lt_endpoint, lt_token, dep_plan_key)
