@@ -100,11 +100,9 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
     return app_keys
 
 
-# Function to check if the deployment status is in 'needs user intervention' due to 2 step deploy
+# Function to check if the deployment is with Prepared status 
 def check_deployment_two_step_deploy_status(dep_status: dict):
-    print("I'm at check_deployment_two_step_deploy_status", flush=True)
-    print("{}".format(dep_status), flush=True)
-    return False
+    return dep_status["Info"] == "deployment_prepared"
 
 
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env_label: str, dest_env_label: str, include_test_apps: bool, trigger_manifest: dict, force_two_step_deployment: bool):
