@@ -16,12 +16,12 @@ else:  # Else just add the project dir
 # Variables
 from outsystems.vars.file_vars import ARTIFACT_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
-from outsystems.vars.pipeline_vars import SLEEP_PERIOD_IN_SECS, CONFLICTS_FILE, \
+from outsystems.vars.pipeline_vars import SLEEP_PERIOD_IN_SECS, \
     DEPLOYMENT_TIMEOUT_IN_SECS, DEPLOYMENT_RUNNING_STATUS, DEPLOYMENT_WAITING_STATUS, \
     DEPLOYMENT_ERROR_STATUS_LIST, DEPLOY_ERROR_FILE
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_key
-from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
+from outsystems.lifetime.lifetime_deployments import get_deployment_status, check_deployment_two_step_deploy_status, \
     continue_deployment, get_running_deployment
 from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
@@ -52,7 +52,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     dep_status = get_deployment_status(
         artifact_dir, lt_endpoint, lt_token, dep_plan_key)
 
-    if dep_status["DeploymentStatus"] == DEPLOYMENT_WAITING_STATUS and dep_status["Info"] == "deployment_prepared":
+    if dep_status["DeploymentStatus"] == DEPLOYMENT_WAITING_STATUS and check_deployment_two_step_deploy_status(dep_status):
         continue_deployment(lt_endpoint, lt_token, dep_plan_key)
         print("Deployment plan {} resumed execution.".format(dep_plan_key), flush=True)
     else:

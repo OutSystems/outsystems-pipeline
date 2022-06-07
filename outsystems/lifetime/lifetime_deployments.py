@@ -288,6 +288,11 @@ def continue_deployment(endpoint: str, auth_token: str, deployment_key: str):
             "There was an error. Response from server: {}".format(response))
 
 
+# Function to check if the deployment is with Prepared status
+def check_deployment_two_step_deploy_status(dep_status: dict):
+    return dep_status["Info"] == "deployment_prepared"
+
+
 # ---------------------- PRIVATE METHODS ----------------------
 def _create_deployment_plan(artifact_dir: str, endpoint: str, lt_api_version: int, auth_token: str, app_keys: str, dep_note: str, source_env: str, dest_env: str):
     if lt_api_version == 1:

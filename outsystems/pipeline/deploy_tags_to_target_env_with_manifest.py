@@ -26,7 +26,8 @@ from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN
 from outsystems.lifetime.lifetime_environments import get_environment_app_version
 from outsystems.lifetime.lifetime_applications import get_application_version
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
-    send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
+    send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment, \
+    check_deployment_two_step_deploy_status
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.manifest.manifest_base import get_environment_details, get_deployment_notes
@@ -98,12 +99,6 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
             app_keys.append(generate_deploy_app_key(lt_api_version, app["VersionKey"]))
             print("App {} with version {} does not exist in {} environment. Ignoring check and deploy it.".format(app["Name"], app["Version"], env_name), flush=True)
     return app_keys
-
-
-# Function to check if the deployment is with Prepared status
-def check_deployment_two_step_deploy_status(dep_status: dict):
-    print("{}".format(dep_status), flush=True)
-    return dep_status["Info"] == "deployment_prepared"
 
 
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env_label: str, dest_env_label: str, include_test_apps: bool, trigger_manifest: dict, force_two_step_deployment: bool):
