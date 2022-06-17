@@ -1,4 +1,4 @@
-# This is a basic workflow that is manually triggered
+# This is a basic workflow that is manually triggered to create a python virtual environment
 
 name: Manual workflow
 
@@ -8,23 +8,25 @@ on:
   workflow_dispatch:
     # Inputs the workflow accepts.
     inputs:
-      name:
+      env_name:
         # Friendly description to be shown in the UI instead of 'name'
-        description: 'Person to greet'
+        description: 'Runner Python virtual env name'
         # Default value if no value is explicitly provided
-        default: 'World'
+        default: 'default_outsystems_env'
         # Input has to be provided for the workflow to run
         required: true
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "greet"
+  
   install_dependencies:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Runs a single command using the runners shell
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        path: main
     - name: Send greeting
-      run: echo "Hello ${{ github.event.inputs.name }}"
+      run: ./examples/Linux/install_dependencies.sh -e ${{ github.event.inputs.name }} -a/tmp/artifacts
