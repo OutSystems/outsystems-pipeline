@@ -26,7 +26,6 @@ from outsystems.lifetime.lifetime_deployments import get_deployment_status, chec
 from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 # Exceptions
-from outsystems.exceptions.deployment_not_found import DeploymentNotFoundError
 
 # ############################################################# SCRIPT ##############################################################
 
@@ -39,16 +38,17 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Gets the environment key for the destination environment
     dest_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, dest_env)
 
-    # Find deployment plan with 'saved' status in destination environment
+    # Find running deployment plan in destination environment
     deployment = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
-    if deployment is None:
-        raise DeploymentNotFoundError("Unable to find a running deployment plan on {} environment.".format(dest_env))
+    if len(deployment) == 0:
+        print("Continue skipped because no running deployment plan was found on {} environment.".format(dest_env))
+        sys.exit(0)
 
     # Grab the key from the deployment plan found
     dep_plan_key = deployment[0]["Key"]
     print("Deployment plan {} was found.".format(dep_plan_key), flush=True)
 
-    # Check Deployment Plan status.
+    # Check deployment plan status
     dep_status = get_deployment_status(
         artifact_dir, lt_endpoint, lt_token, dep_plan_key)
 
