@@ -23,6 +23,7 @@ ENVIRONMENT_FILE = ".cache"
 ENVIRONMENT_APPS_FILE = ".applications.cache"
 ENVIRONMENT_APPLICATION_FILE = ".applications.cache"
 ENVIRONMENT_VERSIONS_FILE = ".versions.cache"
+ENVIRONMENT_DEPLOYMENT_ZONES_FILE = ".deploymentzones.cache"
 ENVIRONMENT_FOLDER = "environment_data"
 
 # Environments vars
