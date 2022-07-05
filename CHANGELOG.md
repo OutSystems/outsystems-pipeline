@@ -9,19 +9,28 @@
 
 ## April 7th, 2022
 
-### Trigger Manifest with Configuration items
+### Trigger Manifest with configuration items
 
-Added new function (deploy_tags_to_target_env_with_manifest) to create and execute a deployment plan based on the app versions on manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
-Added new function (apply_configuration_values_to_target_env) to set configuration items values on a target environment based on the values found on manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
+Added new functions to leverage the trigger manifest artifact provided since version 2.4.0 of Trigger Pipeline LifeTime plugin:    
 
+* `deploy_tags_to_target_env_with_manifest` - Creates and executes a deployment plan based on the application versions defined in the trigger manifest submitted as input parameter by the Trigger Pipeline plugin.
+* `apply_configuration_values_to_target_env` - Sets configuration items values in a target environment based on the values found on the trigger manifest artifact.
 
 ## December 29th, 2021
 
 ### Start an existing deployment plan
 
-Added new function (start_deployment_to_target_env) to start a deployment plan previously created in LifeTime UI for a target environment. The function also generates a Deployment Manifest artifact which can be reused in subsequent pipeline stages.
+Added new function (`start_deployment_to_target_env`) to start a deployment plan previously created in LifeTime UI for a target environment. The function also generates a Deployment Manifest artifact which can be reused in subsequent pipeline stages.
 
 **NOTE:** The existing deployment plan must not have "Tag & Deploy" operations, otherwise the LifeTime API will return a 400 error when running the plan.
+
+## April 22nd, 2021
+
+### Code analysis with Architecture Dashboard
+
+Added new functions to fetch code analysis results from Architecture Dashboard: 
+* `fetch_tech_debt` - Fetches last code analysis information from the Architecture Dashboard API (either for the entire infrastructure or for the applications in the Manifest file).
+* `fetch_tech_debt_sync` - Compares the Manifest file applications tag creation datetime with the Architecture Dashboards' last analysis datetime to assure the analysis includes the last tagged code changes.
 
 ## December 6th, 2019
 
@@ -32,8 +41,8 @@ Included the generation of a Deployment Manifest artifact that can be used to pr
 ### Air Gap Support
 
 Added new functions to support Air Gap deployment scenarios: 
-* deploy_apps_to_target_env_with_airgap - Deploy OutSystems Applications to a target environment without using the Deployment API
-* tag_apps_based_on_manifest_data - Syncronize LifeTime application versions from a Manifest file to target LifeTime
+* `deploy_apps_to_target_env_with_airgap` - Deploy OutSystems Applications to a target environment without using the Deployment API
+* `tag_apps_based_on_manifest_data` - Synchronize LifeTime application versions from a Manifest file to target LifeTime
 
 ### New Jenkins Templates
 

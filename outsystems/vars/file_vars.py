@@ -46,3 +46,10 @@ BDD_FRAMEWORK_FOLDER = "bdd_data"
 
 # JUNIT vars
 JUNIT_TEST_RESULTS_FILE = "junit-result.xml"
+
+# Architecture Dashboard vars
+AD_FILE_PREFIX = "TechDebt"
+AD_INFRA_FILE = ".infrastructure.cache"
+AD_APP_FILE = ".application.cache"
+AD_MODULE_FILE = ".module.cache"
+AD_FOLDER = "tech_debt_data"
