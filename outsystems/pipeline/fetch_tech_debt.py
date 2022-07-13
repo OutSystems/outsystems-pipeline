@@ -54,11 +54,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--artifacts", type=str, default=ARTIFACT_FOLDER,
                         help="Name of the artifacts folder. Default: \"Artifacts\"")
-    parser.add_argument("-h", "--ad_hostname", type=str, default=AD_API_HOST,
+    parser.add_argument("-n", "--ad_hostname", type=str, default=AD_API_HOST,
                         help="Hostname of Architecture Dashboard, without the API endpoint. Default: \"architecture.outsystems.com\"")
     parser.add_argument("-c", "--activation_code", type=str, required=True,
                         help="Activation code of target infrastructure.")
-    parser.add_argument("-t", "--api_key", type=str, required=True,
+    parser.add_argument("-k", "--api_key", type=str, required=True,
                         help="Key for Architecture Dashboard API calls.")
     parser.add_argument("-f", "--manifest_file", type=str,
                         help="(Optional) Trigger manifest file path.")
