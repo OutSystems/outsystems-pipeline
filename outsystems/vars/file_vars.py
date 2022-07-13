@@ -49,7 +49,8 @@ JUNIT_TEST_RESULTS_FILE = "junit-result.xml"
 
 # Architecture Dashboard vars
 AD_FILE_PREFIX = "TechDebt"
+AD_LEVELS_FILE = ".levels.cache"
+AD_CATEGORIES_FILE = ".categories.cache"
 AD_INFRA_FILE = ".infrastructure.cache"
 AD_APP_FILE = ".application.cache"
-AD_MODULE_FILE = ".module.cache"
-AD_FOLDER = "tech_debt_data"
+AD_FOLDER = "techdebt_data"

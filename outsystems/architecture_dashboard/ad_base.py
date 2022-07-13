@@ -12,12 +12,12 @@ def build_ad_endpoint(ad_http_proto: str, ad_api_host: str, ad_api_endpoint: str
 
 
 # Sends a GET request to Architecture Dashboard
-def send_get_request(request_string: str, activation_code: str, api_key: str):
+def send_get_request(request_string: str, activation_code: str, api_key: str, url_params: dict = None):
     # API key + Customer Activation Code
     headers = {'x-api-key': api_key,
-               'x-customer-ac': activation_code}
+               'x-activation-code': activation_code}
 
-    response = requests.get(request_string, headers=headers)
+    response = requests.get(request_string, params=url_params, headers=headers)
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:
