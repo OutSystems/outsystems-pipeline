@@ -23,6 +23,7 @@ from outsystems.lifetime.lifetime_applications import get_applications, get_runn
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_applications import set_application_version
+from outsystems.file_helpers.file import load_data
 
 # Exceptions
 from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistError
