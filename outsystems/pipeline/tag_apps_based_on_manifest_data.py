@@ -33,7 +33,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     for deployed_app in dep_manifest:
         if deployed_app["ApplicationName"] in app_list:
-            set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["Version"])
+            set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["Version"], None)
             print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["Version"], dest_env), flush=True)
 
 # End of main()
