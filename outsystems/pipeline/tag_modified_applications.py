@@ -120,7 +120,7 @@ if __name__ == "__main__":
                         help="Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
     parser.add_argument("-f", "--manifest_file", type=str,
                         help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
-    parser.add_argument("-m", "--log_msg", type=str, default="Version created automatically using outsystems-pipeline package.",
+    parser.add_argument("-l", "--log_msg", type=str, default="Version created automatically using outsystems-pipeline package.",
                         help="(optional) log message to be added to the new tags")
     args = parser.parse_args()
 
