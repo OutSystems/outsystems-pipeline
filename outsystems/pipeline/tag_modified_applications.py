@@ -60,7 +60,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     for app_name in trigger_manifest[MANIFEST_APPLICATION_VERSIONS]:
         # Gets application specific details
-        app_detail = list(filter(lambda x: x["Name"] == app_name, all_apps))
+        app_detail = list(filter(lambda x: x["Name"] == app_name["ApplicationName"], all_apps))
 
         if len(app_detail):
             # Checks if application is modified in target env
