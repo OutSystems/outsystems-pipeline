@@ -16,6 +16,7 @@ else:  # Else just add the project dir
 from outsystems.vars.file_vars import ARTIFACT_FOLDER
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.pipeline_vars import MAX_VERSIONS_TO_RETURN, TAG_APP_MAX_RETRIES
+from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS
 
 # Functions
 from outsystems.lifetime.lifetime_applications import get_applications, get_running_app_version, get_application_versions
@@ -23,6 +24,8 @@ from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_applications import set_application_version
 
+# Exceptions
+from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistError
 
 # ############################################################# SCRIPT ##############################################################
 
@@ -45,7 +48,7 @@ def generate_new_version_number(base_version: str):
     return "{}.{}.{}".format(maj, min, rev)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, app_list: list, log_msg: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, trigger_manifest: dict, log_msg: str):
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
 
@@ -55,7 +58,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Get all applications info
     all_apps = get_applications(artifact_dir, lt_endpoint, lt_token, True)
 
-    for app_name in app_list:
+    for app_name in trigger_manifest[MANIFEST_APPLICATION_VERSIONS]:
         # Gets application specific details
         app_detail = list(filter(lambda x: x["Name"] == app_name, all_apps))
 
@@ -113,8 +116,10 @@ if __name__ == "__main__":
                         help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-d", "--dest_env", type=str, required=True,
                         help="Name, as displayed in LifeTime, of the environment where you want to tag the apps.")
-    parser.add_argument("-l", "--app_list", type=str, required=True,
-                        help="Comma separated list of apps you want to tag. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
+    parser.add_argument("-m", "--trigger_manifest", type=str,
+                        help="Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
+    parser.add_argument("-f", "--manifest_file", type=str,
+                        help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
     parser.add_argument("-m", "--log_msg", type=str, default="Version created automatically using outsystems-pipeline package.",
                         help="(optional) log message to be added to the new tags")
     args = parser.parse_args()
@@ -140,10 +145,15 @@ if __name__ == "__main__":
     lt_token = args.lt_token
     # Parse Destination Environment
     dest_env = args.dest_env
-    # Parse App list
-    _apps = args.app_list
-    apps = _apps.split(',')
+    # Validate Manifest is being passed either as JSON or as file
+    if not args.trigger_manifest and not args.manifest_file:
+        raise ManifestDoesNotExistError("The manifest was not provided as JSON or as a file. Aborting!")
+    # Parse Trigger Manifest artifact
+    if args.manifest_file:
+        trigger_manifest = load_data("", args.manifest_file)
+    else:
+        trigger_manifest = json.loads(args.trigger_manifest)
     # Parse Log Message
     log_msg = args.log_msg
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, log_msg)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, trigger_manifest, log_msg)
