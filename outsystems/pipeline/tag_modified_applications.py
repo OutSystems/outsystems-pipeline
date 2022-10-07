@@ -2,6 +2,7 @@
 import sys
 import os
 import argparse
+import json
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -30,9 +31,10 @@ from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistEr
 
 # ############################################################# SCRIPT ##############################################################
 
+
 def generate_new_version_number(base_version: str):
     # Split tag version digits
-    base_version = base_version.split('.')
+    base_version = base_version.split('.')  # type: ignore
 
     # Default values for Major.Minor.Revison
     maj = base_version[0]

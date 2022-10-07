@@ -51,8 +51,8 @@ def generate_deploy_app_key(lt_api_version: int, app_version_key: str, deploy_zo
 def generate_deployment_based_on_manifest(artifact_dir: str, lt_endpoint: str, lt_token: str, src_env_key: str, src_env_name: str, manifest: list, include_test_apps: bool, include_deployment_zones: bool):
     app_data_list = []  # will contain the applications details from the manifest
 
-    for deployed_app in manifest[MANIFEST_APPLICATION_VERSIONS]:
-        if not(include_test_apps) and deployed_app[MANIFEST_FLAG_IS_TEST_APPLICATION]:
+    for deployed_app in manifest[MANIFEST_APPLICATION_VERSIONS]:  # type: ignore
+        if not include_test_apps and deployed_app[MANIFEST_FLAG_IS_TEST_APPLICATION]:
             continue
         try:
             get_application_version(artifact_dir, lt_endpoint, lt_token, False, deployed_app["VersionKey"], app_name=deployed_app["ApplicationName"])
@@ -118,7 +118,7 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
                 deploy_zone_key = target_deploy_zone["Key"]
             elif include_deployment_zones and app["DeploymentZone"]:
                 print("Deployment zone with name {} not found in {} environment.".format(app["DeploymentZone"], env_name), flush=True)
-            app_keys.append(generate_deploy_app_key(lt_api_version, app["VersionKey"], deploy_zone_key))
+            app_keys.append(generate_deploy_app_key(lt_api_version, app["VersionKey"], deploy_zone_key))  # type: ignore
             if deploy_zone_key:
                 print("App {} with version {} does not exist in {} environment. Ignoring check and deploying it using {} deployment zone.".format(app["Name"], app["Version"], env_name, target_deploy_zone["Name"]), flush=True)
             else:

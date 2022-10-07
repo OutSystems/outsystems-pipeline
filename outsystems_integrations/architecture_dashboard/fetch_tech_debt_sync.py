@@ -51,7 +51,7 @@ def main(artifact_dir: str, activation_code: str, api_key: str, dep_manifest: li
                 last_analysis_time = app_analysis_time
 
         if last_tag_time < last_analysis_time:
-            print("Success: Code Analysis includes latest code changes.".format(last_tag_time), flush=True)
+            print("Success: Code Analysis includes latest code changes.", flush=True)
             sys.exit(0)
         else:
             retry_counter += 1
