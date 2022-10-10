@@ -7,11 +7,24 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+
+## July 4th, 2022
+
+### LifeTime Deployment Operations
+
+Added new functionality to provide more flexibility to handle LifeTime deployments:    
+
+* `deploy_tags_to_target_env_with_manifest` - Add new optional input parameters:
+    * `--force_two_step_deployment` - Force the execution of the second stage, in an environment where 2-stage deployments are enabled. By default, the script exits after the first stage is completed.
+    * `--include_deployment_zones` - Apply deployment zone selection on the target environment based on the deployment zone defined in the trigger manifest.
+
+* `continue_deployment_to_target_env` - Continues an existing deployment plan that is waiting for user intervention on a given environment.
+
 ## April 7th, 2022
 
 ### Trigger Manifest with configuration items
 
-Added new functions to leverage the trigger manifest artifact provided since version 2.4.0 of Trigger Pipeline LifeTime plugin:    
+Added new functions to leverage the trigger manifest artifact provided since version 2.4.0 of Trigger Pipeline LifeTime plugin:
 
 * `deploy_tags_to_target_env_with_manifest` - Creates and executes a deployment plan based on the application versions defined in the trigger manifest submitted as input parameter by the Trigger Pipeline plugin.
 * `apply_configuration_values_to_target_env` - Sets configuration items values in a target environment based on the values found on the trigger manifest artifact.

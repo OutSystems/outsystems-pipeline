@@ -11,9 +11,12 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Start Deployment Plan**
- * New function to create and execute a deployment plan based on the app versions on manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
- * New function to set configuration items values on a target environment based on the values found on manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
+**Trigger Manifest Artifact**
+ * New function to create and execute a deployment plan based on the app versions on the manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
+ * New function to set configuration item values on a target environment based on the values found on the manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
+
+**LifeTime Deployment Operations**
+ * New function to resume the execution of a deployment plan on a target environment where 2-stage deployments are enabled.
 
 Installing and upgrading
 ========================
@@ -59,13 +62,16 @@ REQUIREMENTS = [
 
 PACKAGES = [
     'outsystems',
+    'outsystems.architecture_dashboard',
     'outsystems.bdd_framework',
     'outsystems.cicd_probe',
     'outsystems.exceptions',
     'outsystems.file_helpers',
     'outsystems.lifetime',
+    'outsystems.manifest',
     'outsystems.osp_tool',
     'outsystems.pipeline',
+    'outsystems.properties',
     'outsystems.vars'
 ]
 
