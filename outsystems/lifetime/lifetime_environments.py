@@ -15,8 +15,10 @@ from outsystems.file_helpers.file import load_data, store_data, clear_cache
 # Variables
 from outsystems.vars.lifetime_vars import ENVIRONMENTS_ENDPOINT, ENVIRONMENT_APPLICATIONS_ENDPOINT, ENVIRONMENTS_SUCCESS_CODE, \
     ENVIRONMENTS_NOT_FOUND_CODE, ENVIRONMENTS_FAILED_CODE, ENVIRONMENT_APP_SUCCESS_CODE, ENVIRONMENT_APP_NOT_STATUS_CODE, \
-    ENVIRONMENT_APP_NO_PERMISSION_CODE, ENVIRONMENT_APP_NOT_FOUND, ENVIRONMENT_APP_FAILED_CODE
-from outsystems.vars.file_vars import ENVIRONMENTS_FILE, ENVIRONMENT_FOLDER, ENVIRONMENT_APPLICATION_FILE
+    ENVIRONMENT_APP_NO_PERMISSION_CODE, ENVIRONMENT_APP_NOT_FOUND, ENVIRONMENT_APP_FAILED_CODE, ENVIRONMENT_DEPLOYMENT_ZONES_ENDPOINT, \
+    ENVIRONMENT_ZONES_SUCCESS_CODE, ENVIRONMENT_ZONES_NOT_STATUS_CODE, ENVIRONMENT_ZONES_NO_PERMISSION_CODE, ENVIRONMENT_ZONES_NOT_FOUND, \
+    ENVIRONMENT_ZONES_FAILED_CODE
+from outsystems.vars.file_vars import ENVIRONMENTS_FILE, ENVIRONMENT_FOLDER, ENVIRONMENT_APPLICATION_FILE, ENVIRONMENT_DEPLOYMENT_ZONES_FILE
 
 
 # Lists all the environments in the infrastructure.
@@ -79,6 +81,40 @@ def get_environment_app_version(artifact_dir: str, endpoint: str, auth_token: st
     elif status_code == ENVIRONMENT_APP_FAILED_CODE:
         raise ServerError("Failed to access the running version of an application. Details: {}".format(
             response["response"]))
+    else:
+        raise NotImplementedError(
+            "There was an error. Response from server: {}".format(response))
+
+
+# Returns information about the existing deployment zones in a given environment.
+def get_environment_deployment_zones(artifact_dir: str, endpoint: str, auth_token: str, **kwargs):
+    # Tuple with (EnvName, EnvKey): env_tuple[0] = EnvName; env_tuple[1] = EnvKey
+    env_tuple = _get_environment_info(
+        artifact_dir, endpoint, auth_token, **kwargs)
+    # Builds the query and arguments for the call to the API
+    query = "{}/{}/{}".format(ENVIRONMENTS_ENDPOINT, env_tuple[1], ENVIRONMENT_DEPLOYMENT_ZONES_ENDPOINT)
+    # Sends the request
+    response = send_get_request(endpoint, auth_token, query, None)
+    status_code = int(response["http_status"])
+    if status_code == ENVIRONMENT_ZONES_SUCCESS_CODE:
+        # Stores the result
+        filename = "{}.{}".format(
+            env_tuple[0], ENVIRONMENT_DEPLOYMENT_ZONES_FILE)
+        filename = os.path.join(ENVIRONMENT_FOLDER, filename)
+        store_data(artifact_dir, filename, response["response"])
+        return response["response"]
+    elif status_code == ENVIRONMENT_ZONES_NOT_STATUS_CODE:
+        raise InvalidParametersError(
+            "Failed to access the deployment zones of environment. Details {}".format(response["response"]))
+    elif status_code == ENVIRONMENT_ZONES_NO_PERMISSION_CODE:
+        raise NotEnoughPermissionsError(
+            "You don't have enough permissions to retrieve the deployment zones in that environment. Details: {}".format(response["response"]))
+    elif status_code == ENVIRONMENT_ZONES_NOT_FOUND:
+        raise EnvironmentNotFoundError(
+            "No environment found to retrieve the deployment zones. Details {}".format(response["response"]))
+    elif status_code == ENVIRONMENT_ZONES_FAILED_CODE:
+        raise ServerError(
+            "Failed to access the deployment zones of environment. Details: {}".format(response["response"]))
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))

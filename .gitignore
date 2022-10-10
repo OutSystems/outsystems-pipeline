@@ -6,12 +6,12 @@ temp_file
 *.bak
 # local testing
 tests/python-tests/*.xml
-.vscode
 Artifacts
+.vscode
 .idea/*
+.venv/*
 venv/*
 junit
 dist/*
-MANIFEST
 VERSION
 .venv/

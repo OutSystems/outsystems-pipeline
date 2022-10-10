@@ -171,12 +171,12 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
     return app_data
 
 
-def set_application_version(endpoint: str, auth_token: str, env_key: str, app_key: str, change_log: str, app_version: str):
+def set_application_version(endpoint: str, auth_token: str, env_key: str, app_key: str, change_log: str, app_version: str, mobile_versions: list):
     query = "{}/{}/{}/{}/{}".format(ENVIRONMENTS_ENDPOINT,
                                     env_key, ENVIRONMENT_APPLICATIONS_ENDPOINT, app_key, APPLICATION_VERSIONS_ENDPOINT)
 
     version_request = {"ChangeLog": change_log,
-                       "Version": app_version, "MobileVersions": None}
+                       "Version": app_version, "MobileVersions": mobile_versions}
 
     response = send_post_request(endpoint, auth_token, query, json.dumps(version_request))
 

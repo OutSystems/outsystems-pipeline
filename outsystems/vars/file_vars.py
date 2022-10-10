@@ -23,6 +23,7 @@ ENVIRONMENT_FILE = ".cache"
 ENVIRONMENT_APPS_FILE = ".applications.cache"
 ENVIRONMENT_APPLICATION_FILE = ".applications.cache"
 ENVIRONMENT_VERSIONS_FILE = ".versions.cache"
+ENVIRONMENT_DEPLOYMENT_ZONES_FILE = ".deploymentzones.cache"
 ENVIRONMENT_FOLDER = "environment_data"
 
 # Environments vars
@@ -45,3 +46,11 @@ BDD_FRAMEWORK_FOLDER = "bdd_data"
 
 # JUNIT vars
 JUNIT_TEST_RESULTS_FILE = "junit-result.xml"
+
+# Architecture Dashboard vars
+AD_FILE_PREFIX = "TechDebt"
+AD_LEVELS_FILE = ".levels.cache"
+AD_CATEGORIES_FILE = ".categories.cache"
+AD_INFRA_FILE = ".infrastructure.cache"
+AD_APP_FILE = ".application.cache"
+AD_FOLDER = "techdebt_data"
