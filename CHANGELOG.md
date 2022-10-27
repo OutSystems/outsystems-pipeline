@@ -7,7 +7,8 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
-## January 7th, 2022
+
+## November 7th, 2022
 
 ### Fetch Application Source Code for SAST Analysis
 
@@ -15,13 +16,45 @@ Added new function (fetch_apps_source_code) to retrieve the source code of a set
 
 **NOTE:** This function requires network connectivity to the target environment platform server.
 
+=======
+
+## July 4th, 2022
+
+### LifeTime Deployment Operations
+
+Added new functionality to provide more flexibility to handle LifeTime deployments:    
+
+* `deploy_tags_to_target_env_with_manifest` - Add new optional input parameters:
+    * `--force_two_step_deployment` - Force the execution of the second stage, in an environment where 2-stage deployments are enabled. By default, the script exits after the first stage is completed.
+    * `--include_deployment_zones` - Apply deployment zone selection on the target environment based on the deployment zone defined in the trigger manifest.
+
+* `continue_deployment_to_target_env` - Continues an existing deployment plan that is waiting for user intervention on a given environment.
+
+## April 7th, 2022
+
+### Trigger Manifest with configuration items
+
+Added new functions to leverage the trigger manifest artifact provided since version 2.4.0 of Trigger Pipeline LifeTime plugin:
+
+* `deploy_tags_to_target_env_with_manifest` - Creates and executes a deployment plan based on the application versions defined in the trigger manifest submitted as input parameter by the Trigger Pipeline plugin.
+* `apply_configuration_values_to_target_env` - Sets configuration items values in a target environment based on the values found on the trigger manifest artifact.
+
+
 ## December 29th, 2021
 
 ### Start an existing deployment plan
 
-Added new function (start_deployment_to_target_env) to start a deployment plan previously created in LifeTime UI for a target environment. The function also generates a Deployment Manifest artifact which can be reused in subsequent pipeline stages.
+Added new function (`start_deployment_to_target_env`) to start a deployment plan previously created in LifeTime UI for a target environment. The function also generates a Deployment Manifest artifact which can be reused in subsequent pipeline stages.
 
 **NOTE:** The existing deployment plan must not have "Tag & Deploy" operations, otherwise the LifeTime API will return a 400 error when running the plan.
+
+## April 22nd, 2021
+
+### Code analysis with Architecture Dashboard
+
+Added new functions to fetch code analysis results from Architecture Dashboard: 
+* `fetch_tech_debt` - Fetches last code analysis information from the Architecture Dashboard API (either for the entire infrastructure or for the applications in the Manifest file).
+* `fetch_tech_debt_sync` - Compares the Manifest file applications tag creation datetime with the Architecture Dashboards' last analysis datetime to assure the analysis includes the last tagged code changes.
 
 ## December 6th, 2019
 
@@ -32,8 +65,8 @@ Included the generation of a Deployment Manifest artifact that can be used to pr
 ### Air Gap Support
 
 Added new functions to support Air Gap deployment scenarios: 
-* deploy_apps_to_target_env_with_airgap - Deploy OutSystems Applications to a target environment without using the Deployment API
-* tag_apps_based_on_manifest_data - Syncronize LifeTime application versions from a Manifest file to target LifeTime
+* `deploy_apps_to_target_env_with_airgap` - Deploy OutSystems Applications to a target environment without using the Deployment API
+* `tag_apps_based_on_manifest_data` - Synchronize LifeTime application versions from a Manifest file to target LifeTime
 
 ### New Jenkins Templates
 

@@ -18,11 +18,11 @@ pipeline {
     // Environments Specification Variables
     /*
     * Pipeline for 5 Environments:
-    * DevelopmentEnvironment -> Where you develop your applications. This should be the default environment you connect with service studio.
-    * RegressionEnvironment -> Where your automated tests will test your applications.
-    * AcceptanceEnvironment -> Where you run your acceptance tests of your applications.
-    * PreProductionEnvironment -> Where you prepare your apps to go live.
-    * ProductionEnvironment -> Where your apps are live.
+    *   DevelopmentEnvironment    -> Where you develop your applications. This should be the default environment you connect with service studio.
+    *   RegressionEnvironment     -> Where your automated tests will test your applications.
+    *   AcceptanceEnvironment     -> Where you run your acceptance tests of your applications.
+    *   PreProductionEnvironment  -> Where you prepare your apps to go live.
+    *   ProductionEnvironment     -> Where your apps are live.
     */
     DevelopmentEnvironment = 'Development'
     RegressionEnvironment = 'Regression'
@@ -33,30 +33,25 @@ pipeline {
     ProbeEnvironmentURL = 'https://regression-env.acmecorp.com/'
     BddEnvironmentURL = 'https://regression-env.acmecorp.com/'
     // OutSystems PyPI package version
-    OSPackageVersion = '0.3.1'
+    OSPackageVersion = '0.4.0'
   }
   stages {
     stage('Get and Deploy Latest Tags') {
       agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents
       steps {
         echo "Pipeline run triggered remotely by '${params.TriggeredBy}' for the following applications (including tests): '${params.ApplicationScopeWithTests}'"
-        echo "Create ${env.ArtifactsFolder} Folder"
         // Create folder for storing artifacts
-        powershell "mkdir ${env.ArtifactsFolder}"
+        sh script: "mkdir ${env.ArtifactsFolder}", label: 'Create artifacts folder'
         // Only the virtual environment needs to be installed at the system level
-        echo "Install Python Virtual environments"
-        powershell 'pip install -q -I virtualenv --user'
+        sh script: 'pip install -q -I virtualenv --user', label: 'Install Python virtual environments'
         withPythonEnv('python') {
-          echo "Install Python requirements"
           // Install the rest of the dependencies at the environment level and not the system level
-          powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
-          echo 'Retrieving latest application tags from Development environment...'
-          // Retrive the Applications and Environment details from the Source environment
-          powershell "python -m outsystems.pipeline.fetch_lifetime_data --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}"
-          echo 'Deploying latest application tags to Regression...'
+          sh script: "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
+          // Retrieve the Applications and Environment details from LifeTime
+          sh script: "python -m outsystems.pipeline.fetch_lifetime_data --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion}", label: 'Retrieve list of Environments and Applications'
           // Deploy the application list, with tests, to the Regression environment
           lock('deployment-plan-REG') {
-            powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevelopmentEnvironment}\" --destination_env \"${env.RegressionEnvironment}\" --app_list \"${params.ApplicationScopeWithTests}\""
+            sh script: "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.DevelopmentEnvironment}\" --destination_env \"${env.RegressionEnvironment}\" --app_list \"${params.ApplicationScopeWithTests}\"", label: "Deploy latest application tags (including tests) to ${env.RegressionEnvironment}"
           }
         }
       }
@@ -85,26 +80,20 @@ pipeline {
     }
     stage('Run Regression') {
       when {
+        // Checks if there are any test applications in scope before running the regression stage
         expression { return params.ApplicationScope != params.ApplicationScopeWithTests }
       }
       agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents
       steps {
-        echo "Create ${env.ArtifactsFolder} Folder"
         // Create folder for storing artifacts
-        powershell "mkdir ${env.ArtifactsFolder}"
+        sh script: "mkdir ${env.ArtifactsFolder}", label: 'Create artifacts folder'
         // Only the virtual environment needs to be installed at the system level
-        echo "Install Python Virtual environments"
-        powershell 'pip install -q -I virtualenv --user'
+        sh script: 'pip install -q -I virtualenv --user', label: 'Install Python virtual environments'
         withPythonEnv('python') {
-          echo "Install Python requirements"
-          // Install the rest of the dependencies at the environment level and not the system level
-          powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
-          echo 'Generating URLs for BDD testing...'
           // Generate the URL endpoints of the BDD tests
-          powershell "python -m outsystems.pipeline.generate_unit_testing_assembly --artifacts \"${env.ArtifactsFolder}\" --app_list \"${params.ApplicationScopeWithTests}\" --cicd_probe_env ${env.ProbeEnvironmentURL} --bdd_framework_env ${env.BddEnvironmentURL}"
-          echo "Testing the URLs and generating the JUnit results XML..."
-          // Run those tests and generate a JUNIT test report
-          powershell(script: "python -m outsystems.pipeline.evaluate_test_results --artifacts \"${env.ArtifactsFolder}\"", returnStatus: true)
+          sh script: "python -m outsystems.pipeline.generate_unit_testing_assembly --artifacts \"${env.ArtifactsFolder}\" --app_list \"${params.ApplicationScopeWithTests}\" --cicd_probe_env ${env.ProbeEnvironmentURL} --bdd_framework_env ${env.BddEnvironmentURL}", label: 'Generate URL endpoints for BDD test suites'
+          // Run those tests and generate a JUnit test report
+          sh script: "python -m outsystems.pipeline.evaluate_test_results --artifacts \"${env.ArtifactsFolder}\"", returnStatus: true, label: 'Run BDD test suites and generate JUnit test report'
         }
       }
       post {
@@ -127,24 +116,19 @@ pipeline {
     stage('Deploy Acceptance') {
       agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents
       steps {
-        echo "Create ${env.ArtifactsFolder} Folder"
         // Create folder for storing artifacts
-        powershell "mkdir ${env.ArtifactsFolder}"
+        sh script: "mkdir ${env.ArtifactsFolder}", label: 'Create artifacts folder'
         // Unstash Deployment Manifest file to mantain consistency throughout the pipeline execution
         dir ("${env.ArtifactsFolder}") {
             unstash "manifest"
         }
         // Only the virtual environment needs to be installed at the system level
-        echo "Install Python Virtual environments"
-        powershell 'pip install -q -I virtualenv --user'
+        sh script: 'pip install -q -I virtualenv --user', label: 'Install Python virtual environments'
         withPythonEnv('python') {
-          echo "Install Python requirements"
-          // Install the rest of the dependencies at the environment level and not the system level
-          powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
-          echo 'Deploying latest application tags to Acceptance...'
-          // Deploy the application list, without tests, to the Acceptance environment
+          sh script: "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
+          // Deploy the application list to the Acceptance environment
           lock('deployment-plan-ACC') {
-            powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegressionEnvironment}\" --destination_env \"${env.AcceptanceEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\""
+            sh script: "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.RegressionEnvironment}\" --destination_env \"${env.AcceptanceEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\"", label: "Deploy latest application tags to ${env.AcceptanceEnvironment}"
           }
         }
       }
@@ -182,24 +166,19 @@ pipeline {
     stage('Deploy Dry-Run') {
       agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents
       steps {
-        echo "Create ${env.ArtifactsFolder} Folder"
         // Create folder for storing artifacts
-        powershell "mkdir ${env.ArtifactsFolder}"
+        sh script: "mkdir ${env.ArtifactsFolder}", label: 'Create artifacts folder'
         // Unstash Deployment Manifest file to mantain consistency throughout the pipeline execution
         dir ("${env.ArtifactsFolder}") {
             unstash "manifest"
         }
         // Only the virtual environment needs to be installed at the system level
-        echo "Install Python Virtual environments"
-        powershell 'pip install -q -I virtualenv --user'
+        sh script: 'pip install -q -I virtualenv --user', label: 'Install Python virtual environments'
         withPythonEnv('python') {
-          echo "Install Python requirements"
-          // Install the rest of the dependencies at the environment level and not the system level
-          powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
-          echo 'Deploying latest application tags to Pre-Production...'
-          // Deploy the application list, without tests, to the Pre-Production environment
+          sh script: "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
+          // Deploy the application list to the Pre-Production environment
           lock('deployment-plan-PRE') {
-            powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.AcceptanceEnvironment}\" --destination_env \"${env.PreProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\""
+            sh script: "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.AcceptanceEnvironment}\" --destination_env \"${env.PreProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\"", label: "Deploy latest application tags to ${env.PreProductionEnvironment}"
           }
         }
       }
@@ -224,24 +203,19 @@ pipeline {
     stage('Deploy Production') {
       agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents
       steps {
-        echo "Create ${env.ArtifactsFolder} Folder"
         // Create folder for storing artifacts
-        powershell "mkdir ${env.ArtifactsFolder}"
+        sh script: "mkdir ${env.ArtifactsFolder}", label: 'Create artifacts folder'
         // Unstash Deployment Manifest file to mantain consistency throughout the pipeline execution
         dir ("${env.ArtifactsFolder}") {
             unstash "manifest"
         }
         // Only the virtual environment needs to be installed at the system level
-        echo "Install Python Virtual environments"
-        powershell 'pip install -q -I virtualenv --user'
+        sh script: 'pip install -q -I virtualenv --user', label: 'Install Python virtual environments'
         withPythonEnv('python') {
-          echo "Install Python requirements"
-          // Install the rest of the dependencies at the environment level and not the system level
-          powershell "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\""
-          echo 'Deploying latest application tags to Production...'
-          // Deploy the application list, without tests, to the Production environment
-          lock('deployment-plan-PRD') {
-            powershell "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.PreProductionEnvironment}\" --destination_env \"${env.ProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\""
+          sh script: "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
+          // Deploy the application list to the Production environment
+          lock('deployment-plan-PRE') {
+            sh script: "python -m outsystems.pipeline.deploy_latest_tags_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env \"${env.PreProductionEnvironment}\" --destination_env \"${env.ProductionEnvironment}\" --app_list \"${params.ApplicationScope}\" --manifest \"${env.ArtifactsFolder}\\deployment_data\\deployment_manifest.cache\"", label: "Deploy latest application tags to ${env.ProductionEnvironment}"
           }
         }
       }

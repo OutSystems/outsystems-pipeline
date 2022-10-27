@@ -21,7 +21,7 @@ pr: none
 jobs:
 - job: 'Test'
   pool:
-    vmImage: 'Ubuntu-16.04'
+    vmImage: 'Ubuntu-18.04'
   strategy:
     matrix:
       Python36:
@@ -58,7 +58,7 @@ jobs:
 - job: 'Publish'
   dependsOn: 'Test'
   pool:
-    vmImage: 'Ubuntu-16.04'
+    vmImage: 'Ubuntu-18.04'
 
   steps:
   - checkout: self
@@ -70,7 +70,6 @@ jobs:
       architecture: 'x64'
 
   - script: |
-      pip search outsystems-pipeline | grep outsystems-pipeline | grep -oE "\(.*?\)" | tr --delete "()" > VERSION
       if [ "$(ReleaseType)" == "major" ]; then
         python build/version_bumper.py
       else

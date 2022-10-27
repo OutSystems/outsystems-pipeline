@@ -13,7 +13,12 @@ What's new
 
 **Fetch Application Source Code**
  * New function to extract the source code of LifeTime applications.
+ 
+=========
 
+
+**LifeTime Deployment Operations**
+ * New function to resume the execution of a deployment plan on a target environment where 2-stage deployments are enabled.
 
 Installing and upgrading
 ========================
@@ -59,13 +64,16 @@ REQUIREMENTS = [
 
 PACKAGES = [
     'outsystems',
+    'outsystems.architecture_dashboard',
     'outsystems.bdd_framework',
     'outsystems.cicd_probe',
     'outsystems.exceptions',
     'outsystems.file_helpers',
     'outsystems.lifetime',
+    'outsystems.manifest',
     'outsystems.osp_tool',
     'outsystems.pipeline',
+    'outsystems.properties',
     'outsystems.vars'
 ]
 
