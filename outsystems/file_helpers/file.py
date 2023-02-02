@@ -2,6 +2,7 @@
 import json
 import os
 import requests
+from base64 import b64decode
 
 
 def download_oap(file_path: str, auth_token: str, oap_url: str):
@@ -10,6 +11,17 @@ def download_oap(file_path: str, auth_token: str, oap_url: str):
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     with open(file_path, "wb") as f:
         f.write(response.content)
+
+
+def download_source_code(file_path: str, auth_token: str, pkg_url: str):
+    response = requests.get(pkg_url, headers={"Authorization": auth_token, "Content-Type": "application/json"})
+    pkg_content = response.json()
+    # Remove the spaces in the filename
+    file_path = file_path.replace(" ", "_")
+    # Makes sure that, if a directory is in the filename, that directory exists
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    with open(file_path, "wb") as f:
+        f.write(b64decode(pkg_content["fileContents"]))
 
 
 def store_data(artifact_dir: str, filename: str, data: str):

@@ -25,8 +25,12 @@ ENVIRONMENT_APPLICATION_FILE = ".applications.cache"
 ENVIRONMENT_VERSIONS_FILE = ".versions.cache"
 ENVIRONMENT_DEPLOYMENT_ZONES_FILE = ".deploymentzones.cache"
 ENVIRONMENT_FOLDER = "environment_data"
+ENVIRONMENT_SOURCECODE_FOLDER = "sourcecode"
+ENVIRONMENT_SOURCECODE_STATUS_FILE = ".status.cache"
+ENVIRONMENT_SOURCECODE_LINK_FILE = ".link.cache"
+ENVIRONMENT_SOURCECODE_DOWNLOAD_FILE = ".source.zip"
 
-# Environments vars
+# Deployments vars
 DEPLOYMENTS_FILE = "deployments.cache"
 DEPLOYMENT_FILE = ".cache"
 DEPLOYMENT_PLAN_FILE = ".plan.cache"
