@@ -158,7 +158,8 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
                 "ApplicationName": app_tuple[0],
                 "ApplicationKey": app_tuple[1],
                 "Version": app_version_data["Version"],
-                "VersionKey": status_in_env["BaseApplicationVersionKey"]
+                "VersionKey": status_in_env["BaseApplicationVersionKey"],
+                "IsModified": status_in_env["IsModified"]
             }
             # Since these 2 fields were only introduced in a minor of OS11, we check here if they exist
             # We can't just use the version

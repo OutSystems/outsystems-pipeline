@@ -14,8 +14,7 @@ else:  # Else just add the project dir
 
 # Custom Modules
 # Variables
-from outsystems.vars.file_vars import ARTIFACT_FOLDER, ENVIRONMENT_FOLDER, ENVIRONMENT_SOURCECODE_FOLDER, \
-    ENVIRONMENT_SOURCECODE_DOWNLOAD_FILE
+from outsystems.vars.file_vars import ARTIFACT_FOLDER, ENVIRONMENT_SOURCECODE_FOLDER, ENVIRONMENT_SOURCECODE_DOWNLOAD_FILE
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFEST_FLAG_IS_TEST_APPLICATION, \
     MANIFEST_APPLICATION_NAME
@@ -25,7 +24,8 @@ from outsystems.vars.pipeline_vars import SOURCECODE_SLEEP_PERIOD_IN_SECS, SOURC
 # Functions
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_environments import get_environment_app_source_code, get_environment_app_source_code_status, \
-    get_environment_app_source_code_link
+    get_environment_app_source_code_link, get_environment_key
+from outsystems.lifetime.lifetime_applications import get_running_app_version
 from outsystems.file_helpers.file import load_data, download_source_code
 # Exceptions
 
@@ -33,7 +33,7 @@ from outsystems.file_helpers.file import load_data, download_source_code
 # ############################################################# SCRIPT ##############################################################
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env: str, apps: list, trigger_manifest: dict, include_test_apps: bool):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env: str, apps: list, trigger_manifest: dict, include_test_apps: bool, friendly_package_names: bool):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -53,7 +53,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         # Request source code package creation
         pkg_details = get_environment_app_source_code(artifact_dir, lt_endpoint, lt_token, env_name=target_env, app_name=app_name)
         pkg_key = pkg_details["PackageKey"]
-        print("Source code package {} started being created for application {}.".format(pkg_key, app_name), flush=True)
+        print("Source code package {} started being created for application {} deployed in {} environment.".format(pkg_key, app_name, target_env), flush=True)
 
         # Wait for package creation to finish
         wait_counter = 0
@@ -79,8 +79,16 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             print("Source code package {} created successfully.".format(pkg_key), flush=True)
             pkg_link = get_environment_app_source_code_link(artifact_dir, lt_endpoint, lt_token,
                                                             env_name=target_env, app_name=app_name, pkg_key=pkg_key)
-            file_name = pkg_key + ENVIRONMENT_SOURCECODE_DOWNLOAD_FILE
-            file_path = os.path.join(artifact_dir, ENVIRONMENT_FOLDER, ENVIRONMENT_SOURCECODE_FOLDER, file_name)
+            if friendly_package_names:
+                target_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, target_env)
+                running_version = get_running_app_version(artifact_dir, lt_endpoint, lt_token, target_env_key, app_name=app_name)
+                file_name = "{}_{}_v{}".format(pkg_key, app_name, running_version["Version"].replace(".", "_"))
+                if running_version["IsModified"]:
+                    file_name += "+"
+            else:
+                file_name = pkg_key
+            file_name += ENVIRONMENT_SOURCECODE_DOWNLOAD_FILE
+            file_path = os.path.join(artifact_dir, ENVIRONMENT_SOURCECODE_FOLDER, file_name)
             download_source_code(file_path, lt_token, pkg_link["url"])
             print("Source code package {} downloaded successfully.".format(pkg_key), flush=True)
         else:
@@ -109,6 +117,8 @@ if __name__ == "__main__":
                         help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
     parser.add_argument("-i", "--include_test_apps", action='store_true',
                         help="Flag that indicates if applications marked as \"Test Application\" in the manifest are fetched as well.")
+    parser.add_argument("-n", "--friendly_package_names", action='store_true',
+                        help="Flag that indicates if downloaded source code packages should have a user-friendly name. Example: \"AppName_v1_2_1\"")
 
     args = parser.parse_args()
 
@@ -148,6 +158,8 @@ if __name__ == "__main__":
         apps = _apps.split(',')
     # Parse Include Test Apps flag
     include_test_apps = args.include_test_apps
+    # Parse Friendly Package Names flag
+    friendly_package_names = args.friendly_package_names
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env, apps, trigger_manifest, include_test_apps)  # type: ignore
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env, apps, trigger_manifest, include_test_apps, friendly_package_names)  # type: ignore

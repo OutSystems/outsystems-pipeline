@@ -167,7 +167,7 @@ def get_environment_app_source_code_status(artifact_dir: str, endpoint: str, aut
         # Stores the result
         filename = "{}{}".format(
             kwargs["pkg_key"], ENVIRONMENT_SOURCECODE_STATUS_FILE)
-        filename = os.path.join(ENVIRONMENT_FOLDER, ENVIRONMENT_SOURCECODE_FOLDER, filename)
+        filename = os.path.join(ENVIRONMENT_SOURCECODE_FOLDER, filename)
         store_data(artifact_dir, filename, response["response"])
         return response["response"]
     elif status_code == ENVIRONMENT_SOURCECODE_FAILED_CODE:
@@ -197,7 +197,7 @@ def get_environment_app_source_code_link(artifact_dir: str, endpoint: str, auth_
         # Stores the result
         filename = "{}{}".format(
             kwargs["pkg_key"], ENVIRONMENT_SOURCECODE_LINK_FILE)
-        filename = os.path.join(ENVIRONMENT_FOLDER, ENVIRONMENT_SOURCECODE_FOLDER, filename)
+        filename = os.path.join(ENVIRONMENT_SOURCECODE_FOLDER, filename)
         store_data(artifact_dir, filename, response["response"])
         return response["response"]
     elif status_code == ENVIRONMENT_SOURCECODE_FAILED_CODE:
