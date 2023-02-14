@@ -1,0 +1,13 @@
+mypipe:
+  group: mygroup
+  materials:
+    mygit:
+      git: https://github.com/OutSystems/outsystems-pipeline.git
+      branch: github_actions
+  stages:
+    - build:
+        jobs:
+          build:
+            tasks:
+             - exec:
+                 command: echo batata
