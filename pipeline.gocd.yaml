@@ -10,7 +10,7 @@ pipelines:
     materials:
       mygit:  # this is the name of material
         # says about type of material and url at once
-        git: http://my.example.org/mygit.git
+        git: https://github.com/OutSystems/outsystems-pipeline.git
     stages:
       - build: # name of stage
           jobs:
@@ -25,8 +25,8 @@ pipelines:
     materials:
       mygit: # this is the name of material
         # keyword git says about type of material and url at once
-        git: http://my.example.org/mygit.git
-        branch: ci
+        git: https://github.com/OutSystems/outsystems-pipeline.git
+        branch: github_actions
       upstream:
         # type is optional here, material type is implied based on presence of pipeline and stage fields
         # type: dependency
