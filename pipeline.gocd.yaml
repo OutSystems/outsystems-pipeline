@@ -19,7 +19,7 @@ pipelines:
                - exec: # indicates type of task
                    command: make
   "yaml-example": # definition of yaml-example pipeline
-    group: yaml-example
+#    group: yaml-example
     label_template: "${mygit[:8]}"
     locking: off
     materials:
