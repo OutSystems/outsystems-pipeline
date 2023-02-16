@@ -12,5 +12,5 @@ pipelines:
           jobs:
             test:
               tasks:
-                - script:
-                  - echo Hello
+                script: |
+                  echo Hello
