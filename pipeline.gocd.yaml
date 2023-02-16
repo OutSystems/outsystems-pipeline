@@ -1,5 +1,5 @@
 ---
-format_version: 4
+format_version: 1
 pipelines:
   outsystems-demo:
     group: outsystems
