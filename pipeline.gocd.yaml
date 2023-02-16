@@ -16,4 +16,4 @@ pipelines:
             test:
               tasks:
                 - script: |
-                    echo ${param1}
+                    echo #{param1}
