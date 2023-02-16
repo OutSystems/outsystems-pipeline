@@ -3,7 +3,8 @@ pipelines:
   - name: example-pipeline
     label_template: '${COUNT}'
     materials:
-      - git: https://github.com/example/repo.git
+      - git: https://github.com/OutSystems/outsystems-pipeline.git
+        branch: github_actions
     stages:
       - name: build
         jobs:
