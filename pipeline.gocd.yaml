@@ -11,9 +11,9 @@ pipelines:
     stages:
       - test:
           jobs:
-            inputs:
-              - manifest
             test:
+              inputs:
+                - manifest
               tasks:
                 - script: |
                     echo "Secure input value: ${manifest}"
