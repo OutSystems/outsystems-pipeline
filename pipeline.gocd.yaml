@@ -11,7 +11,5 @@ pipelines:
           jobs:
             test:
               tasks:
-                - exec:
-                    command: /bin/bash
-                    arguments:
-                      - echo hello
+                - script:
+                    - echo "Hello World"
