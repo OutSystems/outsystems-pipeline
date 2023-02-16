@@ -36,26 +36,7 @@ pipelines:
       - build: # name of stage
           clean_workspace: true
           jobs:
-            csharp: # name of the job
-              resources:
-               - net45
-              artifacts:
-               - build:
-                   source: bin/
-                   destination: build
-               - test:
-                   source: tests/
-                   destination: test-reports/
-              tabs:
-                report: test-reports/index.html
-              tasks: # ordered list of tasks to execute in job csharp
-               - fetch:
-                   pipeline: yamlpipe1
-                   stage: build
-                   job: build
-                   source: test-bin/
-                   destination: bin/
-               - exec: # indicates type of task
-                   command: make
-                   arguments:
-                    - "VERBOSE=true"
+            - name: echo-job
+                        tasks:
+                          - script:
+                              - echo "Hello, world!"
