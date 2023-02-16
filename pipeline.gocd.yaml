@@ -4,9 +4,8 @@ pipelines:
     group: outsystems
     label_template: "${git[:8]}"
     materials:
-      outsystemsgit:
-        git: https://github.com/OutSystems/outsystems-pipeline.git
-        branch: github_actions
+      git: https://github.com/OutSystems/outsystems-pipeline.git
+      branch: github_actions
     stages:
       - test:
           jobs:
