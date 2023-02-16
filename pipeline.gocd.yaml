@@ -1,11 +1,11 @@
 format_version: 4
 pipelines:
-  outsystems-demo:
-    group: outsystems
+  preflight-demo:
+    group: www
     label_template: "${git[:8]}"
     materials:
-      git: https://github.com/OutSystems/outsystems-pipeline
-      branch: github_actions
+      git:
+        type: configrepo
     stages:
       - test:
           jobs:
