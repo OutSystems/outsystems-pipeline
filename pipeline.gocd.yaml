@@ -13,7 +13,6 @@ pipelines:
             test:
               tasks:
                 - exec:
-                  command: /bin/bash
-                  arguments:
-                    - -c
-                    - echo hello
+                    command: /bin/bash
+                    arguments:
+                      - echo hello
