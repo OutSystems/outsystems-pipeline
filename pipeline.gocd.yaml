@@ -37,6 +37,6 @@ pipelines:
           clean_workspace: true
           jobs:
             - name: echo-job
-                        tasks:
-                          - script:
-                              - echo "Hello, world!"
+              tasks:
+                - script:
+                    - echo "Hello, world!"
