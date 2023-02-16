@@ -1,65 +1,13 @@
-environments:
-  example:
-    environment_variables:
-      EXAMPLE_DEPLOYMENT: testing
-    pipelines:
-      - yaml-example
+format_version: 3
 pipelines:
-  yamlpipe1:
-    group: simple
+  - name: example-pipeline
+    label_template: '${COUNT}'
     materials:
-      mygit:  # this is the name of material
-        # says about type of material and url at once
-        git: https://github.com/ankitsri11/Mingle_Outlook.git
-    environment_variables:
-        EMPTY: "" 
+      - git: https://github.com/example/repo.git
     stages:
-      - build: # name of stage
-          jobs:
-            build: # name of the job
-              tasks:
-               - exec: # indicates type of task
-                   command: /bin/bash
-                   arguments:
-                   - -c
-                   - ls
-  "yaml-example": # definition of yaml-example pipeline
-    group: yaml-example
-    label_template: "${mygit[:8]}"
-    locking: off
-    materials:
-      mygit: # this is the name of material
-        # keyword git says about type of material and url at once
-        git: https://github.com/ankitsri11/Mingle_Outlook.git
-      upstream:
-        # type is optional here, material type is implied based on presence of pipeline and stage fields
-        # type: dependency
-        pipeline: yamlpipe1
-        stage: build
-    stages: # list of stages in order
-      - build: # name of stage
-          clean_workspace: true
-          jobs:
-            csharp: # name of the job
-              resources:
-               - net45
-              artifacts:
-               - build:
-                   source: bin/
-                   destination: build
-               - test:
-                   source: tests/
-                   destination: test-reports/
-              tabs:
-                report: test-reports/index.html
-              tasks: # ordered list of tasks to execute in job csharp
-               - fetch:
-                   pipeline: yamlpipe1
-                   stage: build
-                   job: build
-                   source: test-bin/
-                   destination: bin/
-               - exec: # indicates type of task
-                   command: make
-                   arguments:
-                    - "VERBOSE=true"
+      - name: build
+        jobs:
+          - name: echo-job
+            tasks:
+              - script:
+                  - echo "Hello, world!"
