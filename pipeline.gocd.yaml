@@ -38,5 +38,5 @@ pipelines:
           jobs:
             - name: echo-job
               tasks:
-                - script:
-                    - echo "Hello, world!"
+                - script: |
+                    echo "Hello, world!"
