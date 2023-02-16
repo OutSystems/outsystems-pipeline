@@ -1,7 +1,7 @@
 ---
 format_version: 4
 pipelines:
-  preflight-demo:
+  outsystems-demo:
     group: outsystems
     label_template: "${git[:8]}"
     materials:
