@@ -8,12 +8,12 @@ pipelines:
         type: git
         url: https://github.com/OutSystems/outsystems-pipeline.git
         branch: github_actions
+    inputs:
+      - manifest
     stages:
       - test:
           jobs:
             test:
-              inputs:
-                - manifest
               tasks:
                 - script: |
                     echo "Manifest input value: ${manifest}"
