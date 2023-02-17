@@ -16,4 +16,4 @@ pipelines:
                 - manifest
               tasks:
                 - script: |
-                    echo "Secure input value: ${manifest}"
+                    echo "Manifest input value: ${manifest}"
