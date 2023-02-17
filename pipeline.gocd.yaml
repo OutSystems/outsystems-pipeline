@@ -9,7 +9,7 @@ pipelines:
         url: https://github.com/OutSystems/outsystems-pipeline.git
         branch: github_actions
     parameters:
-      - manifest
+      manifest: someValue
     stages:
       - test:
           jobs:
@@ -18,4 +18,4 @@ pipelines:
                 - manifest
               tasks:
                 - script: |
-                    echo "Manifest input value: ${manifest}"
+                    echo "Manifest input value: #{manifest}"
