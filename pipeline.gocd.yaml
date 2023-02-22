@@ -11,7 +11,7 @@ pipelines:
     parameters:
       manifest: someValue
     secure_variables:
-      - lifetime_token
+      lifetime_token: lt_token
     environment_variables:
       my_manifest: testing
     stages:
