@@ -10,6 +10,8 @@ pipelines:
         branch: github_actions
     parameters:
       manifest: someValue
+    environment_variables:
+      my_manifest: testing
     stages:
       - test:
           jobs:
@@ -18,4 +20,6 @@ pipelines:
                 - manifest
               tasks:
                 - script: |
-                    echo "Manifest input value: #{manifest}"
+                    echo "Manifest (param) input value: #{manifest}"
+                - script: |
+                    echo "Manifest (env) input value: ${my_manifest}"
