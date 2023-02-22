@@ -22,4 +22,4 @@ pipelines:
                 - script: |
                     echo "Manifest (param) input value: #{manifest}"
                 - script: |
-                    echo "Manifest (env) input value: $my_manifest"
+                    echo "Manifest (env) input value: %my_manifest%"
