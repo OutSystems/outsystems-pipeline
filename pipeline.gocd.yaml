@@ -10,10 +10,16 @@ pipelines:
         branch: github_actions
     parameters:
       manifest: someValue
-    secure_variables:
-      lifetime_token: lt_token
+      lifetime_hostname: showcase-lt.outsystemsdevopsexperts.com
+      lifetime_api_version: 2
+      development_env_label: DEV
+      regression_env_label: REG
+      acceptance_env_label: ACC
+      preprod_env_label: PRE
+      production_env_label: PRD
+      os_package_version: 0.5.0
     environment_variables:
-      my_manifest: testing
+      manifest: Manifest in JSON format
     stages:
       - test:
           jobs:
@@ -22,6 +28,6 @@ pipelines:
                 - manifest
               tasks:
                 - script: |
-                    echo "Manifest (param) input value: #{manifest}"
+                    echo "lifetime_hostname param value: #{lifetime_hostname}"
                 - script: |
                     echo "Manifest (env) input value: %my_manifest%"
