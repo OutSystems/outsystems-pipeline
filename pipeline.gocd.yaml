@@ -9,7 +9,6 @@ pipelines:
         url: https://github.com/OutSystems/outsystems-pipeline.git
         branch: github_actions
     parameters:
-      manifest: someValue
       lifetime_hostname: showcase-lt.outsystemsdevopsexperts.com
       lifetime_api_version: 2
       development_env_label: DEV
