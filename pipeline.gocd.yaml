@@ -10,6 +10,8 @@ pipelines:
         branch: github_actions
     parameters:
       manifest: someValue
+    secure_variables:
+      lifetime_token:
     environment_variables:
       my_manifest: testing
     stages:
