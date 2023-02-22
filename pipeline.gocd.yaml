@@ -29,4 +29,4 @@ pipelines:
                 - script: |
                     echo "lifetime_hostname param value: #{lifetime_hostname}"
                 - script: |
-                    echo "Manifest (env) input value: %my_manifest%"
+                    echo "Manifest (env) input value: %manifest%"
