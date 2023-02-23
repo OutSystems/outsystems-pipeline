@@ -34,6 +34,11 @@ pipelines:
                     echo "lifetime_hostname param value: #{lifetime_hostname}"
                 - script: |
                     echo "Manifest (env) input value: %manifest%"
+                - exec:
+                    command: powershell.exe
+                    arguments:
+                      - -Command
+                      - echo "Manifest (env) input value: %manifest%
                 - script: |
                     echo "lifetime_token (secret) value: %lifetime_token%"
                 - script: |
