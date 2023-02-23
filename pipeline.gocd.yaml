@@ -26,8 +26,13 @@ pipelines:
     stages:
 
       - setup:
+          clean_workspace: true
           jobs:
             publish_trigger_manifest:
+              artifacts:
+                - build:
+                    source: #{manifest_folder}
+                    destination: #{manifest_folder}
               inputs:
                 - manifest
               tasks:
@@ -36,12 +41,15 @@ pipelines:
                 - script: |
                     mkdir #{manifest_folder}
                     echo %manifest% > "#{manifest_folder}\#{manifest_file}"
+
       - test:
           jobs:
             regression_testing:
-#              inputs:
-#                - manifest
+              keep_artifacts: yes
+              clean_workspace: yes
               tasks:
+                - script: |
+                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{development_env_label} --destination_env_label #{regression_env_label} --include_test_apps --manifest_file "#{manifest_folder}\#{manifest_file}"
 #                - script: |
 #                    echo "lifetime_hostname param value: #{lifetime_hostname}"
 #                - script: |
@@ -63,6 +71,3 @@ pipelines:
 #                    arguments:
 #                      - -Command
 #                      - ('%manifest%') | Out-File -FilePath "#{manifest_folder}\#{manifest_file}" -Encoding default
-
-                - script: |
-                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{development_env_label} --destination_env_label #{regression_env_label} --include_test_apps --manifest_file "#{manifest_folder}\#{manifest_file}"
