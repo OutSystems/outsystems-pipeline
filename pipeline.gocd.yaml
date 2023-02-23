@@ -11,11 +11,11 @@ pipelines:
     parameters:
       lifetime_hostname: showcase-lt.outsystemsdevopsexperts.com
       lifetime_api_version: 2
-      development_env_label: DEV
-      regression_env_label: REG
-      acceptance_env_label: ACC
-      preprod_env_label: PRE
-      production_env_label: PRD
+      development_env_label: Development
+      regression_env_label: Regression
+      acceptance_env_label: Acceptance
+      preprod_env_label: Pre-Production
+      production_env_label: Production
       os_package_version: 0.5.0
       manifest_folder: manifest_data
       manifest_file: manifest.json
