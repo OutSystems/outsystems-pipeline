@@ -24,28 +24,40 @@ pipelines:
     environment_variables:
       manifest: Manifest in JSON format
     stages:
-      - test:
+
+      - setup:
           jobs:
-            test:
+            publish_trigger_manifest:
               inputs:
                 - manifest
               tasks:
-                - script: |
-                    echo "lifetime_hostname param value: #{lifetime_hostname}"
-                - script: |
-                    echo "Manifest (env) input value: %manifest%"
-                - exec:
-                    command: powershell.exe
-                    arguments:
-                      - -Command
-                      - echo 'Manifest input value %manifest%'
-                - script: |
-                    echo "lifetime_token (secret) value: %lifetime_token%"
                 - script: |
                     pip install -U outsystems-pipeline==#{os_package_version}
                 - script: |
                     mkdir #{manifest_folder}
                     echo %manifest% > "#{manifest_folder}\#{manifest_file}"
+      - test:
+          jobs:
+            regression_testing:
+#              inputs:
+#                - manifest
+              tasks:
+#                - script: |
+#                    echo "lifetime_hostname param value: #{lifetime_hostname}"
+#                - script: |
+#                    echo "Manifest (env) input value: %manifest%"
+#                - exec:
+#                    command: powershell.exe
+#                    arguments:
+#                      - -Command
+#                      - echo 'Manifest input value %manifest%'
+#                - script: |
+#                    echo "lifetime_token (secret) value: %lifetime_token%"
+#                - script: |
+#                    pip install -U outsystems-pipeline==#{os_package_version}
+#                - script: |
+#                    mkdir #{manifest_folder}
+#                    echo %manifest% > "#{manifest_folder}\#{manifest_file}"
 #                - exec:
 #                    command: powershell.exe
 #                    arguments:
