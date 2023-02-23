@@ -31,8 +31,8 @@ pipelines:
             publish_trigger_manifest:
               artifacts:
                 - build:
-                    source: #{manifest_folder}
-                    destination: #{manifest_folder}
+                    source: manifest_data
+                    destination: manifest
               inputs:
                 - manifest
               tasks:
