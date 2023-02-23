@@ -25,8 +25,8 @@ pipelines:
       - test:
           jobs:
             test:
-#              inputs:
-#                - manifest
+              inputs:
+                - manifest
               tasks:
                 - script: |
                     echo "lifetime_hostname param value: #{lifetime_hostname}"
