@@ -38,7 +38,7 @@ pipelines:
                     command: powershell.exe
                     arguments:
                       - -Command
-                      - echo Manifest (env) input value %manifest%
+                      - echo 'Manifest input value %manifest%'
                 - script: |
                     echo "lifetime_token (secret) value: %lifetime_token%"
                 - script: |
