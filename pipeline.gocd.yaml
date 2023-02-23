@@ -18,7 +18,7 @@ pipelines:
       production_env_label: PRD
       os_package_version: 0.5.0
     secure_variables:
-      lifetime_token: ${lifetime_token}
+      lifetime_token: "AES:8pp9TJe15vlY9J8uycN1+w==:l2CdRxE8UlRLeALgyF4wigg9yuF9A7upNSv3wbq0ZI66aq68katNAJI4Jpp/guCl/LocXlNTd+MzE/+Qo5v+hAzauMwK9nAfrjRJselH/w+kWWZTk3jsyS26eXsvVeoCPr4iMzR+MRQGia7EQ10ZIUx0hG5aRRv/U9c8MUziBjiouREstpKVNG7lEmoFxZ58EW/n4i0aTbzU4wYEApodJTlbGcwFyLkAAcTTH0VN74LxClPbEC5h14NgvDtkdHx67J/W3EPlAZRnvgRw0cZ66X5HxfBvW1rI+o91B/IgErkA7Zro+6m6jX4FAZaddwoswY9fEIONA7zBgqCWorDQnM8R8G0/rkSGo5ccg7Qv+9ErgvbUzX7vRPZgzC3xPiYi6zkBX31WoD1Jho9bgqsEkPgSyatgdV3iwg5PG35me3lHlxEPLDUc8LGadVbkTX5AfgCqKHmfUnVvdOJeEQw0xXZjfex9QGzfSU4Pr+OO3HuTccCia5FJAji75JozSPrsEDSkxETANupsF7YjjjP1/yXddBT8EDh1AQDscNN4MJvfZJ/5uda0waHSHijZmPmKySC9R5p3vnVa+N/YHUsaWHgHHmpWjqW0gKiyqieoTrfbKvVmjQRv5e0r2GLtypvN4G7il84sA8hGSk/8+Oqn9CG2c/9KvK9hadwkhioNNCEwPWfEyArlxhWTOcv+3K770GAWWulwVM7cpclCJXbLeBy0x0b0FwwVHKCIRHMjDKqNirR5fM4W9vBjCWcSFPhCKGNMXywe5NiC6FkWVpuHkbFXdC38niz2llhOVDnSGZBoQfEfa/h0Zv2YobV+2N+XnMnZuDaKvnKzYdXdyI+3nA=="
     environment_variables:
       manifest: Manifest in JSON format
     stages:
