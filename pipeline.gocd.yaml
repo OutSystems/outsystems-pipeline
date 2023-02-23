@@ -32,7 +32,7 @@ pipelines:
               artifacts:
                 - build:
                     source: manifest_data
-                    destination: manifest
+                    destination: manifest_data
               inputs:
                 - manifest
               tasks:
