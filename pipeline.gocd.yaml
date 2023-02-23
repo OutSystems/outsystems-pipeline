@@ -49,6 +49,8 @@ pipelines:
               clean_workspace: yes
               tasks:
                 - fetch:
+                    stage: setup
+                    job: publish_trigger_manifest
                     source: manifest_data
                     destination: manifest_data
                 - script: |
