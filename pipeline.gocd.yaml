@@ -45,7 +45,7 @@ pipelines:
       - test:
           jobs:
             regression_testing:
-              keep_artifacts: yes
+#              keep_artifacts: yes
               clean_workspace: yes
               tasks:
                 - fetch:
