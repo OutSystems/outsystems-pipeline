@@ -32,7 +32,7 @@ pipelines:
               artifacts:
                 - build:
                     source: manifest_data
-                    destination: ${env.GO_PIPELINE_NAME}_manifest
+                    destination: manifest
               inputs:
                 - manifest
               tasks:
@@ -51,8 +51,8 @@ pipelines:
                 - fetch:
                     stage: setup
                     job: publish_trigger_manifest
-                    source: ${env.GO_PIPELINE_NAME}_manifest
-                    destination: batata
+                    source: manifest
+                    destination: manifest
 #                - script: |
 #                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{development_env_label} --destination_env_label #{regression_env_label} --include_test_apps --manifest_file "#{manifest_folder}\#{manifest_file}"
 #                - script: |
