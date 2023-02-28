@@ -61,6 +61,9 @@ pipelines:
             regression_testing_bdd:
               depends_on: [build-regression_deploy]
               clean_workspace: yes
+              artifacts:
+                - test:
+                    source: test
               tasks:
                 - script: |
                     echo '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}"&Env="#{regression_env_label}'
@@ -69,9 +72,7 @@ pipelines:
                     arguments:
                       - -Command
                       - Invoke-RestMethod -Uri '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}&Env=#{regression_env_label}' -TimeoutSec 300 -OutFile "test\junit-bdd.#{bdd_test_jobs}.xml"
-              artifacts: junit-bdd.#{bdd_test_jobs}.xml
-                - test:
-                    source: test
+
 #                - script: |
 #                    echo "lifetime_hostname param value: #{lifetime_hostname}"
 #                - script: |
