@@ -91,7 +91,7 @@ pipelines:
                     python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{regression_env_label} --destination_env_label #{acceptance_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
                 - script: |
                     python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{acceptance_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
-      - production_clearance:
+#      - production_clearance:
           approval:
             type: manual
             allow_only_on_success: true
