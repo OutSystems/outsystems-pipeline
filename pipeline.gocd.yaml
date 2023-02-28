@@ -69,7 +69,7 @@ pipelines:
                     arguments:
                       - -Command
                       - Invoke-RestMethod -Uri '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}&Env=#{regression_env_label}' -TimeoutSec 300 -OutFile "junit-bdd.#{bdd_test_jobs}.xml"
-                  artifacts: junit-bdd.#{bdd_test_jobs}.xml
+              artifacts: junit-bdd.#{bdd_test_jobs}.xml
 #                - script: |
 #                    echo "lifetime_hostname param value: #{lifetime_hostname}"
 #                - script: |
