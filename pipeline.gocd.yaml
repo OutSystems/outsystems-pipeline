@@ -60,16 +60,8 @@ pipelines:
                     python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{regression_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
             regression_testing_bdd:
               depends_on: [build-regression_deploy]
-#              keep_artifacts: yes
               clean_workspace: yes
               tasks:
-                - fetch:
-                    stage: setup
-                    job: publish_trigger_manifest
-                    source: manifest
-                    destination: manifest
-#                - script: |
-#                    ("#{bdd_test_jobs}").Split(",") | ForEach { Invoke-RestMethod -Uri "#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=$_&Env=#{regression_env_label}" -TimeoutSec 300 -OutFile "junit-bdd.$_.xml"}
                 - exec:
                     command: powershell.exe
                     arguments:
