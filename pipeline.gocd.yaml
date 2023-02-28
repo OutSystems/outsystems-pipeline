@@ -63,7 +63,7 @@ pipelines:
               clean_workspace: yes
               tasks:
                 - script: |
-                    echo '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}&Env=#{regression_env_label}'
+                    echo '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}"&Env="#{regression_env_label}'
                 - exec:
                     command: powershell.exe
                     arguments:
