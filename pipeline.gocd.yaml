@@ -59,6 +59,7 @@ pipelines:
                 - script: |
                     python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{regression_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
             regression_testing_bdd:
+              depends_on: [build-regression_deploy]
 #              keep_artifacts: yes
               clean_workspace: yes
               tasks:
