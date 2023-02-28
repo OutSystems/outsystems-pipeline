@@ -72,6 +72,53 @@ pipelines:
                     arguments:
                       - -Command
                       - Invoke-RestMethod -Uri '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}&Env=#{regression_env_label}' -TimeoutSec 300 -OutFile "test\junit-bdd.#{bdd_test_jobs}.xml"
+      - acceptance:
+          jobs:
+            acceptance_deploy:
+              clean_workspace: yes
+              approval:
+                type: manual
+                allow_only_on_success: true
+                users:
+                  - dmmc
+              tasks:
+                - fetch:
+                    stage: setup
+                    job: publish_trigger_manifest
+                    source: manifest
+                    destination: manifest
+                - script: |
+                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{regression_env_label} --destination_env_label #{acceptance_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+                - script: |
+                    python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{acceptance_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+      - dry_run:
+          jobs:
+            preprod_deploy:
+              clean_workspace: yes
+              tasks:
+                - fetch:
+                    stage: setup
+                    job: publish_trigger_manifest
+                    source: manifest
+                    destination: manifest
+                - script: |
+                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{acceptance_env_label} --destination_env_label #{preprod_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+                - script: |
+                    python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{preprod_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+      - production:
+          jobs:
+            production_deploy:
+              clean_workspace: yes
+              tasks:
+                - fetch:
+                    stage: setup
+                    job: publish_trigger_manifest
+                    source: manifest
+                    destination: manifest
+                - script: |
+                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{preprod_env_label} --destination_env_label #{production_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+                - script: |
+                    python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{production_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
 
 #                - script: |
 #                    echo "lifetime_hostname param value: #{lifetime_hostname}"
