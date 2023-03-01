@@ -63,15 +63,17 @@ pipelines:
               clean_workspace: yes
               artifacts:
                 - test:
-                    source: test
+                    source: test_report
               tasks:
                 - script: |
                     echo '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}"&Env="#{regression_env_label}'
+                    mkdir test_report
+
                 - exec:
                     command: powershell.exe
                     arguments:
                       - -Command
-                      - Invoke-RestMethod -Uri '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}&Env=#{regression_env_label}' -TimeoutSec 300 -OutFile "test\junit-bdd.#{bdd_test_jobs}.xml"
+                      - Invoke-RestMethod -Uri '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}&Env=#{regression_env_label}' -TimeoutSec 300 -OutFile "test_report\junit-bdd.#{bdd_test_jobs}.xml"
       - acceptance:
           jobs:
             acceptance_deploy:
