@@ -1,0 +1,143 @@
+format_version: 4
+pipelines:
+  outsystems-demo:
+    group: outsystems
+    label_template: "${git[:8]}"
+    materials:
+      git: 
+        type: git
+        url: https://github.com/OutSystems/outsystems-pipeline.git
+        branch: gocd_pipelines
+    parameters:
+      lifetime_hostname: showcase-lt.outsystemsdevopsexperts.com
+      lifetime_api_version: 2
+      development_env_label: Development
+      regression_env_label: Regression
+      acceptance_env_label: Acceptance
+      preprod_env_label: Pre-Production
+      production_env_label: Production
+      os_package_version: 0.5.0
+      manifest_folder: manifest_data
+      manifest_file: manifest.json
+      bdd_test_manager_url: https://showcase-dev.outsystemsdevopsexperts.com/TestManagement_CS
+      bdd_test_jobs: demo-reg-job
+    secure_variables: 
+      lifetime_token: "AES:8pp9TJe15vlY9J8uycN1+w==:l2CdRxE8UlRLeALgyF4wigg9yuF9A7upNSv3wbq0ZI66aq68katNAJI4Jpp/guCl/LocXlNTd+MzE/+Qo5v+hAzauMwK9nAfrjRJselH/w+kWWZTk3jsyS26eXsvVeoCPr4iMzR+MRQGia7EQ10ZIUx0hG5aRRv/U9c8MUziBjiouREstpKVNG7lEmoFxZ58EW/n4i0aTbzU4wYEApodJTlbGcwFyLkAAcTTH0VN74LxClPbEC5h14NgvDtkdHx67J/W3EPlAZRnvgRw0cZ66X5HxfBvW1rI+o91B/IgErkA7Zro+6m6jX4FAZaddwoswY9fEIONA7zBgqCWorDQnM8R8G0/rkSGo5ccg7Qv+9ErgvbUzX7vRPZgzC3xPiYi6zkBX31WoD1Jho9bgqsEkPgSyatgdV3iwg5PG35me3lHlxEPLDUc8LGadVbkTX5AfgCqKHmfUnVvdOJeEQw0xXZjfex9QGzfSU4Pr+OO3HuTccCia5FJAji75JozSPrsEDSkxETANupsF7YjjjP1/yXddBT8EDh1AQDscNN4MJvfZJ/5uda0waHSHijZmPmKySC9R5p3vnVa+N/YHUsaWHgHHmpWjqW0gKiyqieoTrfbKvVmjQRv5e0r2GLtypvN4G7il84sA8hGSk/8+Oqn9CG2c/9KvK9hadwkhioNNCEwPWfEyArlxhWTOcv+3K770GAWWulwVM7cpclCJXbLeBy0x0b0FwwVHKCIRHMjDKqNirR5fM4W9vBjCWcSFPhCKGNMXywe5NiC6FkWVpuHkbFXdC38niz2llhOVDnSGZBoQfEfa/h0Zv2YobV+2N+XnMnZuDaKvnKzYdXdyI+3nA=="
+    environment_variables:
+      manifest: Manifest in JSON format
+    stages:
+
+      - setup:
+          clean_workspace: true
+          jobs:
+            publish_trigger_manifest:
+              artifacts:
+                - build:
+                    source: manifest_data
+                    destination: manifest
+              inputs:
+                - manifest
+              tasks:
+                - script: |
+                    pip install -U outsystems-pipeline==#{os_package_version}
+                - script: |
+                    mkdir #{manifest_folder}
+                    echo %manifest% > "#{manifest_folder}\#{manifest_file}"
+      - regression_testing:
+          jobs:
+            regression_deploy:
+#              keep_artifacts: yes
+              clean_workspace: yes
+              tasks:
+                - fetch:
+                    stage: setup
+                    job: publish_trigger_manifest
+                    source: manifest
+                    destination: manifest
+                - script: |
+                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{development_env_label} --destination_env_label #{regression_env_label} --include_test_apps --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+                - script: |
+                    python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{regression_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+            regression_testing_bdd:
+              depends_on: [regression_deploy]
+              clean_workspace: yes
+              artifacts:
+                - test:
+                    source: test
+              tasks:
+                - script: |
+                    echo '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}"&Env="#{regression_env_label}'
+                - exec:
+                    command: powershell.exe
+                    arguments:
+                      - -Command
+                      - Invoke-RestMethod -Uri '#{bdd_test_manager_url}/rest/v1/TriggerTestRun?JobKey=#{bdd_test_jobs}&Env=#{regression_env_label}' -TimeoutSec 300 -OutFile "test\junit-bdd.#{bdd_test_jobs}.xml"
+      - acceptance:
+          jobs:
+            acceptance_deploy:
+              clean_workspace: yes
+              tasks:
+                - fetch:
+                    stage: setup
+                    job: publish_trigger_manifest
+                    source: manifest
+                    destination: manifest
+                - script: |
+                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{regression_env_label} --destination_env_label #{acceptance_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+                - script: |
+                    python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{acceptance_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+      - dry_run:
+          approval:
+            type: manual
+            allow_only_on_success: true
+            users:
+              - dmmc
+          jobs:
+            preprod_deploy:
+              clean_workspace: yes
+              tasks:
+                - fetch:
+                    stage: setup
+                    job: publish_trigger_manifest
+                    source: manifest
+                    destination: manifest
+                - script: |
+                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{acceptance_env_label} --destination_env_label #{preprod_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+                - script: |
+                    python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{preprod_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+      - production:
+          jobs:
+            production_deploy:
+              clean_workspace: yes
+              tasks:
+                - fetch:
+                    stage: setup
+                    job: publish_trigger_manifest
+                    source: manifest
+                    destination: manifest
+                - script: |
+                    python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --lt_api_version #{lifetime_api_version} --source_env_label #{preprod_env_label} --destination_env_label #{production_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+                - script: |
+                    python -m outsystems.pipeline.apply_configuration_values_to_target_env --lt_url #{lifetime_hostname} --lt_token %lifetime_token% --target_env_label #{production_env_label} --manifest_file "manifest\manifest\#{manifest_folder}\#{manifest_file}"
+
+#                - script: |
+#                    echo "lifetime_hostname param value: #{lifetime_hostname}"
+#                - script: |
+#                    echo "Manifest (env) input value: %manifest%"
+#                - exec:
+#                    command: powershell.exe
+#                    arguments:
+#                      - -Command
+#                      - echo 'Manifest input value %manifest%'
+#                - script: |
+#                    echo "lifetime_token (secret) value: %lifetime_token%"
+#                - script: |
+#                    pip install -U outsystems-pipeline==#{os_package_version}
+#                - script: |
+#                    mkdir #{manifest_folder}
+#                    echo %manifest% > "#{manifest_folder}\#{manifest_file}"
+#                - exec:
+#                    command: powershell.exe
+#                    arguments:
+#                      - -Command
+#                      - ('%manifest%') | Out-File -FilePath "#{manifest_folder}\#{manifest_file}" -Encoding default
