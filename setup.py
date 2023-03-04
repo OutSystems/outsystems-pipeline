@@ -58,6 +58,7 @@ REQUIREMENTS = [
     'xunitparser==1.3.3',
     'pytest==4.3.0',
     'toposort==1.5'
+    'glob2==0.7'
 ]
 
 PACKAGES = [
