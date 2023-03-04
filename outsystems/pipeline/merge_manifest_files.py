@@ -16,7 +16,7 @@ else:  # Else just add the project dir
 
 
 # ############################################################# SCRIPT ##############################################################
-def merge_json_files(manifests_folder: str):
+def merge_json_files(manifest_folder: str):
 
     schema = {
         "properties": {
@@ -51,15 +51,15 @@ def merge_json_files(manifests_folder: str):
         "TriggeredBy": {}
     }
 
-    json_pattern = os.path.join(manifests_folder, '*.json')
+    json_pattern = os.path.join(manifest_folder, '*.json')
     json_files = glob2.glob(json_pattern)
 
     merger = jsonmerge.Merger(schema)
 
     if json_files:
-        print("The following manifests will be merged:", flush=True)
+        print("The following manifest files are going to be merged:", flush=True)
     else:
-        raise NotImplementedError("Please make sure the manifests files exist in '{}' dir".format(manifests_folder))
+        raise NotImplementedError("Make sure that the manifest files exist in the '{}' directory".format(manifest_folder))
 
     for json_file in json_files:
         print(" -> {}".format(json_file), flush=True)
@@ -67,15 +67,20 @@ def merge_json_files(manifests_folder: str):
             read_data = json.load(file_item)
             result = merger.merge(result, read_data)
 
+    print("All of the manifest files were successfully merged.", flush=True)
     return result
 
 
-def main(manifests_folder: str):
+def main(manifest_folder: str):
 
-    merged_data = merge_json_files(manifests_folder)
+    merged_data = merge_json_files(manifest_folder)
 
-    with open('merged_manifests.json', 'w') as merge_file:
+    merged_manifest_file = 'merged_manifest.json'
+
+    with open(merged_manifest_file, 'w') as merge_file:
         json.dump(merged_data, merge_file, indent=4)
+
+    print("File '{}' has been successfully generated".format(merged_manifest_file), flush=True)
 
 # End of main()
 
@@ -83,13 +88,13 @@ def main(manifests_folder: str):
 if __name__ == "__main__":
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--manifests_folder", type=str, required=True,
-                        help="manifests folder dir")
+    parser.add_argument("-m", "--manifest_folder", type=str, required=True,
+                        help="Directory in which the manifest files are located")
 
     args = parser.parse_args()
 
     # Parse the artifact directory
-    manifests_folder = args.manifests_folder
+    manifest_folder = args.manifest_folder
 
     # Calls the main script
-    main(manifests_folder)
+    main(manifest_folder)
