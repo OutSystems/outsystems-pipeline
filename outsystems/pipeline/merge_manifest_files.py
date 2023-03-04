@@ -18,6 +18,7 @@ else:  # Else just add the project dir
 # ############################################################# SCRIPT ##############################################################
 def merge_json_files(manifest_folder: str):
 
+    # jsonmerge schema to define the merge strategy for each trigger manifest's dataset
     schema = {
         "properties": {
             "ApplicationVersions": {
@@ -42,6 +43,7 @@ def merge_json_files(manifest_folder: str):
         }
     }
 
+    # Vanilla trigger manifest dataset
     result = {
         "ApplicationVersions": [],
         "ConfigurationItems": [],
@@ -51,23 +53,28 @@ def merge_json_files(manifest_folder: str):
         "TriggeredBy": {}
     }
 
+    # Get all json files from dir
     json_pattern = os.path.join(manifest_folder, '*.json')
     json_files = glob2.glob(json_pattern)
-
-    merger = jsonmerge.Merger(schema)
 
     if json_files:
         print("The following manifest files are going to be merged:", flush=True)
     else:
         raise NotImplementedError("Make sure that the manifest files exist in the '{}' directory".format(manifest_folder))
 
+    merger = jsonmerge.Merger(schema)
+    deployment_notes = ""
+
+    # Merge json files using the specified schema
     for json_file in json_files:
-        print(" -> {}".format(json_file), flush=True)
+        print(" -> {}".format(os.path.basename(json_file)), flush=True)
         with open(json_file) as file_item:
             read_data = json.load(file_item)
             result = merger.merge(result, read_data)
+            # workaround for DeploymentNotes
+            deployment_notes += os.path.basename(json_file) + ": " + read_data["DeploymentNotes"] + "\n"
 
-    print("All of the manifest files were successfully merged.", flush=True)
+    result["DeploymentNotes"] = deployment_notes
     return result
 
 
@@ -76,11 +83,10 @@ def main(manifest_folder: str):
     merged_data = merge_json_files(manifest_folder)
 
     merged_manifest_file = 'merged_manifest.json'
-
     with open(merged_manifest_file, 'w') as merge_file:
         json.dump(merged_data, merge_file, indent=4)
 
-    print("File '{}' has been successfully generated".format(merged_manifest_file), flush=True)
+    print("File '{}' has been successfully generated.".format(merged_manifest_file), flush=True)
 
 # End of main()
 
