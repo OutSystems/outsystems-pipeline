@@ -59,6 +59,7 @@ REQUIREMENTS = [
     'pytest==4.3.0',
     'toposort==1.5'
     'glob2==0.7'
+    'jsonmerge==1.9.0'
 ]
 
 PACKAGES = [
