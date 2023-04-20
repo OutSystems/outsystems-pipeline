@@ -2,7 +2,11 @@
 import sys
 import os
 import argparse
+import re
 from time import sleep
+import xml.etree.ElementTree as ET
+from zipfile import ZipFile
+from io import BytesIO
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -20,6 +24,7 @@ from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFES
     MANIFEST_APPLICATION_NAME
 from outsystems.vars.pipeline_vars import SOURCECODE_SLEEP_PERIOD_IN_SECS, SOURCECODE_TIMEOUT_IN_SECS, SOURCECODE_ONGOING_STATUS, \
     SOURCECODE_FINISHED_STATUS
+from outsystems.vars.dotnet_vars import MS_BUILD_NAMESPACE, ASSEMBLY_BLACKLIST
 
 # Functions
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
@@ -33,7 +38,147 @@ from outsystems.file_helpers.file import load_data, download_source_code
 # ############################################################# SCRIPT ##############################################################
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env: str, apps: list, trigger_manifest: dict, include_test_apps: bool, friendly_package_names: bool):
+# Extract content of downloaded source code package (one folder per application module)
+def extract_package_content(file_path: str, include_all_refs: bool, remove_resources_files: bool):
+    module_count = 0
+    with ZipFile(file_path, 'r') as zf:
+        # Iterate through the content of the source code package
+        for archive_name in zf.namelist():
+            match = re.search(r'(.*)\.v\d+.zip$', archive_name)
+            # Each package will have one .zip file per module
+            if match:
+                module_name = match.group(1)
+                module_folder = os.path.join(os.path.dirname(file_path), "modules", module_name)
+                file_data = BytesIO(zf.read(archive_name))
+                with ZipFile(file_data) as zf2:
+                    # Extract generated source code of each module to a subfolder
+                    zf2.extractall(path=module_folder)
+
+                # Check if any post-processing action is needed over the extracted resources
+                if (include_all_refs or remove_resources_files):
+                    process_csproj_files(module_name, module_folder, include_all_refs, remove_resources_files)
+
+                # Update package modules count
+                module_count += 1
+
+    # Return number of modules inside the source code package
+    return module_count
+
+
+# Return the list of .csproj relative paths referenced in the module .sln file
+def find_csproj_files(module_name: str, module_folder: str):
+
+    # Builds the solution full path
+    sln_file = os.path.join(module_folder, "{}.sln".format(module_name))
+
+    # Final list of csprojs relative path found in the solution file
+    csprojs = []
+
+    # Read module solution file
+    with open(sln_file, 'rb') as f:
+        line = f.readline()
+        while line:
+            line = f.readline().decode('utf-8')
+            if line.startswith("Project"):
+                # Gets line's second object (i.e: csproj relative path)
+                # Trim spaces and double quotes
+                csproj = line.split(",")[1].strip().strip('\"')
+                # Check if module's main csproj
+                is_main = csproj == "{}.csproj".format(module_name)
+                # Check if module's referencesProxy csproj
+                is_referencesProxy = csproj.startswith("referencesProxy")
+                # Append csproj details
+                csprojs.append({"RelativePath": csproj, "IsMain": is_main, "IsReferencesProxy": is_referencesProxy})
+
+    return csprojs
+
+
+# Post-processing of .csproj files according to provided flags:
+# --include_all_refs: Ensures that references proxy .csproj file reference all assemblies (.dll) available in the module bin folder
+# --remove_resources_files: Removes embedded .resources files from main .csproj file (if existing)
+def process_csproj_files(module_name: str, module_folder: str, include_all_refs: bool, remove_resources_files: bool):
+
+    # Find .csproj files available in the provided module folder
+    csprojs = find_csproj_files(module_name, module_folder)
+
+    # Build bin directory full path
+    bin_folder = os.path.join(module_folder, "bin")
+
+    # Iterate through all csproj files for the current module
+    for csproj in csprojs:
+        # Build csproj file full path
+        csproj_file = os.path.join(module_folder, csproj["RelativePath"])
+
+        # Check if csproj is for the module's references proxy assembly
+        if csproj["IsReferencesProxy"] and include_all_refs:
+            # Read csproj file and identify first ItemGroup element
+            ET.register_namespace('', MS_BUILD_NAMESPACE)
+            tree = ET.parse(csproj_file)
+            itemgroup_elem = tree.find("./{val}ItemGroup".format(val='{' + MS_BUILD_NAMESPACE + '}'))
+
+            # Iterate through all dlls found in the bin directory
+            for file in os.listdir(bin_folder):
+                if file.endswith(".dll"):
+                    dll_name = os.path.splitext(file)[0]
+                    # TODO: Use os.path.join instead
+                    dll_relpath = os.path.join(os.path.relpath(module_folder, os.path.dirname(csproj_file)), 'bin', file)
+
+                    # Validate if dll already exists in the csproj
+                    dll_exists = tree.find("./{val}ItemGroup/{val}Reference/{val}HintPath[.='{dll}']".format(val='{' + MS_BUILD_NAMESPACE + '}', dll=dll_relpath)) is not None
+
+                    # Continue if dll is csproj target assembly
+                    # Continue if dll already exists in csproj
+                    # Continue if dll exists in blacklist
+                    if dll_name == os.path.splitext(os.path.basename(csproj_file))[0] or dll_exists or dll_name in ASSEMBLY_BLACKLIST:
+                        continue
+
+                    # Create Reference structure
+                    ref = ET.Element("Reference")
+                    ref.set("Include", dll_name)
+
+                    # Create Name structure
+                    ref_name = ET.Element("Name")
+                    ref_name.text = dll_name
+                    ref.append(ref_name)
+
+                    # Create HintPath structure
+                    ref_hintpath = ET.Element("HintPath")
+                    # Identify the relative path between the module's full dir and csproj file full dir
+                    # Adds to the element text the dll relative path
+                    ref_hintpath.text = dll_relpath
+                    ref.append(ref_hintpath)
+
+                    # Create Private structure
+                    ref_private = ET.Element("Private")
+                    ref_private.text = "False"
+                    ref.append(ref_private)
+
+                    # Append new element to ItemGroup element
+                    itemgroup_elem.append(ref)
+
+            # Save newly added references to csproj file
+            tree.write(csproj_file)
+
+        # Check if csproj is for the module's main assembly
+        elif csproj["IsMain"] and remove_resources_files:
+            # Read csproj file and find all ItemGroup elements
+            ET.register_namespace('', MS_BUILD_NAMESPACE)
+            tree = ET.parse(csproj_file)
+            itemgroup_elems = tree.findall("./{val}ItemGroup".format(val='{' + MS_BUILD_NAMESPACE + '}'))
+
+            # Iterate through all ItemGroups to find out which has embedded resource files
+            for itemgroup in itemgroup_elems:
+                emb_resource_elems = itemgroup.findall("./{val}EmbeddedResource".format(val='{' + MS_BUILD_NAMESPACE + '}'))
+                if emb_resource_elems:
+                    for emb_resource in emb_resource_elems:
+                        # Remove every embedded resource element found
+                        itemgroup.remove(emb_resource)
+                    break
+            # Save changes to csproj file
+            tree.write(csproj_file)
+
+
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env: str, apps: list, trigger_manifest: dict, include_test_apps: bool, friendly_package_names: bool, include_all_refs: bool, remove_resources_files: bool):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -82,7 +227,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             if friendly_package_names:
                 target_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, target_env)
                 running_version = get_running_app_version(artifact_dir, lt_endpoint, lt_token, target_env_key, app_name=app_name)
-                file_name = "{}_{}_v{}".format(pkg_key, app_name, running_version["Version"].replace(".", "_"))
+                file_name = "{}_v{}".format(app_name, running_version["Version"].replace(".", "_"))
                 if running_version["IsModified"]:
                     file_name += "+"
             else:
@@ -91,6 +236,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             file_path = os.path.join(artifact_dir, ENVIRONMENT_SOURCECODE_FOLDER, file_name)
             download_source_code(file_path, lt_token, pkg_link["url"])
             print("Source code package {} downloaded successfully.".format(pkg_key), flush=True)
+
+            # Extract source code for each module from downloaded package, applying post-processing actions (if requested)
+            module_count = extract_package_content(file_name, include_all_refs, remove_resources_files)
+            print("Processed {} application modules successfully.".format(module_count), flush=True)
         else:
             print("Timeout expired while generating source code package {}. Unable to download source code for application {}.".format(pkg_key, app_name), flush=True)
 
@@ -118,7 +267,11 @@ if __name__ == "__main__":
     parser.add_argument("-i", "--include_test_apps", action='store_true',
                         help="Flag that indicates if applications marked as \"Test Application\" in the manifest are fetched as well.")
     parser.add_argument("-n", "--friendly_package_names", action='store_true',
-                        help="Flag that indicates if downloaded source code packages should have a user-friendly name. Example: \"AppName_v1_2_1\"")
+                        help="Flag that indicates if downloaded source code packages should have a user-friendly name. Example: \"<AppName>_v1_2_1\"")
+    parser.add_argument("-ref", "--include_all_refs", action='store_true',
+                        help="Flag that indicates if all assemblies in the \"bin\" folder should be added as references in the .csproj file.")
+    parser.add_argument("-res", "--remove_resources_files", action='store_true',
+                        help="Flag that indicates if embedded resources files should be removed from the .csproj file.")
 
     args = parser.parse_args()
 
@@ -160,6 +313,10 @@ if __name__ == "__main__":
     include_test_apps = args.include_test_apps
     # Parse Friendly Package Names flag
     friendly_package_names = args.friendly_package_names
+    # Parse Include All References flag
+    include_all_refs = args.include_all_refs
+    # Parse Remove Resources Files flag
+    remove_resources_files = args.remove_resources_files
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env, apps, trigger_manifest, include_test_apps, friendly_package_names)  # type: ignore
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, target_env, apps, trigger_manifest, include_test_apps, friendly_package_names, include_all_refs, remove_resources_files)  # type: ignore
