@@ -36,7 +36,7 @@ def store_data(filename: str, data: list):
         json.dump(data, f)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, apps: list, dep_manifest: list, trigger_manifest: dict, include_test_apps: bool, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str, friendly_package_names: bool, ignore_deployment_order: bool):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, apps: list, dep_manifest: list, trigger_manifest: dict, include_test_apps: bool, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str, friendly_package_names: bool, generate_deploy_order: bool):
 
     # will contain the applications to deploy details from LT
     app_data_list = []
@@ -49,9 +49,6 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Gets the environment key for the source environment
     src_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, source_env)
-
-    # Builds the Probe endpoint
-    probe_endpoint = build_probe_endpoint(cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)
 
     # If the manifest file is being used, the app versions MUST come from that file
     # Or else you might not be deploying the same app versions that were deployed in
@@ -67,7 +64,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     app_oap_list = generate_oap_list(app_data_list, friendly_package_names)
     export_apps_oap(artifact_dir, lt_endpoint, lt_token, src_env_key, app_oap_list)
 
-    if not ignore_deployment_order:
+    if generate_deploy_order:
+        # Builds the Probe endpoint
+        probe_endpoint = build_probe_endpoint(cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)
+
         # Generate deployment order
         sorted_oap_list = generate_deployment_order(artifact_dir, probe_endpoint, app_oap_list)
 
@@ -102,16 +102,16 @@ if __name__ == "__main__":
                         help="Manifest file path (either deployment or trigger), used to promote the same application versions throughout the pipeline execution.")
     parser.add_argument("-i", "--include_test_apps", action='store_true',
                         help="(Optional) Flag that indicates if applications marked as \"Test Application\" in the trigger manifest are included in the Air Gap deployment.")
-    parser.add_argument("-pu", "--cicd_probe_url", type=str, required=True,
-                        help="URL of the environment where the CI/CD Probe is installed (without the API endpoint).")
+    parser.add_argument("-pu", "--cicd_probe_url", type=str,
+                        help="(Optional) URL of the environment where the CI/CD Probe is installed (without the API endpoint).")
     parser.add_argument("-pv", "--cicd_probe_version", type=str, default=PROBE_API_VERSION,
                         help="(Optional) CI/CD Probe API version number.")
     parser.add_argument("-pe", "--cicd_probe_endpoint", type=str, default=PROBE_API_ENDPOINT,
                         help="(Optional) Used to set the API endpoint for CI/CD Probe, without the version.")
     parser.add_argument("-n", "--friendly_package_names", action='store_true',
                         help="Flag that indicates if downloaded application packages should have a user-friendly name. Example: \"AppName_v1_2_1\"")
-    parser.add_argument("-d", "--ignore_deployment_order", action='store_false',
-                        help="Flag that indicates if the deployment order file creation should be ignored.")
+    parser.add_argument("-g", "--generate_deploy_order", action='store_true',
+                        help="Flag that indicates if the deploy order file should be created.")
 
     args = parser.parse_args()
 
@@ -138,7 +138,7 @@ if __name__ == "__main__":
     source_env = args.source_env
     # Check if either an app list or a manifest file is being provided
     if not args.app_list and not args.manifest_file:
-        raise parser.error("either --app_list or --manifest_file must be provided as arguments")  # type: ignore
+        raise InvalidParametersError("either --app_list or --manifest_file must be provided as arguments")
     # Parse App list
     if args.app_list:
         _apps = args.app_list
@@ -173,8 +173,10 @@ if __name__ == "__main__":
     cicd_version = args.cicd_probe_version
     # Parse Friendly Package Names flag
     friendly_package_names = args.friendly_package_names
-    # Parse Friendly Package Names flag
-    ignore_deployment_order = args.ignore_deployment_order
+    # Parse Generate Deployment Order flag
+    generate_deploy_order = args.generate_deploy_order
+    if generate_deploy_order and not cicd_api_endpoint:
+        raise InvalidParametersError("The CI/CD Probe is required to create the deploymenyt order and must be provided as argument")
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, apps, dep_manifest, trigger_manifest, include_test_apps, cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version, friendly_package_names, ignore_deployment_order)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, apps, dep_manifest, trigger_manifest, include_test_apps, cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version, friendly_package_names, generate_deploy_order)
