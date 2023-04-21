@@ -25,16 +25,25 @@ from outsystems.lifetime.lifetime_applications import set_application_version
 
 # ############################################################# SCRIPT ##############################################################
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, app_list: list, dep_manifest: list):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, app_list: list, dep_manifest: list, trigger_manifest: dict):
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
     # Get the environment keys
     dest_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, dest_env)
 
-    for deployed_app in dep_manifest:
-        if deployed_app["ApplicationName"] in app_list:
-            set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["Version"], None)
-            print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["Version"], dest_env), flush=True)
+    # the app versions MUST come from that a file
+    # either deployment or trigger manifest file
+    if dep_manifest:
+        for deployed_app in dep_manifest:
+            if deployed_app["ApplicationName"] in app_list:
+                set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["Version"], None)
+                print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["Version"], dest_env), flush=True)
+    elif trigger_manifest:
+        for deployed_app in trigger_manifest["ApplicationVersions"]:
+            if deployed_app["ApplicationName"] in app_list:
+                set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["VersionNumber"], None)
+                print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["VersionNumber"], dest_env), flush=True)
+
 
 # End of main()
 
@@ -57,7 +66,7 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--app_list", type=str, required=True,
                         help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-f", "--manifest_file", type=str, required=True,
-                        help="Manifest file path, used if you have a split pipeline for CI and CD, where the CI pipeline will generate the deployment manifest file.")
+                        help="Manifest file path (either deployment or trigger).")
 
     args = parser.parse_args()
 
@@ -85,8 +94,14 @@ if __name__ == "__main__":
     # Parse App list
     _apps = args.app_list
     apps = _apps.split(',')
-    # Parse Manifest file
-    manifest_file = load_data("", args.manifest_file)
+
+    # Parse Manifest file if it exists
+    # Based on the file content it can be a deployment manifest (list-based) or trigger manifest (dict-based)
+    if args.manifest_file:
+        manifest_file = load_data("", args.manifest_file)
+
+    dep_manifest = manifest_file if type(manifest_file) is list else None
+    trigger_manifest = manifest_file if type(manifest_file) is dict else None
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, manifest_file)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, dep_manifest, trigger_manifest)
