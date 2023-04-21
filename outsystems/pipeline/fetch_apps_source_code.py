@@ -227,7 +227,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             if friendly_package_names:
                 target_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, target_env)
                 running_version = get_running_app_version(artifact_dir, lt_endpoint, lt_token, target_env_key, app_name=app_name)
-                file_name = "{}_v{}".format(app_name, running_version["Version"].replace(".", "_"))
+                file_name = "{}_v{}".format(app_name.replace(" ", "_"), running_version["Version"].replace(".", "_"))
                 if running_version["IsModified"]:
                     file_name += "+"
             else:
@@ -238,8 +238,8 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             print("Source code package {} downloaded successfully.".format(pkg_key), flush=True)
 
             # Extract source code for each module from downloaded package, applying post-processing actions (if requested)
-            module_count = extract_package_content(file_name, include_all_refs, remove_resources_files)
-            print("Processed {} application modules successfully.".format(module_count), flush=True)
+            module_count = extract_package_content(file_path, include_all_refs, remove_resources_files)
+            print("{} application modules processed successfully.".format(module_count), flush=True)
         else:
             print("Timeout expired while generating source code package {}. Unable to download source code for application {}.".format(pkg_key, app_name), flush=True)
 
