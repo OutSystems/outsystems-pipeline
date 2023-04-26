@@ -161,22 +161,25 @@ if __name__ == "__main__":
     # Parse the CICD Probe Url and split the CICD Probe hostname from the HTTP protocol
     # Assumes the default HTTP protocol = "https"
     cicd_http_proto = PROBE_HTTP_PROTO
-    cicd_url = args.cicd_probe_url
-    if cicd_url.startswith("http://"):
-        cicd_http_proto = "http"
-        cicd_url = cicd_url.replace("http://", "")
+    if args.cicd_probe_url:
+        cicd_url = args.cicd_probe_url
+        if cicd_url.startswith("http://"):
+            cicd_http_proto = "http"
+            cicd_url = cicd_url.replace("http://", "")
+        else:
+            cicd_url = cicd_url.replace("https://", "")
+        if cicd_url.endswith("/"):
+            cicd_url = cicd_url[:-1]
     else:
-        cicd_url = cicd_url.replace("https://", "")
-    if cicd_url.endswith("/"):
-        cicd_url = cicd_url[:-1]
+        cicd_url = None
     # Parse CICD Probe API Version
     cicd_version = args.cicd_probe_version
     # Parse Friendly Package Names flag
     friendly_package_names = args.friendly_package_names
     # Parse Generate Deployment Order flag
     generate_deploy_order = args.generate_deploy_order
-    if generate_deploy_order and not cicd_api_endpoint:
-        raise InvalidParametersError("The CI/CD Probe is required to create the deploymenyt order and must be provided as argument")
+    if generate_deploy_order and not args.cicd_probe_url:
+        raise InvalidParametersError("The CI/CD Probe is required to create the deployment order and must be provided as argument")
 
     # Calls the main script
     main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, apps, dep_manifest, trigger_manifest, include_test_apps, cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version, friendly_package_names, generate_deploy_order)

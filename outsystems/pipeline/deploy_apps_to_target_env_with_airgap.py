@@ -37,7 +37,7 @@ def generate_oap_list(app_data_list: list, friendly_package_names: bool):
     filename = ""
     for app in app_data_list:
         if friendly_package_names:
-            filename = "{}_v{}{}".format(app["Name"].replace(" ", "_").replace(".", "_"), app["Version"], APPLICATION_OAP_FILE)
+            filename = "{}_v{}{}".format(app["Name"].replace(" ", "_"), app["Version"].replace(".", "_"), APPLICATION_OAP_FILE)
         else:
             filename = "{}{}".format(app["VersionKey"], APPLICATION_OAP_FILE)
         app_oap_list.append({"app_name": app["Name"], "app_version": app["Version"], "app_key": app["Key"], "version_key": app["VersionKey"], "filename": filename})

@@ -33,7 +33,7 @@ def valid_tag_number(artifact_dir: str, lt_endpoint: str, lt_token: str, env_nam
     if running_app["Version"] < app["VersionNumber"]:
         return True
 
-    print("Skipping tag! The '{}' application's current tag ({}) on {} is greater than or equal to the manifest data ({}).".format(app["ApplicationName"], running_app["Version"], env_name, app["VersionNumber"]), flush=True)
+    print("Skipping tag! Application '{}' current tag ({}) on {} is greater than or equal to the manifest data ({}). ".format(app["ApplicationName"], running_app["Version"], env_name, app["VersionNumber"]), flush=True)
     return False
 
 
