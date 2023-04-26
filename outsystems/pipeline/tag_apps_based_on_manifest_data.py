@@ -20,12 +20,23 @@ from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDP
 from outsystems.file_helpers.file import load_data
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
-from outsystems.lifetime.lifetime_applications import set_application_version
+from outsystems.lifetime.lifetime_applications import set_application_version, get_running_app_version
 # Exceptions
 from outsystems.exceptions.invalid_parameters import InvalidParametersError
 
 
 # ############################################################# SCRIPT ##############################################################
+def valid_tag_number(artifact_dir: str, lt_endpoint: str, lt_token: str, env_name: str, env_key: str, app: dict):
+    # Get the app running version on the source environment. It will only retrieve tagged applications
+    running_app = get_running_app_version(artifact_dir, lt_endpoint, lt_token, env_key, app_name=app["ApplicationName"])
+
+    if running_app["Version"] < app["VersionNumber"]:
+        return True
+
+    print("Skipping tag! The '{}' application's current tag ({}) on {} is greater than or equal to the manifest data ({}).".format(app["ApplicationName"], running_app["Version"], env_name, app["VersionNumber"]), flush=True)
+    return False
+
+
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, app_list: list, dep_manifest: list, trigger_manifest: dict, include_test_apps: bool):
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -41,12 +52,12 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["Version"], dest_env), flush=True)
     elif trigger_manifest:
         for deployed_app in trigger_manifest["ApplicationVersions"]:
-            if deployed_app["IsTestApplication"] and include_test_apps:
-                set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["VersionNumber"], None)
-                print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["VersionNumber"], dest_env), flush=True)
-            elif not deployed_app["IsTestApplication"]:
-                set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["VersionNumber"], None)
-                print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["VersionNumber"], dest_env), flush=True)
+            if not deployed_app["IsTestApplication"] or (deployed_app["IsTestApplication"] and include_test_apps):
+                if valid_tag_number(artifact_dir, lt_endpoint, lt_token, dest_env, dest_env_key, deployed_app):
+                    set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["VersionNumber"], None)
+                    print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["VersionNumber"], dest_env), flush=True)
+                else:
+                    continue
 
 # End of main()
 
@@ -106,7 +117,7 @@ if __name__ == "__main__":
     trigger_manifest = manifest_file if type(manifest_file) is dict else None
 
     if dep_manifest and not args.app_list:
-        raise InvalidParametersError("App list parameter is required for Deployment Manifest operation")
+        raise InvalidParametersError("--app_list parameter is required for Deployment Manifest operation")
 
     # Parse App list
     apps = None

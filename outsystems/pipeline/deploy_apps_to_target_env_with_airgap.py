@@ -178,12 +178,6 @@ if __name__ == "__main__":
     source_env = args.source_env
     # Parse Destination Environment
     dest_env = args.destination_env
-    # Check if either an app list or a manifest file is being provided
-    if not args.app_list and not args.manifest_file:
-        raise parser.error("either --app_list or --manifest_file must be provided as arguments")
-    # Parse App list
-    _apps = args.app_list
-    apps = _apps.split(',')
     # Parse Manifest file if it exists
     # Based on the file content it can be a deployment manifest (list-based) or trigger manifest (dict-based)
     if args.manifest_file:
@@ -192,6 +186,17 @@ if __name__ == "__main__":
         manifest_file = None
     dep_manifest = manifest_file if type(manifest_file) is list else None
     trigger_manifest = manifest_file if type(manifest_file) is dict else None
+    # Check if either an app list or a manifest file is being provided
+    if not args.app_list and not args.manifest_file:
+        raise InvalidParametersError("either --app_list or --manifest_file must be provided as arguments")
+
+    if dep_manifest and not args.app_list:
+        raise InvalidParametersError("--app_list parameter is required for Deployment Manifest operation")
+    # Parse App list
+    apps = None
+    if args.app_list:
+        _apps = args.app_list
+        apps = _apps.split(',')
     # Parse Include Test Apps flag
     include_test_apps = args.include_test_apps
     # Parse Deployment Message
