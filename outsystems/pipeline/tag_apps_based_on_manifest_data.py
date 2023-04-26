@@ -24,8 +24,8 @@ from outsystems.lifetime.lifetime_applications import set_application_version
 # Exceptions
 from outsystems.exceptions.invalid_parameters import InvalidParametersError
 
-# ############################################################# SCRIPT ##############################################################
 
+# ############################################################# SCRIPT ##############################################################
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, app_list: list, dep_manifest: list, trigger_manifest: dict, include_test_apps: bool):
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 
     if dep_manifest and not args.app_list:
         raise InvalidParametersError("App list parameter is required for Deployment Manifest operation")
-    
+
     # Parse App list
     apps = None
     if args.app_list:
