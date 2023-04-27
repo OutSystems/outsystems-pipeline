@@ -11,8 +11,9 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Fixed Python Dependency**
+**Fixed Python Dependencies**
  * Fixed xunitparser dependency that was causing issues when trying to install the package on python environments higher than v3.8
+ * Removed pytest dependency that was not needed
 
 **Air Gap Operations**
  * Added support for Trigger Manifest artifact on tag_apps_based_on_manifest_data and deploy_apps_to_target_env_with_airgap scripts.
@@ -57,7 +58,6 @@ REQUIREMENTS = [
     'requests==2.20.1',
     'unittest-xml-reporting==2.2.1',
     'xunitparser==1.3.4',
-    'pytest==4.3.0',
     'toposort==1.5'
 ]
 

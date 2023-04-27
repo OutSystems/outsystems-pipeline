@@ -9,9 +9,10 @@
 
 ## April 26th, 2023
 
-### Fixed Package Dependency
+### Fixed Package Dependencies
 
-Updated xunitparser dependency to version 1.3.4
+* Updated xunitparser dependency to version 1.3.4
+* Removed pytest dependency
 
 ### Air Gap Deployment Operations
 
