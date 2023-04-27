@@ -2,6 +2,7 @@
 import sys
 import os
 import argparse
+from pkg_resources import parse_version
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -30,7 +31,7 @@ def valid_tag_number(artifact_dir: str, lt_endpoint: str, lt_token: str, env_nam
     # Get the app running version on the source environment. It will only retrieve tagged applications
     running_app = get_running_app_version(artifact_dir, lt_endpoint, lt_token, env_key, app_name=app["ApplicationName"])
 
-    if running_app["Version"] < app["VersionNumber"]:
+    if parse_version(running_app["Version"]) < parse_version(app["VersionNumber"]):
         return True
 
     print("Skipping tag! Application '{}' current tag ({}) on {} is greater than or equal to the manifest data ({}). ".format(app["ApplicationName"], running_app["Version"], env_name, app["VersionNumber"]), flush=True)
@@ -74,11 +75,11 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--lt_api_version", type=int, default=LIFETIME_API_VERSION,
                         help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2")
     parser.add_argument("-e", "--lt_endpoint", type=str, default=LIFETIME_API_ENDPOINT,
-                        help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
+                        help="(Optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-d", "--destination_env", type=str, required=True,
                         help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps. (if in Airgap mode should be the hostname of the destination environment where you want to deploy the apps)")
     parser.add_argument("-l", "--app_list", type=str,
-                        help="(optional) Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
+                        help="(Optional) Comma separated list of apps you want to tag. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-f", "--manifest_file", type=str, required=True,
                         help="Manifest file path (either deployment or trigger).")
     parser.add_argument("-i", "--include_test_apps", action='store_true',
@@ -110,6 +111,7 @@ if __name__ == "__main__":
 
     # Parse Manifest file if it exists
     # Based on the file content it can be a deployment manifest (list-based) or trigger manifest (dict-based)
+    manifest_file = None
     if args.manifest_file:
         manifest_file = load_data("", args.manifest_file)
 
@@ -128,4 +130,4 @@ if __name__ == "__main__":
     # Parse Include Test Apps flag
     include_test_apps = args.include_test_apps
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, dep_manifest, trigger_manifest, include_test_apps)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, dep_manifest, trigger_manifest, include_test_apps) # type: ignore
