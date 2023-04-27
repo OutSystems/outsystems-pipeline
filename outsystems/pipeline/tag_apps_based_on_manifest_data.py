@@ -130,4 +130,4 @@ if __name__ == "__main__":
     # Parse Include Test Apps flag
     include_test_apps = args.include_test_apps
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, dep_manifest, trigger_manifest, include_test_apps) # type: ignore
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, dep_manifest, trigger_manifest, include_test_apps)  # type: ignore
