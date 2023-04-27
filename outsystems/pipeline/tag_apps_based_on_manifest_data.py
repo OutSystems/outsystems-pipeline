@@ -2,6 +2,7 @@
 import sys
 import os
 import argparse
+from pkg_resources import parse_version
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -20,21 +21,44 @@ from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDP
 from outsystems.file_helpers.file import load_data
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
-from outsystems.lifetime.lifetime_applications import set_application_version
+from outsystems.lifetime.lifetime_applications import set_application_version, get_running_app_version
+# Exceptions
+from outsystems.exceptions.invalid_parameters import InvalidParametersError
 
 
 # ############################################################# SCRIPT ##############################################################
+def valid_tag_number(artifact_dir: str, lt_endpoint: str, lt_token: str, env_name: str, env_key: str, app: dict):
+    # Get the app running version on the source environment. It will only retrieve tagged applications
+    running_app = get_running_app_version(artifact_dir, lt_endpoint, lt_token, env_key, app_name=app["ApplicationName"])
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, app_list: list, dep_manifest: list):
+    if parse_version(running_app["Version"]) < parse_version(app["VersionNumber"]):
+        return True
+
+    print("Skipping tag! Application '{}' current tag ({}) on {} is greater than or equal to the manifest data ({}). ".format(app["ApplicationName"], running_app["Version"], env_name, app["VersionNumber"]), flush=True)
+    return False
+
+
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, app_list: list, dep_manifest: list, trigger_manifest: dict, include_test_apps: bool):
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
     # Get the environment keys
     dest_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, dest_env)
 
-    for deployed_app in dep_manifest:
-        if deployed_app["ApplicationName"] in app_list:
-            set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["Version"], None)
-            print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["Version"], dest_env), flush=True)
+    # the app versions MUST come from that a file
+    # either deployment or trigger manifest file
+    if dep_manifest:
+        for deployed_app in dep_manifest:
+            if deployed_app["ApplicationName"] in app_list:
+                set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["Version"], None)
+                print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["Version"], dest_env), flush=True)
+    elif trigger_manifest:
+        for deployed_app in trigger_manifest["ApplicationVersions"]:
+            if not deployed_app["IsTestApplication"] or (deployed_app["IsTestApplication"] and include_test_apps):
+                if valid_tag_number(artifact_dir, lt_endpoint, lt_token, dest_env, dest_env_key, deployed_app):
+                    set_application_version(lt_endpoint, lt_token, dest_env_key, deployed_app["ApplicationKey"], deployed_app["ChangeLog"], deployed_app["VersionNumber"], None)
+                    print("{} application successuflly tagged as {} on {}".format(deployed_app["ApplicationName"], deployed_app["VersionNumber"], dest_env), flush=True)
+                else:
+                    continue
 
 # End of main()
 
@@ -51,13 +75,15 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--lt_api_version", type=int, default=LIFETIME_API_VERSION,
                         help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2")
     parser.add_argument("-e", "--lt_endpoint", type=str, default=LIFETIME_API_ENDPOINT,
-                        help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
+                        help="(Optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-d", "--destination_env", type=str, required=True,
                         help="Name, as displayed in LifeTime, of the destination environment where you want to deploy the apps. (if in Airgap mode should be the hostname of the destination environment where you want to deploy the apps)")
-    parser.add_argument("-l", "--app_list", type=str, required=True,
-                        help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
+    parser.add_argument("-l", "--app_list", type=str,
+                        help="(Optional) Comma separated list of apps you want to tag. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-f", "--manifest_file", type=str, required=True,
-                        help="Manifest file path, used if you have a split pipeline for CI and CD, where the CI pipeline will generate the deployment manifest file.")
+                        help="Manifest file path (either deployment or trigger).")
+    parser.add_argument("-i", "--include_test_apps", action='store_true',
+                        help="(Optional) Flag that indicates if applications marked as \"Test Application\" in the trigger manifest are included for tagging.")
 
     args = parser.parse_args()
 
@@ -82,11 +108,26 @@ if __name__ == "__main__":
     lt_token = args.lt_token
     # Parse Destination Environment
     dest_env = args.destination_env
-    # Parse App list
-    _apps = args.app_list
-    apps = _apps.split(',')
-    # Parse Manifest file
-    manifest_file = load_data("", args.manifest_file)
 
+    # Parse Manifest file if it exists
+    # Based on the file content it can be a deployment manifest (list-based) or trigger manifest (dict-based)
+    manifest_file = None
+    if args.manifest_file:
+        manifest_file = load_data("", args.manifest_file)
+
+    dep_manifest = manifest_file if type(manifest_file) is list else None
+    trigger_manifest = manifest_file if type(manifest_file) is dict else None
+
+    if dep_manifest and not args.app_list:
+        raise InvalidParametersError("--app_list parameter is required for Deployment Manifest operation")
+
+    # Parse App list
+    apps = None
+    if args.app_list:
+        _apps = args.app_list
+        apps = _apps.split(',')
+
+    # Parse Include Test Apps flag
+    include_test_apps = args.include_test_apps
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, manifest_file)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, dep_manifest, trigger_manifest, include_test_apps) # type: ignore

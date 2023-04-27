@@ -11,12 +11,13 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Trigger Manifest Artifact**
- * New function to create and execute a deployment plan based on the app versions on the manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
- * New function to set configuration item values on a target environment based on the values found on the manifest given by the latest version of the Trigger Pipeline LifeTime Plugin.
+**Fixed Python Dependency**
+ * Fixed xunitparser dependency that was causing issues when trying to install the package on python environments higher than v3.8
 
-**LifeTime Deployment Operations**
- * New function to resume the execution of a deployment plan on a target environment where 2-stage deployments are enabled.
+**Air Gap Operations**
+ * Added support for Trigger Manifest artifact on tag_apps_based_on_manifest_data and deploy_apps_to_target_env_with_airgap scripts.
+ * New function to download application packages from a target environment based on the application versions found on the given trigger manifest artifact.
+
 
 Installing and upgrading
 ========================
@@ -55,7 +56,7 @@ REQUIREMENTS = [
     'python-dateutil==2.7.5',
     'requests==2.20.1',
     'unittest-xml-reporting==2.2.1',
-    'xunitparser==1.3.3',
+    'xunitparser==1.3.4',
     'pytest==4.3.0',
     'toposort==1.5'
 ]

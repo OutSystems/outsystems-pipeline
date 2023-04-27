@@ -7,12 +7,36 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## April 26th, 2023
+
+### Fixed Package Dependency
+
+Updated xunitparser dependency to version 1.3.4
+
+### Air Gap Deployment Operations
+
+Air Gap operations have been improved by the incorporation of the trigger manifest artifact option:
+
+* `deploy_apps_to_target_env_with_airgap` - enhancements to this script:
+    * Added trigger manifest artifact functionality
+    * Script fails if the OSP Tool deployment is not successfull
+    * Added flag parameter to export with friendly package names
+
+* `tag_apps_based_on_manifest_data` - enhancements to this script:
+    * Added trigger manifest artifact functionality
+    * Only tags if the trigger manifest version is greater than the version currently in use
+    * Ability to tag or exclude from tagging the test applications
+
+* `tag_modified_apps` - renamed script (from `tag_modified_applications`) in accordance with other scripts naming convention. 
+
+A new script has been added to download application packages (oap) based on the trigger manifest data:
+* `fetch_apps_packages`
 
 ## July 4th, 2022
 
 ### LifeTime Deployment Operations
 
-Added new functionality to provide more flexibility to handle LifeTime deployments:    
+Added new functionality to provide more flexibility to handle LifeTime deployments:
 
 * `deploy_tags_to_target_env_with_manifest` - Add new optional input parameters:
     * `--force_two_step_deployment` - Force the execution of the second stage, in an environment where 2-stage deployments are enabled. By default, the script exits after the first stage is completed.

@@ -54,3 +54,6 @@ AD_CATEGORIES_FILE = ".categories.cache"
 AD_INFRA_FILE = ".infrastructure.cache"
 AD_APP_FILE = ".application.cache"
 AD_FOLDER = "techdebt_data"
+
+# AirGap vars
+DEPLOYMENT_ORDER_FILE = "sorted_oap.list"
