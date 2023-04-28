@@ -1,0 +1,31 @@
+# ******************************************************************
+# Template: ApplyConfigurationValues
+# ******************************************************************
+# TBD
+# ******************************************************************
+
+# ******************************************************************
+# Declare parameters
+# ******************************************************************
+parameters:
+- name: TargetEnvironmentLabel # Target Environment (in manifest)
+  type: string
+
+# ******************************************************************
+# Declare steps
+# ******************************************************************
+steps:
+
+# ******************************************************************
+# Step: Apply configuration values
+# ******************************************************************
+# Apply configuration values (if any) to target environment
+# ******************************************************************
+- script: >
+    python -m outsystems.pipeline.apply_configuration_values_to_target_env
+    --artifacts "$(ArtifactsBuildFolder)" 
+    --lt_url $(LifeTime.Hostname) 
+    --lt_token $(LifeTime.ServiceAccountToken)
+    --target_env_label "${{ parameters.TargetEnvironmentLabel }}" 
+    --manifest_file "$(Pipeline.Workspace)/$(Manifest.Folder)/$(Manifest.File)"
+  displayName: 'Apply configuration values in ${{ parameters.TargetEnvironmentLabel }} environment'

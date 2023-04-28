@@ -1,0 +1,169 @@
+# ******************************************************************
+# Template: CD-AzureAgent
+# ******************************************************************
+# Baseline Continuous Delivery pipeline template that leverages 
+# Azure-hosted agents (i.e. each Job runs on a dedicated agent)
+# ******************************************************************
+
+# ******************************************************************
+# Declare parameters
+# ******************************************************************
+parameters:
+- name: TriggerManifest
+  displayName: Trigger Manifest
+  type: string
+- name: TriggeredBy
+  displayName: Triggered By
+  type: string
+
+# ******************************************************************
+# Declare variables
+# ******************************************************************
+variables:
+  - group: OutSystems-GitHub-Template-SharedVars
+
+# ******************************************************************
+# Declare triggers
+# ******************************************************************
+trigger: none
+pr: none
+
+# ******************************************************************
+# Declare agent type
+# ******************************************************************
+pool:
+  vmImage: $(Agent.VMImage)
+
+# ******************************************************************
+# Declare stages
+# ******************************************************************
+stages:
+
+# ******************************************************************
+# Stage: Setup
+# ******************************************************************
+- stage: setup
+  displayName: Setup  
+  jobs:
+
+  # ******************************************************************
+  # Job: Publish Trigger Manifest
+  # ******************************************************************
+  # Publish trigger manifest artifact provided as input
+  # ******************************************************************
+  - template: ./jobs/PublishTriggerManifestJob.yaml
+    parameters:
+      TriggerManifest: ${{ parameters.TriggerManifest }}
+
+# ******************************************************************
+# Stage: Code Analysis
+# ******************************************************************
+- stage: code_analysis
+  displayName: Code Analysis    
+  jobs:
+
+  # ******************************************************************
+  # Job: Fetch Technical Debt
+  # ******************************************************************
+  # Fetch technical debt data from AI Mentor Studio
+  # ******************************************************************
+  - template: ./jobs/FetchTechnicalDebtJob.yaml
+
+  # ******************************************************************
+  # Job: Validate Technical Debt
+  # ******************************************************************
+  # Validate technical debt data using predefined thresholds
+  # ******************************************************************
+  # Sample script to validate TechDebt level and number of 
+  # security findings
+  - template: ./jobs/ValidateTechnicalDebtJob.yaml 
+
+# ******************************************************************
+# Stage: Regression Testing
+# ******************************************************************
+- stage: regression_testing
+  displayName: Regression Testing  
+  jobs:
+
+  # ******************************************************************
+  # Job: LifeTime Deployment
+  # ******************************************************************
+  # Deploy list of application versions (including test apps) to REG 
+  # environment
+  # ******************************************************************
+  - template: ./jobs/LifeTimeDeploymentJob.yaml
+    parameters:
+      EnvironmentKey: $(Environment.Regression.Key)
+      SourceEnvironmentLabel: $(Environment.Development.Label)
+      DestinationEnvironmentLabel: $(Environment.Regression.Label)
+      IncludeTestApplications: true
+
+  # ******************************************************************
+  # Job: Regression Testing (BDD)
+  # ******************************************************************
+  # Run BDD regression tests and publish test results
+  # ******************************************************************
+  - template: ./jobs/RegressionTestingJob.yaml
+
+# ******************************************************************
+# Stage: Release Acceptance
+# ******************************************************************
+- stage: release_acceptance
+  displayName: Release Acceptance
+  jobs:
+
+  # ******************************************************************
+  # Job: LifeTime Deployment
+  # ******************************************************************
+  # Deploy list of application versions to ACC environment
+  # ******************************************************************
+  - template: ./jobs/LifeTimeDeploymentJob.yaml
+    parameters:
+      EnvironmentKey: $(Environment.Acceptance.Key)
+      SourceEnvironmentLabel: $(Environment.Regression.Label)
+      DestinationEnvironmentLabel: $(Environment.Acceptance.Label)
+
+  # ******************************************************************
+  # Job: Accept Changes
+  # ******************************************************************
+  # Accept release candidate before go-live
+  # ******************************************************************
+  - template: ./jobs/AcceptChangesJob.yaml
+
+# ******************************************************************
+# Stage: Dry-Run
+# ******************************************************************
+- stage: dry_run
+  displayName: Dry-Run
+  jobs:
+
+  # ******************************************************************
+  # Job: LifeTime Deployment
+  # ******************************************************************
+  # Deploy list of application versions to PRE environment
+  # ******************************************************************
+  - template: ./jobs/LifeTimeDeploymentJob.yaml
+    parameters:
+      EnvironmentKey: $(Environment.PreProduction.Key)
+      SourceEnvironmentLabel: $(Environment.Acceptance.Label)
+      DestinationEnvironmentLabel: $(Environment.PreProduction.Label)
+
+# ******************************************************************
+# Stage: Go-Live
+# ******************************************************************
+- stage: go_live
+  displayName: Go-Live
+  jobs:
+
+  # ******************************************************************
+  # Job: LifeTime Deployment
+  # ******************************************************************
+  # Deploy list of application versions to PRD environment
+  # ******************************************************************
+  - template: ./jobs/LifeTimeDeploymentJob.yaml
+    parameters:
+      EnvironmentKey: $(Environment.Production.Key)
+      SourceEnvironmentLabel: $(Environment.PreProduction.Label)
+      DestinationEnvironmentLabel: $(Environment.Production.Label)
+    # To enable 2stage-deploy on this environment uncomment the line below 
+    #  Use2StepDeployment: true

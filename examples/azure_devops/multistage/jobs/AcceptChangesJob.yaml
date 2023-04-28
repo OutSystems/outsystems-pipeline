@@ -1,0 +1,37 @@
+# ******************************************************************
+# Template: AcceptChangesJob-AzureAgent
+# ******************************************************************
+# TBD
+# ******************************************************************
+
+# ******************************************************************
+# Declare parameters
+# ******************************************************************
+
+# ******************************************************************
+# Declare jobs
+# ******************************************************************
+jobs:
+
+# ******************************************************************
+# Job: Accept release candidate 
+# ******************************************************************
+# Manual release candidate acceptance before go-live  
+# ******************************************************************
+- job: accept_changes
+  displayName: Accept Changes
+  dependsOn: lifetime_deployment
+  pool: server
+  steps:
+
+  # ******************************************************************
+  # Step: Manual user validation
+  # ******************************************************************
+  # Ask user to accept release candidate (i.e. push-button device)
+  # ******************************************************************
+  - task: ManualValidation@0
+    timeoutInMinutes: 1440
+    inputs:
+      instructions: 'Accept changes and proceed to Production?'
+      onTimeout: 'reject'
+    displayName: 'Go/No-Go Decision'

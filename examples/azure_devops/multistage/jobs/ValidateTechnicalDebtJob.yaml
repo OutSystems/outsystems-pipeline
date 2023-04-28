@@ -1,0 +1,42 @@
+# ******************************************************************
+# ValidateTechnicalDebtJob-AzureAgent
+# ******************************************************************
+# TBD
+# ******************************************************************
+
+# ******************************************************************
+# Declare parameters
+# ******************************************************************
+
+# ******************************************************************
+# Declare jobs
+# ******************************************************************
+jobs:
+        
+# ******************************************************************
+# Job: Validate Technical Debt  
+# ******************************************************************
+# Validate technical debt data for provided application scope using 
+# predefined thresholds
+# ******************************************************************
+- job: validate_tech_debt
+  displayName: Validate Technical Debt 
+  dependsOn: fetch_tech_debt
+  steps:
+  - download: current # Download current pipeline artifacts
+  
+  # ******************************************************************
+  # Step: Check technical debt data thresholds
+  # ******************************************************************
+  # Check technical debt data thresholds for application list
+  # ****************************************************************** 
+  - task: PythonScript@0
+    inputs:
+      scriptSource: 'filePath'
+      scriptPath: './scripts/tech_debt_validation.py'
+      arguments: >
+        --manifest_file "$(Pipeline.Workspace)/$(Manifest.Folder)/$(Manifest.File)"
+        --techdebt_data "$(Pipeline.Workspace)/$(AIMentorStudio.Folder)"
+        --max_techdebt_level "$(AIMentorStudio.Thresholds.TechDebtLevel)"
+        --max_security_findings "$(AIMentorStudio.Thresholds.SecurityFindingsCount)"
+    displayName: 'Check technical debt data thresholds'

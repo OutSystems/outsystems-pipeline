@@ -1,0 +1,50 @@
+# ******************************************************************
+# FetchTechnicalDebtJob-AzureAgent
+# ******************************************************************
+# TBD
+# ******************************************************************
+
+# ******************************************************************
+# Declare jobs
+# ******************************************************************
+jobs:
+        
+# ******************************************************************
+# Job: Fetch Technical Debt  
+# ******************************************************************
+# Fetch technical debt data for provided application scope 
+# ******************************************************************
+- job: fetch_tech_debt
+  displayName: Fetch Technical Debt 
+  steps:
+  - checkout: none # Avoid repository checkout
+  - download: current # Download current pipeline artifacts    
+  - template: ../tasks/InstallPythonPackage.yaml # Install python package
+
+  # ******************************************************************
+  # Step: Fetch technical debt data from Architecture Dashboard
+  # ******************************************************************
+  # Fetch technical debt data for application list by leveraging 
+  # Architecture Dashboard API
+  # ******************************************************************
+
+  - script: >
+      python -m outsystems.pipeline.fetch_tech_debt
+      --artifacts "$(Artifacts.Folder)" 
+      --ad_hostname $(AIMentorStudio.Hostname) 
+      --activation_code $(AIMentorStudio.ActivationCode) 
+      --api_key $(AIMentorStudio.APIKey)
+      --manifest_file "$(Pipeline.Workspace)/$(Manifest.Folder)/$(Manifest.File)"
+    displayName: 'Fetch technical debt data from AI Mentor Studio'
+
+  # ******************************************************************
+  # Step: Publish technical debt artifact
+  # ******************************************************************
+  # Publish manifest JSON file created in local workspace 
+  # ******************************************************************
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: "$(Artifacts.Folder)/$(AIMentorStudio.Folder)"
+      ArtifactName: $(AIMentorStudio.Folder)
+    condition: succeeded()
+    displayName: 'Publish technical debt artifact'
