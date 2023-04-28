@@ -1,0 +1,29 @@
+# ******************************************************************
+# Template: InstallPythonPackage-AzureAgent
+# ******************************************************************
+# Install outsystems-pipeline package from PyPI repository
+# ******************************************************************
+
+# ******************************************************************
+# Declare steps
+# ******************************************************************
+steps:
+
+# ******************************************************************
+# Step: Select python version to use
+# ******************************************************************
+# Select which python version to use in the Pipeline Agents 
+# ******************************************************************
+# - task: UsePythonVersion@0
+#   inputs:
+#     versionSpec: '$(Python.Version)'
+#   displayName: 'Select python version ($(Python.Version))'
+
+# ******************************************************************
+# Step: Install outsystems-pipeline package 
+# ******************************************************************
+# Install python package and its dependencies from PyPI
+# ******************************************************************
+- script: |
+    pip install -U outsystems-pipeline==$(OSPackage.Version)
+  displayName: 'Install outsystems-pipeline package'

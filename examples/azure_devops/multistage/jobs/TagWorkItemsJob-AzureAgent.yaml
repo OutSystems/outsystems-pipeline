@@ -1,0 +1,76 @@
+# ******************************************************************
+# Template: TagWorkItemsJob-AzureAgent
+# ******************************************************************
+# TBD
+# ******************************************************************
+
+# ******************************************************************
+# Declare jobs
+# ******************************************************************
+jobs:
+        
+# ******************************************************************
+# Job: Tag Work Items  
+# ******************************************************************
+# Tag Workitems retrieved from an ADO predefined query
+# ******************************************************************
+- job: tag_woktiems
+  displayName: Tag Work Items
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+  - download: current # Download current pipeline artifacts
+
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        Install-PackageProvider nuget -Scope CurrentUser -force
+        Install-Module -Name VSTeam -Scope CurrentUser -Force
+        
+        Import-Module -Name VSTeam
+
+        $projectName = $env:project
+        $versiontag = $env:tagversion
+        
+        Set-VSTeamDefaultProjectCount 1000
+        Set-VSTeamAccount -Account $env:azuri -PersonalAccessToken $env:token
+
+        $query = Invoke-VSTeamRequest -ProjectName $projectName -resource $env:query -area wit/queries -method Get -version '5.0' -JSON | ConvertFrom-Json
+
+        $workItems = Invoke-VSTeamRequest -ProjectName $projectName -resource wit/wiql -method Get -version '5.0' -id $query.id -JSON | ConvertFrom-Json
+
+        $manifest = Get-Content "$(Pipeline.Workspace)/$(Manifest.Folder)/$(Manifest.File)" | ConvertFrom-Json
+        
+        $manifest.ApplicationVersions | ForEach-Object {
+            if ( -Not $_.IsTestApplication ) 
+            {
+                $new_tag = $_.ApplicationName + "_" + $_.VersionNumber
+                $body = '[
+                  {
+                    "op": "add",
+                    "path": "/fields/System.Tags",
+                    "value": "tagged; ' + $versiontag + ';' + $new_tag +'"
+                  }
+                ]'
+                $workItems.workItems | ForEach-Object {
+                      $wi = Get-VSTeamWorkItem -Id $_.id -Fields 'System.Tags' 
+                      $tags = 'tagged; ' + $versiontag + '; ' + ';' + $new_tag + '; '
+                      if ($wi.fields) { $tags = $tags + $wi.fields.'System.Tags' }
+                      $body = '[
+                        {
+                          "op": "add",
+                          "path": "/fields/System.Tags",
+                          "value": "' + $tags + '"
+                        }
+                      ]'
+                      Invoke-VSTeamRequest -ProjectName $projectName -ContentType 'application/json-patch+json' -resource wit/workitems -method Patch -version '5.0' -body $body -id $_.id 
+                  }
+            }
+        }
+    displayName: 'Read Query and Tag Work Items'
+    env:
+      token: $(TagWorkItems.pat)
+      azuri: $(TagWorkItems.azuri)
+      project: $(TagWorkItems.project)
+      query: $(TagWorkItems.wi_query)

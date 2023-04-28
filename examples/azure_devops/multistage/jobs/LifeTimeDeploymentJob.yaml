@@ -1,0 +1,159 @@
+# ******************************************************************
+# Template: LifeTimeDeploymentJob-AzureAgent
+# ******************************************************************
+# TBD
+# ******************************************************************
+
+# ******************************************************************
+# Declare parameters
+# ******************************************************************
+parameters:
+- name: EnvironmentKey # Environment key (in Azure DevOps) 
+  type: string
+- name: SourceEnvironmentLabel # Source Environment (in manifest)
+  type: string
+- name: DestinationEnvironmentLabel # Destination Environment (in manifest)
+  type: string
+- name: IncludeTestApplications # Include test apps in deployment plan  
+  type: boolean
+  default: false
+- name: Use2StepDeployment # Use 2-step deployment process  
+  type: boolean
+  default: false
+
+# ******************************************************************
+# Declare jobs
+# ******************************************************************
+jobs:
+
+# ******************************************************************
+# Job: Deploy to target environment
+# ******************************************************************
+# Deploy application tags list to target LifeTime environment
+# ******************************************************************
+- deployment: lifetime_deployment
+  displayName: LifeTime Deployment
+  environment: ${{ parameters.EnvironmentKey }}
+  strategy:
+    runOnce:
+      deploy:
+        steps:
+        - download: current # Download current pipeline artifacts
+        - template: ../tasks/InstallPythonPackage.yaml # Install python package
+        
+        # ******************************************************************
+        # Step: Deploy to target environment (using manifest)
+        # ******************************************************************
+        # Deploy application list to target environment using manifest
+        # ******************************************************************
+        - ${{ if eq(parameters.IncludeTestApplications, true) }}:
+          - script: >
+              python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest
+              --artifacts "$(Artifacts.Folder)" 
+              --lt_url $(LifeTime.Hostname) 
+              --lt_token $(LifeTime.ServiceAccountToken) 
+              --lt_api_version $(LifeTime.APIVersion) 
+              --source_env_label "${{ parameters.SourceEnvironmentLabel }}"
+              --destination_env_label "${{ parameters.DestinationEnvironmentLabel }}"
+              --include_test_apps
+              --manifest_file "$(Pipeline.Workspace)/$(Manifest.Folder)/$(Manifest.File)"
+            displayName: 'Deploy to ${{ parameters.DestinationEnvironmentLabel }} environment'
+
+        - ${{ if eq(parameters.IncludeTestApplications, false) }}:
+          - script: >
+              python -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest
+              --artifacts "$(Artifacts.Folder)" 
+              --lt_url $(LifeTime.Hostname) 
+              --lt_token $(LifeTime.ServiceAccountToken) 
+              --lt_api_version $(LifeTime.APIVersion) 
+              --source_env_label "${{ parameters.SourceEnvironmentLabel }}"
+              --destination_env_label "${{ parameters.DestinationEnvironmentLabel }}"
+              --manifest_file "$(Pipeline.Workspace)/$(Manifest.Folder)/$(Manifest.File)"
+            displayName: 'Deploy to ${{ parameters.DestinationEnvironmentLabel }} environment'
+
+        # ******************************************************************
+        # Step: Apply configuration values
+        # ******************************************************************
+        # Apply configuration values (if any) to target environment
+        # ******************************************************************
+        - ${{ if eq(parameters.Use2StepDeployment, false) }}:
+          - template: ../tasks/ApplyConfigurationValues.yaml
+            parameters:
+              TargetEnvironmentLabel: ${{ parameters.DestinationEnvironmentLabel }}
+
+        # ******************************************************************
+        # Step: Print deployment conflicts
+        # ******************************************************************
+        # Check if there any Deployment Conflicts and show them in the 
+        # console log
+        # ******************************************************************
+        - task: PowerShell@2
+          inputs:
+            targetType: 'inline'
+            script:  Get-Content -Path "$(Artifacts.Folder)\DeploymentConflicts" | Write-Host
+          condition: failed()
+          displayName: 'Show content of DeploymentConflicts file'
+
+# ******************************************************************
+# Job: Wait for confirmation 
+# ******************************************************************
+# Wait for user confirmation that prepared deployment can resume
+# ******************************************************************
+- ${{ if eq(parameters.Use2StepDeployment, true) }}:
+  - job: wait_confirmation
+    displayName: Wait for Confirmation
+    dependsOn: lifetime_deployment
+    pool: server
+    steps:
+
+    # ******************************************************************
+    # Step: Manual user validation
+    # ******************************************************************
+    # Ask user to confirm that prepared deployment can resume    
+    # ******************************************************************
+    - task: ManualValidation@0
+      timeoutInMinutes: 1440
+      inputs:
+        instructions: 'Please confirm that prepared deployment to ${{ parameters.DestinationEnvironmentLabel }} can continue.'
+        onTimeout: 'reject'
+      displayName: Manual Validation
+        
+# ******************************************************************
+# Job: Resume prepared deployment 
+# ******************************************************************
+# Resume prepared deployment to target LifeTime environment after
+# manual user confirmation 
+# ******************************************************************
+- ${{ if eq(parameters.Use2StepDeployment, true) }}:
+  - job: finalize_deployment
+    displayName: Finalize Deployment
+    dependsOn: wait_confirmation
+    steps:
+    - checkout: none # Avoid repository checkout
+    - download: current # Download current pipeline artifacts
+    - template: ../tasks/InstallPythonPackage.yaml  # Install python package
+
+    # ******************************************************************
+    # Step: Continue prepared deployment in target environment
+    # ******************************************************************
+    # Continue prepared deployment plan in LifeTime when 2-step 
+    # deployment is enabled
+    # ******************************************************************
+
+    - script: >
+        python -m outsystems.pipeline.continue_deployment_to_target_env
+        --artifacts "$(Artifacts.Folder)" 
+        --lt_url $(LifeTime.Hostname) 
+        --lt_token $(LifeTime.ServiceAccountToken) 
+        --lt_api_version $(LifeTime.APIVersion)
+        --destination_env "${{ parameters.DestinationEnvironmentLabel }}"
+      displayName: 'Continue deployment to ${{ parameters.DestinationEnvironmentLabel }} environment'
+
+    # ******************************************************************
+    # Step: Apply configuration values
+    # ******************************************************************
+    # Apply configuration values (if any) to target environment
+    # ******************************************************************
+    - template: ../tasks/ApplyConfigurationValues.yaml
+      parameters:
+        TargetEnvironmentLabel: ${{ parameters.DestinationEnvironmentLabel }}

@@ -1,0 +1,54 @@
+# ******************************************************************
+# Template: PublishTriggerManifest-AzureAgent
+# ******************************************************************
+# Publish manifest JSON file as Pipeline Artifact
+# ******************************************************************
+
+# ******************************************************************
+# Declare parameters
+# ******************************************************************
+parameters:
+- name: TriggerManifest # Trigger manifest content (in JSON format)
+  type: string
+
+# ******************************************************************
+# Declare jobs
+# ******************************************************************
+jobs:
+
+# ******************************************************************
+# Job: Publish Trigger Manifest 
+# ******************************************************************
+# Publish trigger manifest artifact provided as input parameter 
+# ******************************************************************
+- job: publish_trigger_manifest
+  displayName: Publish Trigger Manifest
+  steps:
+  - checkout: none # Avoid repository checkout
+  
+  # ******************************************************************
+  # Step: Create trigger manifest file  
+  # ******************************************************************
+  # Create JSON file with trigger manifest contents in local 
+  # workspace
+  # ******************************************************************
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        mkdir $(Manifest.Folder)
+        ('${{ parameters.TriggerManifest }}') | Out-File -FilePath "$(Manifest.Folder)\$(Manifest.File)" -Encoding default
+      workingDirectory: $(System.DefaultWorkingDirectory)
+    displayName: 'Create trigger manifest file'
+
+  # ******************************************************************
+  # Step: Publish trigger manifest artifact
+  # ******************************************************************
+  # Publish manifest JSON file created in local workspace 
+  # ******************************************************************
+  - task: PublishBuildArtifacts@1
+    inputs:
+      PathtoPublish: $(Manifest.Folder)
+      ArtifactName: $(Manifest.Folder)
+    condition: succeeded()
+    displayName: 'Publish trigger manifest artifact'
