@@ -1,5 +1,5 @@
 import groovy.json.*
-
+// Function to check if there are Test Apps within the Trigger Manifest artifact
 boolean hasTestApplications(){
   result = false
   json = readJSON file: "${env.ArtifactsFolder}\\${env.ManifestFolder}\\${env.ManifestFile}"
@@ -9,12 +9,12 @@ boolean hasTestApplications(){
 
   return result
 }
-
+// Function to get the Application List from the Trigger Manifest artifact
 def getApplicationList(){
   app_list = ""
   json = readJSON file: "${env.ArtifactsFolder}\\${env.ManifestFolder}\\${env.ManifestFile}"
   json['ApplicationVersions'].each { key, value -> app_list += key.ApplicationName + "," }
-
+  // remove last comma from the application comma-separated list
   return app_list[0..-2]
 }
 
