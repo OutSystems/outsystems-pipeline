@@ -2,7 +2,7 @@ import groovy.json.*
 // Function to check if there are Test Apps within the Trigger Manifest artifact
 boolean hasTestApplications(){
   result = false
-  json = readJSON file: "${env.ManifestFolder}/${env.ManifestFile}"
+  json = readJSON text: "${params.TriggerManifest}"
   json['ApplicationVersions'].each { key, value ->
     if (key.IsTestApplication) { result = true }
   }
@@ -12,9 +12,9 @@ boolean hasTestApplications(){
 // Function to get the Application List from the Trigger Manifest artifact
 def getApplicationList(){
   app_list = ""
-  json = readJSON file: "${env.ManifestFolder}/${env.ManifestFile}"
+  json = readJSON text: "${params.TriggerManifest}"
   json['ApplicationVersions'].each { key, value -> app_list += key.ApplicationName + "," }
-  // remove last comma from the application comma-separated list
+// remove last comma from the application comma-separated list
   return app_list[0..-2]
 }
 
@@ -40,17 +40,17 @@ pipeline {
     // Environments Specification Variables
     /*
     * Pipeline for 5 Environments:
-    *   DevelopmentEnvironment    -> Where you develop your applications. This should be the default environment you connect with service studio.
-    *   RegressionEnvironment     -> Where your automated tests will test your applications.
-    *   AcceptanceEnvironment     -> Where you run your acceptance tests of your applications.
-    *   PreProductionEnvironment  -> Where you prepare your apps to go live.
-    *   ProductionEnvironment     -> Where your apps are live.
+    *   Development Environment    -> Where you develop your applications. This should be the default environment you connect with service studio.
+    *   Regression Environment     -> Where your automated tests will test your applications.
+    *   Acceptance Environment     -> Where you run your acceptance tests of your applications.
+    *   PreProduction Environment  -> Where you prepare your apps to go live.
+    *   Production Environment     -> Where your apps are live.
     */
-    DevelopmentEnvironmentLabel = 'DEV'
-    RegressionEnvironmentLabel = 'REG'
-    AcceptanceEnvironmentLabel = 'ACC'
-    PreProductionEnvironmentLabel = 'PRE'
-    ProductionEnvironmentLabel = 'PRD'
+    DevelopmentEnvironmentLabel = 'Development'
+    RegressionEnvironmentLabel = 'Regression'
+    AcceptanceEnvironmentLabel = 'Acceptance'
+    PreProductionEnvironmentLabel = 'PreProduction'
+    ProductionEnvironmentLabel = 'Production'
     // Regression URL Specification
     CICDProbeEnvironmentURL = 'https://regression-env.acmecorp.com/'
     BDDFrameworkEnvironmentURL = 'https://regression-env.acmecorp.com/'
@@ -67,8 +67,8 @@ pipeline {
         // Create manifest folder
         dir ("${env.ArtifactsFolder}") {
           sh script: "mkdir -p ${env.ManifestFolder}", label: 'Create trigger manifest folder'
-          // Create Trigger Manifest artifact
-          sh script: "echo '${params.TriggerManifest}' > \"${env.ManifestFolder}/${env.ManifestFile}\"", label: 'Create trigger manifest file'
+          // Write trigger manifest content to a file
+          writeFile file: "${env.ManifestFolder}/${env.ManifestFile}", text: "${params.TriggerManifest}"
         }
         // Only the virtual environment needs to be installed at the system level
         sh script: 'pip3 install -q -I virtualenv --user', label: 'Install Python virtual environments'
@@ -77,8 +77,10 @@ pipeline {
           sh script: "pip3 install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
           // Deploy the application list, with tests, to the Regression environment
           lock('deployment-plan-REG') {
-            sh script: "python3 -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken}  --lt_api_version ${env.LifeTimeAPIVersion} --source_env_label ${env.DevelopmentEnvironmentLabel} --destination_env_label ${env.RegressionEnvironmentLabel} --include_test_apps --manifest_file \"${env.ManifestFolder}/${env.ManifestFile}\"", label: "Deploy latest application tags (including tests) to ${env.RegressionEnvironmentLabel}"
+            sh script: "python3 -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken}  --lt_api_version ${env.LifeTimeAPIVersion} --source_env_label ${env.DevelopmentEnvironmentLabel} --destination_env_label ${env.RegressionEnvironmentLabel} --include_test_apps --manifest_file \"${env.ArtifactsFolder}/${env.ManifestFolder}/${env.ManifestFile}\"", label: "Deploy latest application tags (including tests) to ${env.RegressionEnvironmentLabel}"
           }
+          // Apply configuration values to Regression environment, if any
+          sh script: "python3 -m outsystems.pipeline.apply_configuration_values_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --target_env_label \"${env.RegressionEnvironmentLabel}\" --manifest_file \"${env.ArtifactsFolder}/${env.ManifestFolder}/${env.ManifestFile}\"", label: "Apply values to configuration items in ${env.RegressionEnvironmentLabel}"
         }
       }
       post {
@@ -97,11 +99,9 @@ pipeline {
             archiveArtifacts artifacts: "DeploymentConflicts"
           }
         }
-        // Delete artifacts folder to avoid impacts in subsquent builds
+        // Clean workspace to avoid impacts in subsquent builds
         cleanup {
-          dir ("${env.ArtifactsFolder}") {
-            deleteDir()
-          }
+          cleanWs()
         }
       }
     }
@@ -117,6 +117,8 @@ pipeline {
         // Only the virtual environment needs to be installed at the system level
         sh script: 'pip3 install -q -I virtualenv --user', label: 'Install Python virtual environments'
         withPythonEnv('python3') {
+          // Install the rest of the dependencies at the environment level and not the system level
+          sh script: "pip3 install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
           // Generate the URL endpoints of the BDD tests
           sh script: "python3 -m outsystems.pipeline.generate_unit_testing_assembly --artifacts \"${env.ArtifactsFolder}\" --app_list \"${getApplicationList()}\" --cicd_probe_env ${env.CICDProbeEnvironmentURL} --bdd_framework_env ${env.BDDFrameworkEnvironmentURL}", label: 'Generate URL endpoints for BDD test suites'
           // Run those tests and generate a JUnit test report
@@ -133,10 +135,9 @@ pipeline {
             archiveArtifacts artifacts: "*_data/*.cache", onlyIfSuccessful: true
           }
         }
+        // Clean workspace to avoid impacts in subsquent builds
         cleanup {
-          dir ("${env.ArtifactsFolder}") {
-            deleteDir()
-          }
+          cleanWs()
         }
       }
     }
@@ -155,8 +156,10 @@ pipeline {
           sh script: "pip3 install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
           // Deploy the application list to the Acceptance environment
           lock('deployment-plan-ACC') {
-            sh script: "python3 -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env_label ${env.RegressionEnvironmentLabel} --destination_env_label ${env.AcceptanceEnvironmentLabel} --manifest_file \"${env.ManifestFolder}/${env.ManifestFile}\"", label: "Deploy latest application tags to ${env.AcceptanceEnvironmentLabel}"
+            sh script: "python3 -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env_label ${env.RegressionEnvironmentLabel} --destination_env_label ${env.AcceptanceEnvironmentLabel} --manifest_file \"${env.ArtifactsFolder}/${env.ManifestFolder}/${env.ManifestFile}\"", label: "Deploy latest application tags to ${env.AcceptanceEnvironmentLabel}"
           }
+          // Apply configuration values to Regression environment, if any
+          sh script: "python3 -m outsystems.pipeline.apply_configuration_values_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --target_env_label \"${env.AcceptanceEnvironmentLabel}\" --manifest_file \"${env.ArtifactsFolder}/${env.ManifestFolder}/${env.ManifestFile}\"", label: "Apply values to configuration items in ${env.AcceptanceEnvironmentLabel}"
         }
       }
       post {
@@ -170,10 +173,9 @@ pipeline {
             archiveArtifacts artifacts: "DeploymentConflicts"
           }
         }
+        // Clean workspace to avoid impacts in subsquent builds
         cleanup {
-          dir ("${env.ArtifactsFolder}") {
-            deleteDir()
-          }
+          cleanWs()
         }
       }
     }
@@ -205,8 +207,10 @@ pipeline {
           sh script: "pip3 install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
           // Deploy the application list to the Pre-Production environment
           lock('deployment-plan-PRE') {
-            sh script: "python3 -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env_label ${env.AcceptanceEnvironmentLabel} --destination_env_label ${env.PreProductionEnvironmentLabel} --manifest_file \"${env.ManifestFolder}/${env.ManifestFile}\"", label: "Deploy latest application tags to ${env.PreProductionEnvironmentLabel}"
+            sh script: "python3 -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env_label ${env.AcceptanceEnvironmentLabel} --destination_env_label ${env.PreProductionEnvironmentLabel} --manifest_file \"${env.ArtifactsFolder}/${env.ManifestFolder}/${env.ManifestFile}\"", label: "Deploy latest application tags to ${env.PreProductionEnvironmentLabel}"
           }
+          // Apply configuration values to Regression environment, if any
+          sh script: "python3 -m outsystems.pipeline.apply_configuration_values_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --target_env_label \"${env.PreProductionEnvironmentLabel}\" --manifest_file \"${env.ArtifactsFolder}/${env.ManifestFolder}/${env.ManifestFile}\"", label: "Apply values to configuration items in ${env.PreProductionEnvironmentLabel}"
         }
       }
       post {
@@ -220,10 +224,9 @@ pipeline {
             archiveArtifacts artifacts: "DeploymentConflicts"
           }
         }
+        // Clean workspace to avoid impacts in subsquent builds
         cleanup {
-          dir ("${env.ArtifactsFolder}") {
-            deleteDir()
-          }
+          cleanWs()
         }
       }
     }
@@ -242,8 +245,11 @@ pipeline {
           sh script: "pip install -U outsystems-pipeline==\"${env.OSPackageVersion}\"", label: 'Install required packages'
           // Deploy the application list to the Production environment
           lock('deployment-plan-PRD') {
-            sh script: "python3 -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env_label ${env.PreProductionEnvironmentLabel} --destination_env_label ${env.ProductionEnvironmentLabel} --manifest_file \"${env.ManifestFolder}/${env.ManifestFile}\"", label: "Deploy latest application tags to ${env.ProductionEnvironmentLabel}"
+            sh script: "python3 -m outsystems.pipeline.deploy_tags_to_target_env_with_manifest --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --lt_api_version ${env.LifeTimeAPIVersion} --source_env_label ${env.PreProductionEnvironmentLabel} --destination_env_label ${env.ProductionEnvironmentLabel} --manifest_file \"${env.ArtifactsFolder}/${env.ManifestFolder}/${env.ManifestFile}\"", label: "Deploy latest application tags to ${env.ProductionEnvironmentLabel}"
           }
+          // Apply configuration values to Regression environment, if any
+          sh script: "python3 -m outsystems.pipeline.apply_configuration_values_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --target_env_label \"${env.ProductionEnvironmentLabel}\" --manifest_file \"${env.ArtifactsFolder}/${env.ManifestFolder}/${env.ManifestFile}\"", label: "Apply values to configuration items in ${env.ProductionEnvironmentLabel}"
+
         }
       }
       post {
@@ -257,10 +263,9 @@ pipeline {
             archiveArtifacts artifacts: "DeploymentConflicts"
           }
         }
+        // Clean workspace to avoid impacts in subsquent builds
         cleanup {
-          dir ("${env.ArtifactsFolder}") {
-            deleteDir()
-          }
+          cleanWs()
         }
       }
     }
