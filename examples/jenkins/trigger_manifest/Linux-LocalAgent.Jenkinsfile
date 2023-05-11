@@ -110,7 +110,7 @@ pipeline {
         // Checks if there are any test applications in scope before running the regression stage
         expression { return hasTestApplications() }
       }
-      agent any // Replace by specific label for narrowing down to OutSystems pip3eline-specific agents
+      agent any // Replace by specific label for narrowing down to OutSystems pipeline-specific agents
       steps {
         // Create folder for storing artifacts
         sh script: "mkdir ${env.ArtifactsFolder}", label: 'Create artifacts folder'
@@ -249,7 +249,6 @@ pipeline {
           }
           // Apply configuration values to Regression environment, if any
           sh script: "python3 -m outsystems.pipeline.apply_configuration_values_to_target_env --artifacts \"${env.ArtifactsFolder}\" --lt_url ${env.LifeTimeHostname} --lt_token ${env.AuthorizationToken} --target_env_label \"${env.ProductionEnvironmentLabel}\" --manifest_file \"${env.ArtifactsFolder}/${env.ManifestFolder}/${env.ManifestFile}\"", label: "Apply values to configuration items in ${env.ProductionEnvironmentLabel}"
-
         }
       }
       post {
