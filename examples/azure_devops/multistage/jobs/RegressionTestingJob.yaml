@@ -26,10 +26,15 @@ jobs:
   # ******************************************************************
   # Gets a comma-separated list of the application names
   # found on the Trigger Manifest artifact
-  # ******************************************************************
-  - script: |
-      AppList=$(cat "$(Pipeline.Workspace)/$(Manifest.Folder)/$(Manifest.File)" | jq -c '.ApplicationVersions | map(.ApplicationName) | join(",")')
-      echo "##vso[task.setvariable variable=AppList;isOutput=true]$AppList"
+  # ****************************************************************** 
+  - task: PowerShell@2
+    inputs:
+      targetType: 'inline'
+      script: |
+        $data = Get-Content -Raw "$(Pipeline.Workspace)\$(Manifest.Folder)\$(Manifest.File)" | ConvertFrom-Json
+        $AppList = ($data.ApplicationVersions.ApplicationName -join ',')
+        Write-Host "##vso[task.setvariable variable=AppList;isOutput=true]$AppList"
+      workingDirectory: $(System.DefaultWorkingDirectory)
     displayName: 'Get App List from Manifest'
     name: get_app_list
 
@@ -41,7 +46,7 @@ jobs:
   - script: >
       python -m outsystems.pipeline.generate_unit_testing_assembly
       --artifacts "$(Artifacts.Folder)" 
-      --app_list $(get_app_list.AppList)
+      --app_list "$(get_app_list.AppList)"
       --cicd_probe_env "$(CICDProbe.EnvironmentURL)"
       --bdd_framework_env "$(BDDFramework.EnvironmentURL)"
     displayName: 'Generate URL endpoints for BDD test suites'
