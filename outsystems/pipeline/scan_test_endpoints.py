@@ -37,7 +37,8 @@ test_urls = []  # will contain the urls for the BDD framework
 
 # ---------------------- SCRIPT ----------------------
 def main(artifact_dir: str, apps: list, trigger_manifest: dict, bdd_http_proto: str, bdd_url: str, bdd_api_endpoint: str,
-         bdd_client_api_endpoint: str, bdd_version: int, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: int):
+         bdd_client_api_endpoint: str, bdd_version: int, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str,
+         cicd_version: int, cicd_key: str, exclude_pattern: str):
     # use the script variables
     global bdd_test, bdd_modules, test_names, test_list, test_urls
 
@@ -62,24 +63,31 @@ def main(artifact_dir: str, apps: list, trigger_manifest: dict, bdd_http_proto: 
             continue  # It has no test suites, continue the loop
         for test_endpoint in response:
             # Get the BDD test endpoints information, per module
-            if cicd_version == 1:
+            if cicd_version == 1 and "WebFlows" in test_endpoint["BDDTestEndpointsInfo"]:
                 bdd_test += [{"EspaceName": test_endpoint["BDDTestEndpointsInfo"]["EspaceName"],
                               "WebFlows": test_endpoint["BDDTestEndpointsInfo"]["WebFlows"]}]
-            elif cicd_version == 2:
+            elif cicd_version == 2 and "TestFlows" in test_endpoint:
                 bdd_test += [{"EspaceName": test_endpoint["EspaceName"],
                               "BDDFrameworkType": test_endpoint["BDDFrameworkType"],
-                              "WebFlows": test_endpoint["WebFlows"]}]
+                              "TestFlows": test_endpoint["TestFlows"]}]
             else:
                 raise NotImplementedError("Unsupported CICD Probe API version ({}).".format(cicd_version))
-    bdd_modules = len(response)
+        # Increment bdd modules counter
+        bdd_modules += len(response)
+
     print("{} BDD module(s) found.".format(bdd_modules), flush=True)
 
     # Get the tests to run (just for presentation)
     for bdd in bdd_test:  # For each BDD test
-        if "WebFlows" in bdd:  # Sanity check to see if there are actual webflows in tests
+        if cicd_version == 1:
             for webflow in bdd["WebFlows"]:  # For each webflow
-                if "WebScreens" in webflow:  # Sanity check to see if there are actual webscreens in tests
+                if "WebScreens" in webflow:  # Sanity check to see if there are actual webscreens in the flow
                     test_list += webflow["WebScreens"]
+        elif cicd_version == 2:
+            for testflow in bdd["TestFlows"]:  # For each uiflow
+                if "TestScreens" in testflow:  # Sanity check to see if there are actual testscreens in the flow
+                    test_list += testflow["TestScreens"]
+
     print("{} BDD endpoint(s) scanned successfully.".format(len(test_list)), flush=True)
 
     # Get the names of the tests to run (just for presentation)
@@ -91,29 +99,24 @@ def main(artifact_dir: str, apps: list, trigger_manifest: dict, bdd_http_proto: 
     test_urls = []
     for bdd in bdd_test:  # For each BDD test module
         if cicd_version == 1:
-            if "WebFlows" in bdd:  # Sanity check to see if there are actual webflows in tests
-                for webflow in bdd["WebFlows"]:  # For each webflow
-                    if "WebScreens" in webflow:  # Sanity check to see if there are actual webscreens in tests
-                        for webscreen in webflow["WebScreens"]:  # for each webscreen
-                            test_endpoint = build_bdd_test_endpoint(
-                                bdd_endpoint, bdd["EspaceName"], webscreen["Name"])
-                            test_urls.append(
-                                {"TestSuite": bdd["EspaceName"], "Name": webscreen["Name"], "URL": test_endpoint})
+            for webflow in bdd["WebFlows"]:  # For each webflow
+                if "WebScreens" in webflow:  # Sanity check to see if there are actual webscreens in the flow
+                    for webscreen in webflow["WebScreens"]:  # for each webscreen
+                        test_endpoint = build_bdd_test_endpoint(bdd_endpoint, bdd["EspaceName"], webscreen["Name"])
+                        test_urls.append(
+                            {"TestSuite": bdd["EspaceName"], "Name": webscreen["Name"], "URL": test_endpoint})
         elif cicd_version == 2:
-            if "WebFlows" in bdd:  # Sanity check to see if there are actual webflows in tests
-                for webflow in bdd["WebFlows"]:  # For each webflow
-                    if "WebScreens" in webflow:  # Sanity check to see if there are actual webscreens in tests
-                        for webscreen in webflow["WebScreens"]:  # for each webscreen
-                            if bdd["BDDFrameworkType"] == BDD_FRAMEWORK_TYPE_CLIENT:
-                                target_bdd_endpoint = bdd_endpoint_client
-                            else:
-                                target_bdd_endpoint = bdd_endpoint
-                            test_endpoint = build_bdd_test_endpoint(
-                                target_bdd_endpoint, bdd["EspaceName"], webscreen["Name"])
-                            test_urls.append(
-                                {"TestSuite": bdd["EspaceName"], "Name": webscreen["Name"], "URL": test_endpoint})
-        else:
-            raise NotImplementedError("Unsupported CICD Probe API version ({}).".format(cicd_version))
+            for testflow in bdd["TestFlows"]:  # For each uiflow
+                if "TestScreens" in testflow:  # Sanity check to see if there are actual testscreens in the flow
+                    for testscreen in testflow["TestScreens"]:  # for each testscreen
+                        if bdd["BDDFrameworkType"] == BDD_FRAMEWORK_TYPE_CLIENT:
+                            target_bdd_endpoint = bdd_endpoint_client
+                        else:
+                            target_bdd_endpoint = bdd_endpoint
+                        test_endpoint = build_bdd_test_endpoint(
+                            target_bdd_endpoint, bdd["EspaceName"], testscreen["Name"])
+                        test_urls.append(
+                            {"TestSuite": bdd["EspaceName"], "Name": testscreen["Name"], "URL": test_endpoint})
 
     # Save the test results in a file for later processing
     filename = os.path.join(BDD_FRAMEWORK_FOLDER,
@@ -138,6 +141,10 @@ if __name__ == "__main__":
                         help="(optional) Used to set the API endpoint for CICD Probe, without the version. Default: \"CI_CDProbe/rest\"", default=PROBE_API_ENDPOINT)
     parser.add_argument("--cicd_probe_version", type=int,
                         help="(optional) CICD Probe API version number. Default: 1", default=PROBE_API_VERSION)
+    parser.add_argument("--cicd_probe_key", type=str,
+                        help="(optional) Key for CICD Probe API calls (when enabled).", default="")
+    parser.add_argument("--exclude_pattern", type=str,
+                        help="(optional) Regex for excluding specific ScreenFlows whose screens are not valid test endpoints", default="")
     parser.add_argument("--bdd_framework_env", type=str,
                         help="URL for BDD Framework, without the API endpoint. Example: \"https://<host>\"", required=True)
     parser.add_argument("--bdd_framework_api", type=str,
@@ -196,7 +203,11 @@ if __name__ == "__main__":
         cicd_url = cicd_url[:-1]
     # Parse CICD Probe API Version
     cicd_version = args.cicd_probe_version
+    # Parse CICD Probe API Key
+    cicd_key = args.cicd_probe_key
+    # Parse Exclude Pattern regex
+    exclude_pattern = args.exclude_pattern
 
     # Calls the main script
     main(artifact_dir, apps, manifest_file, bdd_http_proto, bdd_url, bdd_api_endpoint, bdd_client_api_endpoint, bdd_version,
-         cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)
+         cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version, cicd_key, exclude_pattern)
