@@ -58,7 +58,7 @@ def main(artifact_dir: str, apps: list, trigger_manifest: dict, bdd_http_proto: 
     for app in apps:
         # Removes whitespaces in the beginning and end of the string
         app = app.strip()
-        response = scan_bdd_test_endpoint(artifact_dir, probe_endpoint, app)
+        response = scan_bdd_test_endpoint(artifact_dir, probe_endpoint, app, cicd_key, exclude_pattern, cicd_version)
         if len(response) == 0:
             continue  # It has no test suites, continue the loop
         for test_endpoint in response:
@@ -142,9 +142,9 @@ if __name__ == "__main__":
     parser.add_argument("--cicd_probe_version", type=int,
                         help="(optional) CICD Probe API version number. Default: 1", default=PROBE_API_VERSION)
     parser.add_argument("--cicd_probe_key", type=str,
-                        help="(optional) Key for CICD Probe API calls (when enabled).", default="")
+                        help="(optional) Key for CICD Probe API calls (when enabled).")
     parser.add_argument("--exclude_pattern", type=str,
-                        help="(optional) Regex for excluding specific ScreenFlows whose screens are not valid test endpoints", default="")
+                        help="(optional) Regex for excluding specific ScreenFlows whose screens are not valid test endpoints")
     parser.add_argument("--bdd_framework_env", type=str,
                         help="URL for BDD Framework, without the API endpoint. Example: \"https://<host>\"", required=True)
     parser.add_argument("--bdd_framework_api", type=str,

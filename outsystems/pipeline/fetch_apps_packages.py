@@ -36,7 +36,7 @@ def store_data(filename: str, data: list):
         json.dump(data, f)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, apps: list, dep_manifest: list, trigger_manifest: dict, include_test_apps: bool, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str, friendly_package_names: bool, generate_deploy_order: bool):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, apps: list, dep_manifest: list, trigger_manifest: dict, include_test_apps: bool, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str, cicd_key: str, friendly_package_names: bool, generate_deploy_order: bool):
 
     # will contain the applications to deploy details from LT
     app_data_list = []
@@ -69,7 +69,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         probe_endpoint = build_probe_endpoint(cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version)
 
         # Generate deployment order
-        sorted_oap_list = generate_deployment_order(artifact_dir, probe_endpoint, app_oap_list)
+        sorted_oap_list = generate_deployment_order(artifact_dir, probe_endpoint, cicd_key, app_oap_list)
 
         print("\nDeployment Order:\n", flush=True)
         for oap in sorted_oap_list:
@@ -108,6 +108,8 @@ if __name__ == "__main__":
                         help="(Optional) CI/CD Probe API version number.")
     parser.add_argument("-pe", "--cicd_probe_endpoint", type=str, default=PROBE_API_ENDPOINT,
                         help="(Optional) Used to set the API endpoint for CI/CD Probe, without the version.")
+    parser.add_argument("-pk", "--cicd_probe_key", type=str,
+                        help="(Optional) Key for CI/CD Probe API calls (when enabled).")
     parser.add_argument("-n", "--friendly_package_names", action='store_true',
                         help="Flag that indicates if downloaded application packages should have a user-friendly name. Example: \"AppName_v1_2_1\"")
     parser.add_argument("-g", "--generate_deploy_order", action='store_true',
@@ -174,6 +176,8 @@ if __name__ == "__main__":
         cicd_url = None
     # Parse CICD Probe API Version
     cicd_version = args.cicd_probe_version
+    # Parse CICD Probe API Key
+    cicd_key = args.cicd_probe_key
     # Parse Friendly Package Names flag
     friendly_package_names = args.friendly_package_names
     # Parse Generate Deployment Order flag
@@ -182,4 +186,4 @@ if __name__ == "__main__":
         raise InvalidParametersError("The CI/CD Probe is required to create the deployment order and must be provided as argument")
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, apps, dep_manifest, trigger_manifest, include_test_apps, cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version, friendly_package_names, generate_deploy_order)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, apps, dep_manifest, trigger_manifest, include_test_apps, cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version, cicd_key, friendly_package_names, generate_deploy_order)

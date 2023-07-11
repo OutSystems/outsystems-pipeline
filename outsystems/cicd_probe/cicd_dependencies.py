@@ -9,13 +9,14 @@ from outsystems.vars.cicd_vars import GET_APPLICATION_DEPENDENCIES_ENDPOINT, PRO
 
 
 # Get a set of applications which are producers for a specified application version.
-def get_app_dependencies(artifact_dir: str, probe_endpoint: str, application_version_key: str, application_name: str, application_version: str):
+def get_app_dependencies(artifact_dir: str, probe_endpoint: str, api_key: str, application_version_key: str,
+                         application_name: str, application_version: str):
     # Builds the API params
     params = {"ApplicationName": application_name, "ApplicationVersion": application_version}
 
     # Sends the request
     response = send_probe_get_request(
-        probe_endpoint, GET_APPLICATION_DEPENDENCIES_ENDPOINT, params)
+        probe_endpoint, GET_APPLICATION_DEPENDENCIES_ENDPOINT, api_key, params)
     status_code = response["http_status"]
 
     if status_code == PROBE_DEPENDENCIES_SUCCESS_CODE:
