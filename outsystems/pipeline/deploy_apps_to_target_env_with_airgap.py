@@ -184,7 +184,8 @@ if __name__ == "__main__":
     # Parse Manifest file if it exists
     # Based on the file content it can be a deployment manifest (list-based) or trigger manifest (dict-based)
     if args.manifest_file:
-        manifest_file = load_data("", args.manifest_file)
+        manifest_path = os.path.split(args.manifest_file)
+        manifest_file = load_data(manifest_path[0], manifest_path[1])
     else:
         manifest_file = None
     dep_manifest = manifest_file if type(manifest_file) is list else None

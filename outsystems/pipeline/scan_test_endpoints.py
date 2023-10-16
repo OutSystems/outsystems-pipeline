@@ -165,7 +165,8 @@ if __name__ == "__main__":
     # Parse Manifest file (if it exists)
     manifest_file = None
     if args.manifest_file:
-        manifest_file = load_data("", args.manifest_file)
+        manifest_path = os.path.split(args.manifest_file)
+        manifest_file = load_data(manifest_path[0], manifest_path[1])
     # Check if either an app list or a manifest file is being provided
     if not args.app_list and not args.manifest_file:
         raise InvalidParametersError("either --app_list or --manifest_file must be provided as arguments")
