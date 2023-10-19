@@ -7,6 +7,36 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## October 20th, 2023
+
+### CI/CD Probe Integration
+
+A new script has been added to discover Client Side and Server Side BDD test flows through the CI/CD Probe:
+
+* `scan_test_endpoints`
+
+For enhanced BDD test execution, flexibility and security, two new parameters were added:
+
+* --exclude_pattern: to specify the exclude pattern (using a regular expression) for the BDD test flows.
+* --cicd_probe_key: to enhance the security of the CI/CD Probe API calls.
+
+The following scripts have been updated to benefit from the new security parameter:
+
+* `fetch_apps_packages`
+* `deploy_apps_to_target_env_with_airgap`
+
+#### Bug fixes
+
+Fixed the issue related with loading the manifest file when the path directories included spaces on several scripts:
+
+* `apply_configuration_values_to_target_env`
+* `deploy_apps_to_target_env_with_airgap`
+* `deploy_latest_tags_to_target_env`
+* `deploy_tags_to_target_env_with_manifest`
+* `evaluate_test_results`
+* `fetch_apps_packages`
+* `fetch_tech_debt`
+
 ## April 26th, 2023
 
 ### Fixed Package Dependencies
@@ -19,18 +49,19 @@
 Air Gap operations have been improved by the incorporation of the trigger manifest artifact option:
 
 * `deploy_apps_to_target_env_with_airgap` - enhancements to this script:
-    * Added trigger manifest artifact functionality
-    * Script fails if the OSP Tool deployment is not successfull
-    * Added flag parameter to export with friendly package names
+  * Added trigger manifest artifact functionality
+  * Script fails if the OSP Tool deployment is not successfull
+  * Added flag parameter to export with friendly package names
 
 * `tag_apps_based_on_manifest_data` - enhancements to this script:
-    * Added trigger manifest artifact functionality
-    * Only tags if the trigger manifest version is greater than the version currently in use
-    * Ability to tag or exclude from tagging the test applications
+  * Added trigger manifest artifact functionality
+  * Only tags if the trigger manifest version is greater than the version currently in use
+  * Ability to tag or exclude from tagging the test applications
 
-* `tag_modified_apps` - renamed script (from `tag_modified_applications`) in accordance with other scripts naming convention. 
+* `tag_modified_apps` - renamed script (from `tag_modified_applications`) in accordance with other scripts naming convention.
 
 A new script has been added to download application packages (oap) based on the trigger manifest data:
+
 * `fetch_apps_packages`
 
 ## July 4th, 2022
@@ -40,8 +71,8 @@ A new script has been added to download application packages (oap) based on the 
 Added new functionality to provide more flexibility to handle LifeTime deployments:
 
 * `deploy_tags_to_target_env_with_manifest` - Add new optional input parameters:
-    * `--force_two_step_deployment` - Force the execution of the second stage, in an environment where 2-stage deployments are enabled. By default, the script exits after the first stage is completed.
-    * `--include_deployment_zones` - Apply deployment zone selection on the target environment based on the deployment zone defined in the trigger manifest.
+  * `--force_two_step_deployment` - Force the execution of the second stage, in an environment where 2-stage deployments are enabled. By default, the script exits after the first stage is completed.
+  * `--include_deployment_zones` - Apply deployment zone selection on the target environment based on the deployment zone defined in the trigger manifest.
 
 * `continue_deployment_to_target_env` - Continues an existing deployment plan that is waiting for user intervention on a given environment.
 
@@ -66,7 +97,8 @@ Added new function (`start_deployment_to_target_env`) to start a deployment plan
 
 ### Code analysis with Architecture Dashboard
 
-Added new functions to fetch code analysis results from Architecture Dashboard: 
+Added new functions to fetch code analysis results from Architecture Dashboard:
+
 * `fetch_tech_debt` - Fetches last code analysis information from the Architecture Dashboard API (either for the entire infrastructure or for the applications in the Manifest file).
 * `fetch_tech_debt_sync` - Compares the Manifest file applications tag creation datetime with the Architecture Dashboards' last analysis datetime to assure the analysis includes the last tagged code changes.
 
@@ -78,13 +110,15 @@ Included the generation of a Deployment Manifest artifact that can be used to pr
 
 ### Air Gap Support
 
-Added new functions to support Air Gap deployment scenarios: 
+Added new functions to support Air Gap deployment scenarios:
+
 * `deploy_apps_to_target_env_with_airgap` - Deploy OutSystems Applications to a target environment without using the Deployment API
 * `tag_apps_based_on_manifest_data` - Synchronize LifeTime application versions from a Manifest file to target LifeTime
 
 ### New Jenkins Templates
 
 New jenkins templates that include:
+
 * Lockable resources - Each stage has a semaphore to guarantee that the target environment does not have any ongoing deployment
 * Milestones - Ongoing builds of the same pipeline will be discarded whenever a newer build reaches a given pipeline milestone
 * Multi-agent configuration - Ability to define different agents for different stages
