@@ -288,7 +288,8 @@ if __name__ == "__main__":
     apps = _apps.split(',')
     # Parse Manifest file if it exists
     if args.manifest_file:
-        manifest_file = load_data("", args.manifest_file)
+        manifest_path = os.path.split(args.manifest_file)
+        manifest_file = load_data(manifest_path[0], manifest_path[1])
     else:
         manifest_file = None
     # Parse Deployment Message

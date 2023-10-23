@@ -153,7 +153,8 @@ if __name__ == "__main__":
         raise ManifestDoesNotExistError("The manifest was not provided as JSON or as a file. Aborting!")
     # Parse Trigger Manifest artifact
     if args.manifest_file:
-        trigger_manifest = load_data("", args.manifest_file)
+        trigger_manifest_path = os.path.split(args.manifest_file)
+        trigger_manifest = load_data(trigger_manifest_path[0], trigger_manifest_path[1])
     else:
         trigger_manifest = json.loads(args.trigger_manifest)
     # Parse Log Message

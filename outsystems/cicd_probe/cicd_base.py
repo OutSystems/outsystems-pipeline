@@ -11,11 +11,13 @@ def build_probe_endpoint(probe_http_proto: str, probe_url: str, probe_api_endpoi
 
 
 # Sends a GET request to LT, with url_params
-def send_probe_get_request(probe_api: str, probe_endpoint: str, url_params: str):
+def send_probe_get_request(probe_api: str, probe_endpoint: str, api_key: str, url_params: str):
     # Format the request URL to include the api endpoint
     request_string = "{}/{}".format(probe_api, probe_endpoint)
+    # Set API key header, when provided
+    headers = {"X-CICDProbe-Key": api_key} if api_key else None
     # Send the request
-    response = requests.get(request_string, params=url_params)
+    response = requests.get(request_string, params=url_params, headers=headers)
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:

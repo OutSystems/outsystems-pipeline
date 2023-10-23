@@ -52,10 +52,11 @@ def export_apps_oap(artifact_dir: str, lt_endpoint: str, lt_token: str, env_key:
         print("     {} application with version {}, exported as {}".format(app["app_name"], app["app_version"], app["filename"]), flush=True)
 
 
-def generate_deployment_order(artifact_dir: str, probe_endpoint: str, app_oap_list: list):
+def generate_deployment_order(artifact_dir: str, probe_endpoint: str, api_key: str, app_oap_list: list):
     dependencies_list = {}
     for app in app_oap_list:
-        dependencies_list[app["app_key"]] = get_app_dependencies(artifact_dir, probe_endpoint, app["version_key"], app["app_name"], app["app_version"])
+        dependencies_list[app["app_key"]] = get_app_dependencies(artifact_dir, probe_endpoint, api_key,
+                                                                 app["version_key"], app["app_name"], app["app_version"])
     dependencies_order_list = sort_app_dependencies(dependencies_list)
     final_list = []
     for app_dep in dependencies_order_list:
@@ -71,7 +72,7 @@ def deploy_apps_oap(artifact_dir: str, dest_env: str, osp_tool_path: str, creden
         call_osptool(osp_tool_path, oap_file_path, dest_env, credentials)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, trigger_manifest: dict, include_test_apps: bool, dep_note: str, osp_tool_path: str, credentials: str, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str, friendly_package_names: bool):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, trigger_manifest: dict, include_test_apps: bool, dep_note: str, osp_tool_path: str, credentials: str, cicd_http_proto: str, cicd_url: str, cicd_api_endpoint: str, cicd_version: str, cicd_key: str, friendly_package_names: bool):
 
     app_data_list = []  # will contain the applications to deploy details from LT
 
@@ -101,7 +102,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     export_apps_oap(artifact_dir, lt_endpoint, lt_token, src_env_key, app_oap_list)
 
     # Generate deployment order
-    sorted_oap_list = generate_deployment_order(artifact_dir, probe_endpoint, app_oap_list)
+    sorted_oap_list = generate_deployment_order(artifact_dir, probe_endpoint, cicd_key, app_oap_list)
 
     print("\nDeployment Order:\n", flush=True)
     for oap in sorted_oap_list:
@@ -150,6 +151,8 @@ if __name__ == "__main__":
                         help="(Optional) CI/CD Probe API version number.")
     parser.add_argument("-pe", "--cicd_probe_endpoint", type=str, default=PROBE_API_ENDPOINT,
                         help="(Optional) Used to set the API endpoint for CI/CD Probe, without the version.")
+    parser.add_argument("-pk", "--cicd_probe_key", type=str,
+                        help="(Optional) Key for CI/CD Probe API calls (when enabled).")
     parser.add_argument("-n", "--friendly_package_names", action='store_true',
                         help="Flag that indicates if downloaded application packages should have a user-friendly name. Example: \"AppName_v1_2_1\"")
 
@@ -181,7 +184,8 @@ if __name__ == "__main__":
     # Parse Manifest file if it exists
     # Based on the file content it can be a deployment manifest (list-based) or trigger manifest (dict-based)
     if args.manifest_file:
-        manifest_file = load_data("", args.manifest_file)
+        manifest_path = os.path.split(args.manifest_file)
+        manifest_file = load_data(manifest_path[0], manifest_path[1])
     else:
         manifest_file = None
     dep_manifest = manifest_file if type(manifest_file) is list else None
@@ -220,8 +224,10 @@ if __name__ == "__main__":
         cicd_url = cicd_url[:-1]
     # Parse CICD Probe API Version
     cicd_version = args.cicd_probe_version
+    # Parse CICD Probe API Key
+    cicd_key = args.cicd_probe_key
     # Parse Friendly Package Names flag
     friendly_package_names = args.friendly_package_names
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, dep_manifest, trigger_manifest, include_test_apps, dep_note, osp_tool_path, credentials, cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version, friendly_package_names)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, dep_manifest, trigger_manifest, include_test_apps, dep_note, osp_tool_path, credentials, cicd_http_proto, cicd_url, cicd_api_endpoint, cicd_version, cicd_key, friendly_package_names)

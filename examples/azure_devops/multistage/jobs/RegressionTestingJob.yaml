@@ -52,8 +52,9 @@ jobs:
   # Calls each BDD test URL and store the results in JUnit format
   # ******************************************************************
   - script: >
-      python -m outsystems.pipeline.evaluate_test_results
-      --artifacts "$(Artifacts.Folder)" 
+      python -m outsystems.pipeline.evaluate_test_results 
+      --artifacts "$(Artifacts.Folder)"
+    continueOnError: true 
     displayName: 'Run BDD test suites and generate JUnit test report'
   
   # ******************************************************************

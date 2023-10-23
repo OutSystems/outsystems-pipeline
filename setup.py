@@ -11,13 +11,17 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Fixed Python Dependencies**
- * Fixed xunitparser dependency that was causing issues when trying to install the package on python environments higher than v3.8
- * Removed pytest dependency that was not needed
+**Scan Test Endpoints Script**
+* New function to discover Client Side and Server Side BDD test flows through the CI/CD Probe.
 
-**Air Gap Operations**
- * Added support for Trigger Manifest artifact on tag_apps_based_on_manifest_data and deploy_apps_to_target_env_with_airgap scripts.
- * New function to download application packages from a target environment based on the application versions found on the given trigger manifest artifact.
+**CI/CD Probe Integration Enhancements**
+For enhanced BDD test execution, flexibility and security, two new parameters were added:
+* --exclude_pattern: to specify the exclude pattern (using a regular expression) for the BDD test flows.
+* --cicd_probe_key: to enhance the security of the CI/CD Probe API calls.
+
+**Bug Fixes**
+* Fixed the issue related with loading the manifest file when the path directories included spaces.
+* Fixed the evaluate_test_results script to correctly use the provided input parameter instead of relying on default value.
 
 
 Installing and upgrading
@@ -33,7 +37,7 @@ AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
 LICENSE = 'Apache License 2.0'
-PYTHON_REQUIRES = '>=3.0'
+PYTHON_REQUIRES = '>=3.7'
 KEYWORDS = [
     '',
 ]
@@ -54,11 +58,11 @@ CLASSIFIERS = [
 ]
 
 REQUIREMENTS = [
-    'python-dateutil==2.7.5',
-    'requests==2.20.1',
-    'unittest-xml-reporting==2.2.1',
+    'python-dateutil==2.8.2',
+    'requests==2.31.0',
+    'unittest-xml-reporting==3.2.0',
     'xunitparser==1.3.4',
-    'toposort==1.5'
+    'toposort==1.10'
 ]
 
 PACKAGES = [

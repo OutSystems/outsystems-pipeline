@@ -16,3 +16,4 @@ dist/*
 VERSION
 .venv/
 app.py
+tests/*

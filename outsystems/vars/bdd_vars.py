@@ -1,7 +1,10 @@
 # Base CICD Probe Variables
 BDD_HTTP_PROTO = "https"
 BDD_API_ENDPOINT = "BDDFramework/rest"
+BDD_CLIENT_API_ENDPOINT = "TestRunner_API/rest"
 BDD_API_VERSION = 1
+BDD_FRAMEWORK_TYPE_SERVER = "server"
+BDD_FRAMEWORK_TYPE_CLIENT = "client"
 
 # Test Runner Endpoint Variables
 BDD_TEST_RUNNER_ENDPOINT = "BDDTestRunner"
