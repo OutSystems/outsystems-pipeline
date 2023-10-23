@@ -7,16 +7,13 @@ if __name__ == "__main__":
     parser.add_argument("--revision", help="Toggle if you're doing a revision version.", action="store_true")
     parser.add_argument("--minor", help="Toggle if you're doing a minor version.", action="store_true")
     parser.add_argument("--major", help="Toggle if you're doing a major version.", action="store_true")
-    parser.add_argument("--replace", help="Toggle if you're replacing the last version.", action="store_true")
     args = parser.parse_args()
 
     client = xmlrpc.client.ServerProxy('https://pypi.org/pypi')
     version = client.package_releases('outsystems-pipeline')[0]
     version_array = version.split('.')
 
-    if args.replace:
-        pass
-    elif args.revision:
+    if args.revision:
         if len(version_array) > 2:
             # Increments the previous beta version
             revision_version = int(version_array[-1])
