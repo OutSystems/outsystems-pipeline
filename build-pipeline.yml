@@ -70,11 +70,7 @@ jobs:
       architecture: 'x64'
 
   - script: |
-      if [ "$(ReleaseType)" == "major" ]; then
-        python build/version_bumper.py
-      else
-        python build/version_bumper.py --$(ReleaseType)
-      fi
+      python build/version_bumper.py --$(ReleaseType)
       python setup.py sdist
     displayName: 'Build sdist'
 
