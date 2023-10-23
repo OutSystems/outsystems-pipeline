@@ -15,9 +15,9 @@ What's new
  * New function to discover Client Side and Server Side BDD test flows through the CI/CD Probe.
 
 **CI/CD Probe Integration Enhancements**
-For enhanced BDD test execution, flexibility and security, two new parameters were added:
- * --exclude_pattern: to specify the exclude pattern (using a regular expression) for the BDD test flows.
- * --cicd_probe_key: to enhance the security of the CI/CD Probe API calls.
+ * For enhanced BDD test execution, flexibility and security, two new parameters were added:
+   * --exclude_pattern: to specify the exclude pattern (using a regular expression) for the BDD test flows.
+   * --cicd_probe_key: to enhance the security of the CI/CD Probe API calls.
 
 **Bug Fixes**
  * Fixed the issue related with loading the manifest file when the path directories included spaces.
