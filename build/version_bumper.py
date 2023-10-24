@@ -6,6 +6,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--revision", help="Toggle if you're doing a revision version.", action="store_true")
     parser.add_argument("--minor", help="Toggle if you're doing a minor version.", action="store_true")
+    parser.add_argument("--major", help="Toggle if you're doing a major version.", action="store_true")
     args = parser.parse_args()
 
     client = xmlrpc.client.ServerProxy('https://pypi.org/pypi')
@@ -30,10 +31,11 @@ if __name__ == "__main__":
                 version_array.extend("0")
         minor_version = int(version_array[-2])
         version_array[-2] = str(minor_version + 1)
-    else:
+    elif args.major:
         major_version = int(version_array[0])
         version_array = [str(major_version + 1), "0", "0"]
-
+    else:
+        parser.error("Release type not specified")
     version = ".".join(version_array)
 
     with fileinput.FileInput("setup.py", inplace=True, backup='.bak') as setup_file:
