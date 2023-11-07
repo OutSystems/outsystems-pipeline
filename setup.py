@@ -37,7 +37,7 @@ AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
 LICENSE = 'Apache License 2.0'
-PYTHON_REQUIRES = '>=3.7'
+PYTHON_REQUIRES = '>=3.8'
 KEYWORDS = [
     '',
 ]
@@ -62,7 +62,8 @@ REQUIREMENTS = [
     'requests==2.31.0',
     'unittest-xml-reporting==3.2.0',
     'xunitparser==1.3.4',
-    'toposort==1.10'
+    'toposort==1.10',
+    'dotenv==1.0.0'
 ]
 
 PACKAGES = [
