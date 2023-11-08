@@ -3,6 +3,10 @@ import requests
 
 # Custom Modules
 from outsystems.exceptions.invalid_json_response import InvalidJsonResponseError
+# Variables
+from outsystems.vars.lifetime_vars import LIFETIME_SSL_CERT_VERIFY
+# Functions
+from outsystems.vars.vars_base import get_configuration_value
 
 
 # Method that builds the CICD Probe endpoint based on the environment host
@@ -17,7 +21,7 @@ def send_probe_get_request(probe_api: str, probe_endpoint: str, api_key: str, ur
     # Set API key header, when provided
     headers = {"X-CICDProbe-Key": api_key} if api_key else None
     # Send the request
-    response = requests.get(request_string, params=url_params, headers=headers)
+    response = requests.get(request_string, params=url_params, headers=headers, verify=get_configuration_value("LIFETIME_SSL_CERT_VERIFY", LIFETIME_SSL_CERT_VERIFY))
     response_obj = {"http_status": response.status_code, "response": {}}
     if len(response.text) > 0:
         try:
