@@ -2,7 +2,7 @@
 LIFETIME_HTTP_PROTO = "https"
 LIFETIME_API_ENDPOINT = "lifetimeapi/rest"
 LIFETIME_API_VERSION = 2
-LIFETIME_SSL_CERT_VERIFY = False
+LIFETIME_SSL_CERT_VERIFY = True
 
 # Applications Endpoint Variables
 # Application list specific
