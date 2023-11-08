@@ -11,17 +11,18 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Scan Test Endpoints Script**
- * New function to discover Client Side and Server Side BDD test flows through the CI/CD Probe.
+**Config File Support**
+ Load configuration values from a custom file to override default values. To use this feature, use the new `--config_file` parameter to specify the configuration file path.
+ This enhancement is available in the following scripts:
 
-**CI/CD Probe Integration Enhancements**
- * For enhanced BDD test execution, flexibility and security, two new parameters were added:
-    * --exclude_pattern: to specify the exclude pattern (using a regular expression) for the BDD test flows.
-    * --cicd_probe_key: to enhance the security of the CI/CD Probe API calls.
+ * `continue_deployment_to_target_env.py`
+ * `deploy_latest_tags_to_target_env.py`
+ * `deploy_tags_to_target_env_with_manifest.py`
+ * `start_deployment_to_target_env.py`
 
-**Bug Fixes**
- * Fixed the issue related with loading the manifest file when the path directories included spaces.
- * Fixed the evaluate_test_results script to correctly use the provided input parameter instead of relying on default value.
+**SSL Certificate Verification**
+ The Python `requests` module verifies SSL certificates for HTTPS requests.
+ Now there's a flag to enable (default value) or disable SSL certificate verification.
 
 
 Installing and upgrading

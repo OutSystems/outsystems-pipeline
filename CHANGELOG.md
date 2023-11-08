@@ -7,6 +7,24 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## November 11th, 2023
+
+### Config File Support
+
+Load configuration values from a custom file to override default values. To use this feature, use the new `--config_file` parameter to specify the configuration file path.
+
+This enhancement is available in the following scripts:
+
+* `continue_deployment_to_target_env.py`
+* `deploy_latest_tags_to_target_env.py`
+* `deploy_tags_to_target_env_with_manifest.py`
+* `start_deployment_to_target_env.py`
+
+### SSL Certificate Verification
+
+The Python `requests` module verifies SSL certificates for HTTPS requests.
+Now there's a flag to enable (default value) or disable SSL certificate verification.
+
 ## October 20th, 2023
 
 ### CI/CD Probe Integration
