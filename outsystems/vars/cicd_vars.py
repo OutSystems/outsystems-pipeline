@@ -2,6 +2,7 @@
 PROBE_HTTP_PROTO = "https"
 PROBE_API_ENDPOINT = "CI_CDProbe/rest"
 PROBE_API_VERSION = 1
+PROBE_API_SSL_CERT_VERIFY = True
 
 # Scan Endpoints
 SCAN_BDD_TESTS_ENDPOINT = "ScanBDDTestEndpoints"

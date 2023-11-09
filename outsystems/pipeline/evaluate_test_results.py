@@ -17,6 +17,7 @@ else:  # Else just add the project dir
 from outsystems.vars.file_vars import ARTIFACT_FOLDER, BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE, JUNIT_TEST_RESULTS_FILE
 from outsystems.bdd_framework.bdd_runner import run_bdd_test
 from outsystems.file_helpers.file import load_data
+from outsystems.vars.vars_base import load_configuration_file
 
 
 # Functions
@@ -52,7 +53,14 @@ if __name__ == '__main__':
     # Argument menu / parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-a", "--artifacts", type=str, help="Name of the artifacts folder. Default: \"Artifacts\"", default=ARTIFACT_FOLDER)
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
+
     args = parser.parse_args()
+
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     # Assumes the default dir = Artifacts
     artifact_dir = args.artifacts

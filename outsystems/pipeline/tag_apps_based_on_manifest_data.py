@@ -22,6 +22,7 @@ from outsystems.file_helpers.file import load_data
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_applications import set_application_version, get_running_app_version
+from outsystems.vars.vars_base import load_configuration_file
 # Exceptions
 from outsystems.exceptions.invalid_parameters import InvalidParametersError
 
@@ -84,9 +85,14 @@ if __name__ == "__main__":
                         help="Manifest file path (either deployment or trigger).")
     parser.add_argument("-i", "--include_test_apps", action='store_true',
                         help="(Optional) Flag that indicates if applications marked as \"Test Application\" in the trigger manifest are included for tagging.")
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
 
     args = parser.parse_args()
 
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the API endpoint

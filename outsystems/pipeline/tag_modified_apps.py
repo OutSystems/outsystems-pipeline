@@ -25,6 +25,7 @@ from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_applications import set_application_version
 from outsystems.file_helpers.file import load_data
+from outsystems.vars.vars_base import load_configuration_file
 
 # Exceptions
 from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistError
@@ -125,8 +126,14 @@ if __name__ == "__main__":
                         help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
     parser.add_argument("-l", "--log_msg", type=str, default="Version created automatically using outsystems-pipeline package.",
                         help="(optional) log message to be added to the new tags")
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
+
     args = parser.parse_args()
 
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the API endpoint
