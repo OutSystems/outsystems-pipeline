@@ -66,6 +66,8 @@ if __name__ == '__main__':
     artifact_dir = args.artifacts
     if len(sys.argv) == 3:  # Workaround to clear the args to avoid messing with the unittest.main()
         sys.argv = sys.argv[:-2]
+    elif len(sys.argv) == 5:
+        sys.argv = sys.argv[:-4]
 
     # Load the test endpoints
     filename = os.path.join(BDD_FRAMEWORK_FOLDER, BDD_FRAMEWORK_TEST_ENDPOINTS_FILE)
