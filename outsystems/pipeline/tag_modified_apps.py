@@ -2,7 +2,6 @@
 import sys
 import os
 import argparse
-import json
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -25,14 +24,13 @@ from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.lifetime.lifetime_applications import set_application_version
 from outsystems.file_helpers.file import load_data
-from outsystems.vars.vars_base import load_configuration_file
+from outsystems.vars.vars_base import load_configuration_file, get_configuration_value
 
 # Exceptions
-from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistError
+from outsystems.exceptions.invalid_parameters import InvalidParametersError
+
 
 # ############################################################# SCRIPT ##############################################################
-
-
 def generate_new_version_number(base_version: str):
     # Split tag version digits
     base_version = base_version.split('.')  # type: ignore
@@ -52,7 +50,7 @@ def generate_new_version_number(base_version: str):
     return "{}.{}.{}".format(maj, min, rev)
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, trigger_manifest: dict, log_msg: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, apps: list, trigger_manifest: dict, log_msg: str):
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
 
@@ -62,9 +60,15 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Get all applications info
     all_apps = get_applications(artifact_dir, lt_endpoint, lt_token, True)
 
-    for app_name in trigger_manifest[MANIFEST_APPLICATION_VERSIONS]:
+    # Use trigger_manifest or apps list
+    app_list = trigger_manifest[MANIFEST_APPLICATION_VERSIONS] if trigger_manifest else apps
+    trigger_in_use = bool(trigger_manifest)
+
+    for app in app_list:
+
+        app_name = app["ApplicationName"] if trigger_in_use else app
         # Gets application specific details
-        app_detail = list(filter(lambda x: x["Name"] == app_name["ApplicationName"], all_apps))
+        app_detail = list(filter(lambda x: x["Name"] == app_name, all_apps))
 
         if len(app_detail):
             # Checks if application is modified in target env
@@ -75,11 +79,11 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 generated_tag = generate_new_version_number(current_tag["Version"])
 
                 # List of the last application tags
-                tag_history_list = [d["Version"] for d in get_application_versions(artifact_dir, lt_endpoint, lt_token, MAX_VERSIONS_TO_RETURN, app_name=app_name)]
+                tag_history_list = [d["Version"] for d in get_application_versions(artifact_dir, lt_endpoint, lt_token, get_configuration_value("MAX_VERSIONS_TO_RETURN", MAX_VERSIONS_TO_RETURN), app_name=app_name)]
 
                 # Finds next available tag number
                 retries = 0
-                while retries < TAG_APP_MAX_RETRIES:
+                while retries < get_configuration_value("TAG_APP_MAX_RETRIES", TAG_APP_MAX_RETRIES):
                     if generated_tag in tag_history_list:
                         generated_tag = generate_new_version_number(generated_tag)
                     else:
@@ -99,7 +103,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                         break
 
                     retries += 1
-                    if retries == TAG_APP_MAX_RETRIES:
+                    if retries == get_configuration_value("TAG_APP_MAX_RETRIES", TAG_APP_MAX_RETRIES):
                         print("Could not find available tag for Application '{}' ".format(current_tag["ApplicationName"]), flush=True)
 
 # End of main()
@@ -118,16 +122,16 @@ if __name__ == "__main__":
                         help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2")
     parser.add_argument("-e", "--lt_endpoint", type=str, default=LIFETIME_API_ENDPOINT,
                         help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
-    parser.add_argument("-d", "--dest_env", type=str, required=True,
+    parser.add_argument("-d", "--destination_env", type=str, required=True,
                         help="Name, as displayed in LifeTime, of the environment where you want to tag the apps.")
+    parser.add_argument("-l", "--app_list", type=str,
+                        help="Comma separated list of apps you want to tag. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-m", "--trigger_manifest", type=str,
-                        help="Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
-    parser.add_argument("-f", "--manifest_file", type=str,
                         help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
-    parser.add_argument("-l", "--log_msg", type=str, default="Version created automatically using outsystems-pipeline package.",
+    parser.add_argument("-lm", "--log_msg", type=str, default="Version created automatically using outsystems-pipeline package.",
                         help="(optional) log message to be added to the new tags")
     parser.add_argument("-cf", "--config_file", type=str,
-                        help="Config file path. Contains configuration values to override the default ones.")
+                        help="(optional) Config file path. Contains configuration values to override the default ones.")
 
     args = parser.parse_args()
 
@@ -154,17 +158,21 @@ if __name__ == "__main__":
     # Parse the LT Token
     lt_token = args.lt_token
     # Parse Destination Environment
-    dest_env = args.dest_env
-    # Validate Manifest is being passed either as JSON or as file
-    if not args.trigger_manifest and not args.manifest_file:
-        raise ManifestDoesNotExistError("The manifest was not provided as JSON or as a file. Aborting!")
-    # Parse Trigger Manifest artifact
-    if args.manifest_file:
-        trigger_manifest_path = os.path.split(args.manifest_file)
-        trigger_manifest = load_data(trigger_manifest_path[0], trigger_manifest_path[1])
-    else:
-        trigger_manifest = json.loads(args.trigger_manifest)
+    dest_env = args.destination_env
+    # Parse App list (if it exists)
+    apps = None
+    if args.app_list:
+        apps = args.app_list.split(',')
+    # Parse Manifest file (if it exists)
+    trigger_manifest = None
+    if args.trigger_manifest:
+        manifest_path = os.path.split(args.trigger_manifest)
+        trigger_manifest = load_data(manifest_path[0], manifest_path[1])
+    # Check if either an app list or a manifest file is being provided
+    if not args.app_list and not args.trigger_manifest:
+        raise InvalidParametersError("either --app_list or --trigger_manifest must be provided as arguments")
+
     # Parse Log Message
     log_msg = args.log_msg
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, trigger_manifest, log_msg)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, apps, trigger_manifest, log_msg)

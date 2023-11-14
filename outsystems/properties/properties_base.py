@@ -7,6 +7,7 @@ from outsystems.vars.properties_vars import PROPERTIES_API_HTTP_PROTO, PROPERTIE
 # Functions
 from outsystems.vars.vars_base import get_configuration_value
 
+
 # Method that builds the Properties API endpoint based on the environment host
 def build_properties_api_url(properties_http_proto: str, lt_url: str, properties_api_endpoint: str, properties_api_version: int):
     return "{}://{}/{}/v{}".format(properties_http_proto, lt_url, properties_api_endpoint, properties_api_version)
