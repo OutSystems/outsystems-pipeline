@@ -33,7 +33,7 @@ What's new
  Now there's a flag to enable (default value) or disable SSL certificate verification.
 
 **Fetch Technical Debt**
- Updated `fetch_tech_debt` script to not fail when all modules of an app are marked as "ignored" in AI Mentor Studio
+ Enhanced the `fetch_tech_debt` script to prevent failures when all modules of an app are marked as 'ignored' in AI Mentor Studio and when an app has no security findings.
 
 **Tag Modified Applications**
  Updated `tag_modified_apps` script to tag applications based on a app_list parameter or from the trigger_manifest artifact

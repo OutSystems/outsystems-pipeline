@@ -37,7 +37,7 @@ Now there's a flag to enable (default value) or disable SSL certificate verifica
 
 #### Fetch Technical Debt
 
-Updated `fetch_tech_debt` script to not fail when all modules of an app are marked as "ignored" in AI Mentor Studio
+Enhanced the `fetch_tech_debt` script to prevent failures when all modules of an app are marked as 'ignored' in AI Mentor Studio and when an app has no security findings.
 
 #### Tag Modified Applications
 
