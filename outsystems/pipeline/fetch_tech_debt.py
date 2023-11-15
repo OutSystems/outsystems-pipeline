@@ -28,17 +28,27 @@ def main(artifact_dir: str, ad_api_host: str, activation_code: str, api_key: str
 
     # Get tech debt reference data (levels)
     get_techdebt_levels(artifact_dir, ad_api_host, activation_code, api_key)
+    print("Technical debt levels retrieved successfully.", flush=True)
 
     # Get tech debt reference data (categories)
     get_techdebt_categories(artifact_dir, ad_api_host, activation_code, api_key)
+    print("Technical debt categories retrieved successfully.", flush=True)
 
     # If the manifest file is being used, tech debt analysis is made for each app in the manifest
     # Otherwise it runs for the entire infrastructure
     if trigger_manifest and MANIFEST_APPLICATION_VERSIONS in trigger_manifest:
         for app in trigger_manifest[MANIFEST_APPLICATION_VERSIONS]:
-            get_app_techdebt(artifact_dir, ad_api_host, activation_code, api_key, app)
+            status = get_app_techdebt(artifact_dir, ad_api_host, activation_code, api_key, app)
+            if status:
+                print("Technical debt data retrieved successfully for application {}.".format(app["ApplicationName"]), flush=True)
+            else:
+                print("No technical debt data found for application {}.".format(app["ApplicationName"]), flush=True)
+
+
     else:
         get_infra_techdebt(artifact_dir, ad_api_host, activation_code, api_key)
+        print("Technical debt data retrieved successfully for infrastructure {}.".format(activation_code), flush=True)
+
 
     sys.exit(0)
 
