@@ -7,7 +7,7 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
-## November 11th, 2023
+## November 15th, 2023
 
 ### Config File Support
 
