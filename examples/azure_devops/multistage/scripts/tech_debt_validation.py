@@ -55,7 +55,7 @@ for manifest_app in trigger_manifest["ApplicationVersions"]:
     if os.path.isfile(findings_file):
         findings = json.load(open(findings_file, "r"))
     else:
-        print("Validation skipped for {}: No findings file found for assessment.".format(app_name), flush=True)
+        print("Validation skipped for {}: No technical debt data found.".format(app_name), flush=True)
         break
 
     for app in findings["Applications"]:
