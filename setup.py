@@ -32,6 +32,11 @@ What's new
  The Python `requests` module verifies SSL certificates for HTTPS requests.
  Now there's a flag to enable (default value) or disable SSL certificate verification.
 
+**Fetch Technical Debt**
+ Updated `fetch_tech_debt` script to not fail when all modules of an app are marked as "ignored" in AI Mentor Studio
+
+**Tag Modified Applications**
+ Updated `tag_modified_apps` script to tag applications based on a app_list parameter or from the trigger_manifest artifact
 
 Installing and upgrading
 ========================
