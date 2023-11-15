@@ -25,7 +25,7 @@ jobs:
   strategy:
     matrix:
       Python37:
-        python.version: '3.7'
+        python.version: '3.8'
       Python311:
         python.version: '3.11'
     maxParallel: 2
