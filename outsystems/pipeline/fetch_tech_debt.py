@@ -48,7 +48,6 @@ def main(artifact_dir: str, ad_api_host: str, activation_code: str, api_key: str
         get_infra_techdebt(artifact_dir, ad_api_host, activation_code, api_key)
         print("Technical debt data retrieved successfully for infrastructure {}.".format(activation_code), flush=True)
 
-
     sys.exit(0)
 
 # End of main()
