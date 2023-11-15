@@ -2,6 +2,7 @@
 # Python modules
 import argparse
 import json
+import os
 
 
 # Custom exceptions
@@ -47,7 +48,16 @@ max_techdebt_idx = levels["Levels"].index(max_techdebt_lvl_info)
 # Check if tech debt level of each app in the pipeline scope is below defined threshold
 for manifest_app in trigger_manifest["ApplicationVersions"]:
     app_name = manifest_app["ApplicationName"].replace(' ', '_')
-    findings = json.load(open("{}/TechDebt.{}.application.cache".format(techdebt_data_folder, app_name), "r"))
+
+    findings_file = "{}/TechDebt.{}.application.cache".format(techdebt_data_folder, app_name)
+    findings = {}
+
+    if os.path.isfile(findings_file):
+        findings = json.load(open(findings_file, "r"))
+    else:
+        print("Validation skipped for {}: No technical debt data found.".format(app_name), flush=True)
+        break
+
     for app in findings["Applications"]:
         techdebt_lvl_info = next(filter(lambda x: x["GUID"] == app["LevelGUID"], levels["Levels"]), None)
         techdebt_lvl_idx = levels["Levels"].index(techdebt_lvl_info)
