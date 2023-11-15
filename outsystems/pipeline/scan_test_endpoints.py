@@ -20,6 +20,7 @@ from outsystems.bdd_framework.bdd_base import build_bdd_endpoint, build_bdd_test
 from outsystems.cicd_probe.cicd_scan import scan_bdd_test_endpoint
 from outsystems.cicd_probe.cicd_base import build_probe_endpoint
 from outsystems.file_helpers.file import store_data, load_data
+from outsystems.vars.vars_base import load_configuration_file
 from outsystems.vars.manifest_vars import MANIFEST_APPLICATION_VERSIONS, MANIFEST_APPLICATION_NAME, MANIFEST_FLAG_IS_TEST_APPLICATION
 # Exceptions
 from outsystems.exceptions.invalid_parameters import InvalidParametersError
@@ -153,9 +154,14 @@ if __name__ == "__main__":
                         help="(optional) Used to set the API endpoint for BDD Framework Client-side, without the version. Default: \"TestRunner_API/rest\"", default=BDD_CLIENT_API_ENDPOINT)
     parser.add_argument("--bdd_framework_version", type=int,
                         help="(optional) BDD Framework API version number. Default: 1", default=BDD_API_VERSION)
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
 
     args = parser.parse_args()
 
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse App list (if it exists)

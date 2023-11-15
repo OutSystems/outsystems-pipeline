@@ -27,6 +27,7 @@ from outsystems.cicd_probe.cicd_dependencies import get_app_dependencies, sort_a
 from outsystems.pipeline.deploy_latest_tags_to_target_env import generate_deployment_based_on_manifest as generate_deployment_based_on_deploy_manifest, \
     generate_regular_deployment
 from outsystems.pipeline.deploy_tags_to_target_env_with_manifest import generate_deployment_based_on_manifest as generate_deployment_based_on_trigger_manifest
+from outsystems.vars.vars_base import load_configuration_file
 # Exceptions
 from outsystems.exceptions.invalid_parameters import InvalidParametersError
 
@@ -155,9 +156,14 @@ if __name__ == "__main__":
                         help="(Optional) Key for CI/CD Probe API calls (when enabled).")
     parser.add_argument("-n", "--friendly_package_names", action='store_true',
                         help="Flag that indicates if downloaded application packages should have a user-friendly name. Example: \"AppName_v1_2_1\"")
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
 
     args = parser.parse_args()
 
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the API endpoint

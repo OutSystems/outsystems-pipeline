@@ -57,7 +57,7 @@ for manifest_app in trigger_manifest["ApplicationVersions"]:
         # Check if security findings count of each app in the pipeline scope is below defined threshold
         sec_findings_count = 0
         for module in app["Modules"]:
-            sec_findings_only = filter(lambda x: x["CategoryGUID"] == cat_security_guid, module["Findings"])
+            sec_findings_only = filter(lambda x: x.get("CategoryGUID") == cat_security_guid, module.get("Findings", []))
             for finding in sec_findings_only:
                 sec_findings_count += finding["Count"]
         if sec_findings_count > max_sec_findings_count:

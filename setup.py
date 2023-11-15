@@ -11,18 +11,32 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Scan Test Endpoints Script**
- * New function to discover Client Side and Server Side BDD test flows through the CI/CD Probe.
+**Config File Support**
+ Load configuration values from a custom file to override default values. To use this feature, use the new `--config_file` parameter to specify the configuration file path.
+ This enhancement is available in the following scripts:
 
-**CI/CD Probe Integration Enhancements**
- * For enhanced BDD test execution, flexibility and security, two new parameters were added:
-    * --exclude_pattern: to specify the exclude pattern (using a regular expression) for the BDD test flows.
-    * --cicd_probe_key: to enhance the security of the CI/CD Probe API calls.
+ * `apply_configuration_values_to_target_env.py`
+ * `continue_deployment_to_target_env.py`
+ * `deploy_apps_to_target_env_with_airgap.py`
+ * `deploy_latest_tags_to_target_env.py`
+ * `deploy_tags_to_target_env_with_manifest.py`
+ * `evaluate_test_results.py`
+ * `fetch_apps_packages.py`
+ * `fetch_lifetime_data.py`
+ * `scan_test_endpoints.py`
+ * `start_deployment_to_target_env.py`
+ * `tag_apps_based_on_manifest_data.py`
+ * `tag_modified_apps.py`
 
-**Bug Fixes**
- * Fixed the issue related with loading the manifest file when the path directories included spaces.
- * Fixed the evaluate_test_results script to correctly use the provided input parameter instead of relying on default value.
+**SSL Certificate Verification**
+ The Python `requests` module verifies SSL certificates for HTTPS requests.
+ Now there's a flag to enable (default value) or disable SSL certificate verification.
 
+**Fetch Technical Debt**
+ Enhanced the `fetch_tech_debt` script to prevent failures when all modules of an app are marked as 'ignored' in AI Mentor Studio and when an app has no security findings.
+
+**Tag Modified Applications**
+ Updated `tag_modified_apps` script to tag applications based on a app_list parameter or from the trigger_manifest artifact
 
 Installing and upgrading
 ========================
@@ -37,7 +51,7 @@ AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
 LICENSE = 'Apache License 2.0'
-PYTHON_REQUIRES = '>=3.7'
+PYTHON_REQUIRES = '>=3.8'
 KEYWORDS = [
     '',
 ]
@@ -62,7 +76,8 @@ REQUIREMENTS = [
     'requests==2.31.0',
     'unittest-xml-reporting==3.2.0',
     'xunitparser==1.3.4',
-    'toposort==1.10'
+    'toposort==1.10',
+    'python-dotenv==1.0.0'
 ]
 
 PACKAGES = [

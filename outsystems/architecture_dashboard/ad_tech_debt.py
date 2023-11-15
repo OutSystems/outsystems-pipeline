@@ -11,7 +11,8 @@ from outsystems.file_helpers.file import store_data
 # Variables
 from outsystems.vars.ad_vars import AD_API_ENDPOINT, AD_API_SUCCESS_CODE, AD_HTTP_PROTO, AD_API_VERSION, \
     AD_API_UNAUTHORIZED_CODE, AD_APP_ENDPOINT, AD_APP_LIMIT_DEFAULT, AD_APP_SUCCESS_CODE, \
-    AD_LEVELS_ENDPOINT, AD_LEVELS_SUCCESS_CODE, AD_CATEGORIES_ENDPOINT, AD_CATEGORIES_SUCCESS_CODE
+    AD_LEVELS_ENDPOINT, AD_LEVELS_SUCCESS_CODE, AD_CATEGORIES_ENDPOINT, AD_CATEGORIES_SUCCESS_CODE, \
+    AD_API_NOT_FOUND_CODE
 from outsystems.vars.file_vars import AD_FOLDER, AD_FILE_PREFIX, AD_INFRA_FILE, AD_APP_FILE, \
     AD_LEVELS_FILE, AD_CATEGORIES_FILE
 
@@ -62,6 +63,10 @@ def get_app_techdebt(artifact_dir: str, ad_api_host: str, activation_code: str, 
         filename = os.path.join(AD_FOLDER, filename)
         store_data(artifact_dir, filename, response["response"])
         return response["response"]
+    # No application found with a key matching the Application input parameter
+    # Probably all modules of the app are ignored"
+    elif status_code == AD_API_NOT_FOUND_CODE:
+        return None
     elif status_code == AD_API_UNAUTHORIZED_CODE:
         raise NotEnoughPermissionsError(
             "You don't have enough permissions to get Tecnical Debt information. Details {}".format(response["response"]))

@@ -38,11 +38,16 @@ def main(artifact_dir: str, ad_api_host: str, activation_code: str, api_key: str
     # Otherwise it runs for the entire infrastructure
     if trigger_manifest and MANIFEST_APPLICATION_VERSIONS in trigger_manifest:
         for app in trigger_manifest[MANIFEST_APPLICATION_VERSIONS]:
-            get_app_techdebt(artifact_dir, ad_api_host, activation_code, api_key, app)
-            print("Technical debt data retrieved successfully for application {}.".format(app["ApplicationName"]), flush=True)
+            status = get_app_techdebt(artifact_dir, ad_api_host, activation_code, api_key, app)
+            if status:
+                print("Technical debt data retrieved successfully for application {}.".format(app["ApplicationName"]), flush=True)
+            else:
+                print("No technical debt data found for application {}.".format(app["ApplicationName"]), flush=True)
+
     else:
         get_infra_techdebt(artifact_dir, ad_api_host, activation_code, api_key)
         print("Technical debt data retrieved successfully for infrastructure {}.".format(activation_code), flush=True)
+
 
     sys.exit(0)
 

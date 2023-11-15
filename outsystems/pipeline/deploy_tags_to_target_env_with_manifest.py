@@ -31,6 +31,7 @@ from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.manifest.manifest_base import get_environment_details, get_deployment_notes
+from outsystems.vars.vars_base import get_configuration_value, load_configuration_file
 # Exceptions
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistError
@@ -170,11 +171,12 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     wait_counter = 0
     deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_tuple[1])
     while len(deployments) > 0:
-        if wait_counter >= QUEUE_TIMEOUT_IN_SECS:
+        if wait_counter >= get_configuration_value("QUEUE_TIMEOUT_IN_SECS", QUEUE_TIMEOUT_IN_SECS):
             print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
             sys.exit(1)
-        sleep(SLEEP_PERIOD_IN_SECS)
-        wait_counter += SLEEP_PERIOD_IN_SECS
+        sleep_value = get_configuration_value("SLEEP_PERIOD_IN_SECS", SLEEP_PERIOD_IN_SECS)
+        sleep(sleep_value)
+        wait_counter += sleep_value
         print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
         deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_tuple[1])
 
@@ -188,7 +190,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     has_conflicts = len(dep_details["ApplicationConflicts"]) > 0
     if has_conflicts:
         store_data(artifact_dir, CONFLICTS_FILE, dep_details["ApplicationConflicts"])
-        if not ALLOW_CONTINUE_WITH_ERRORS or lt_api_version == 1:
+        if not get_configuration_value("ALLOW_CONTINUE_WITH_ERRORS", ALLOW_CONTINUE_WITH_ERRORS) or lt_api_version == 1:
             print("Deployment plan {} has conflicts and will be aborted. Check {} artifact for more details.".format(dep_plan_key, CONFLICTS_FILE), flush=True)
             # Abort previously created deployment plan to target environment
             delete_deployment(lt_endpoint, lt_token, dep_plan_key)
@@ -204,7 +206,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         if has_conflicts:
             start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=False, continue_with_errors=True)
         else:
-            start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=REDEPLOY_OUTDATED_APPS)
+            start_deployment(lt_endpoint, lt_token, dep_plan_key, redeploy_outdated=get_configuration_value("REDEPLOY_OUTDATED_APPS", REDEPLOY_OUTDATED_APPS))
     else:
         raise NotImplementedError("Please make sure the API version is compatible with the module.")
     print("Deployment plan {} started being executed.".format(dep_plan_key), flush=True)
@@ -213,7 +215,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     alert_user = False
     # Sleep thread until deployment has finished
     wait_counter = 0
-    while wait_counter < DEPLOYMENT_TIMEOUT_IN_SECS:
+    while wait_counter < get_configuration_value("DEPLOYMENT_TIMEOUT_IN_SECS", DEPLOYMENT_TIMEOUT_IN_SECS):
         # Check Deployment Plan status.
         dep_status = get_deployment_status(
             artifact_dir, lt_endpoint, lt_token, dep_plan_key)
@@ -244,8 +246,9 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 # Exit the script to continue with the pipeline
                 sys.exit(0)
         # Deployment status is still running. Go back to sleep.
-        sleep(SLEEP_PERIOD_IN_SECS)
-        wait_counter += SLEEP_PERIOD_IN_SECS
+        sleep_value = get_configuration_value("SLEEP_PERIOD_IN_SECS", SLEEP_PERIOD_IN_SECS)
+        sleep(sleep_value)
+        wait_counter += sleep_value
         print("{} secs have passed since the deployment started...".format(wait_counter), flush=True)
 
     # Deployment timeout reached. Exit script with error
@@ -283,9 +286,14 @@ if __name__ == "__main__":
                         help="Force the execution of the 2-Step deployment.")
     parser.add_argument("-z", "--include_deployment_zones", action='store_true',
                         help="Flag that indicates if deployment zone selection is included in the deployment plan. Applicable to self-managed environments only.")
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
 
     args = parser.parse_args()
 
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the API endpoint

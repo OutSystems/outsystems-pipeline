@@ -25,6 +25,7 @@ from outsystems.lifetime.lifetime_deployments import get_deployment_status, chec
     continue_deployment, get_running_deployment
 from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
+from outsystems.vars.vars_base import get_configuration_value, load_configuration_file
 # Exceptions
 
 # ############################################################# SCRIPT ##############################################################
@@ -62,7 +63,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Sleep thread until deployment has finished
     wait_counter = 0
-    while wait_counter < DEPLOYMENT_TIMEOUT_IN_SECS:
+    while wait_counter < get_configuration_value("DEPLOYMENT_TIMEOUT_IN_SECS", DEPLOYMENT_TIMEOUT_IN_SECS):
         # Check Deployment Plan status.
         dep_status = get_deployment_status(
             artifact_dir, lt_endpoint, lt_token, dep_plan_key)
@@ -81,8 +82,9 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 # Exit the script to continue with the pipeline
                 sys.exit(0)
         # Deployment status is still running. Go back to sleep.
-        sleep(SLEEP_PERIOD_IN_SECS)
-        wait_counter += SLEEP_PERIOD_IN_SECS
+        sleep_value = get_configuration_value("SLEEP_PERIOD_IN_SECS", SLEEP_PERIOD_IN_SECS)
+        sleep(sleep_value)
+        wait_counter += sleep_value
         print("{} secs have passed since the deployment started...".format(wait_counter), flush=True)
 
     # Deployment timeout reached. Exit script with error
@@ -107,9 +109,14 @@ if __name__ == "__main__":
                         help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-d", "--destination_env", type=str, required=True,
                         help="Name, as displayed in LifeTime, of the destination environment where you want to continue the deployment plan.")
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
 
     args = parser.parse_args()
 
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the API endpoint

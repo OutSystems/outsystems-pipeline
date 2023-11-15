@@ -26,6 +26,7 @@ from outsystems.manifest.manifest_base import get_configuration_items_for_enviro
 from outsystems.manifest.manifest_base import get_environment_details
 from outsystems.properties.properties_set_value import set_site_property_value, set_rest_endpoint_url, set_soap_endpoint_url, \
     set_timer_schedule
+from outsystems.vars.vars_base import load_configuration_file
 # Exceptions
 from outsystems.exceptions.manifest_does_not_exist import ManifestDoesNotExistError
 
@@ -91,8 +92,14 @@ if __name__ == "__main__":
                         help="Manifest artifact (in JSON format) received when the pipeline is triggered. Contains required data used throughout the pipeline execution.")
     parser.add_argument("-f", "--manifest_file", type=str,
                         help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
+
     args = parser.parse_args()
 
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the LT Url and split the LT hostname from the HTTP protocol

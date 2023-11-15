@@ -17,6 +17,7 @@ from outsystems.lifetime.lifetime_environments import get_environments
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.vars.lifetime_vars import LIFETIME_HTTP_PROTO, LIFETIME_API_ENDPOINT, LIFETIME_API_VERSION
 from outsystems.vars.file_vars import ARTIFACT_FOLDER
+from outsystems.vars.vars_base import load_configuration_file
 
 
 # ---------------------- SCRIPT ----------------------
@@ -46,8 +47,14 @@ if __name__ == "__main__":
                         help="LifeTime API version number. If version <= 10, use 1, if version >= 11, use 2. Default: 2", default=LIFETIME_API_VERSION)
     parser.add_argument("-e", "--lt_endpoint", type=str,
                         help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"", default=LIFETIME_API_ENDPOINT)
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
 
     args = parser.parse_args()
+
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the API endpoint
