@@ -126,7 +126,7 @@ if __name__ == "__main__":
                         help="Name, as displayed in LifeTime, of the environment where you want to tag the apps.")
     parser.add_argument("-l", "--app_list", type=str,
                         help="Comma separated list of apps you want to tag. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
-    parser.add_argument("-m", "--trigger_manifest", type=str,
+    parser.add_argument("-f", "--manifest_file", type=str,
                         help="Manifest file (with JSON format). Contains required data used throughout the pipeline execution.")
     parser.add_argument("-lm", "--log_msg", type=str, default="Version created automatically using outsystems-pipeline package.",
                         help="(optional) log message to be added to the new tags")
@@ -165,12 +165,12 @@ if __name__ == "__main__":
         apps = args.app_list.split(',')
     # Parse Manifest file (if it exists)
     trigger_manifest = None
-    if args.trigger_manifest:
-        manifest_path = os.path.split(args.trigger_manifest)
+    if args.manifest_file:
+        manifest_path = os.path.split(args.manifest_file)
         trigger_manifest = load_data(manifest_path[0], manifest_path[1])
     # Check if either an app list or a manifest file is being provided
-    if not args.app_list and not args.trigger_manifest:
-        raise InvalidParametersError("either --app_list or --trigger_manifest must be provided as arguments")
+    if not args.app_list and not args.manifest_file:
+        raise InvalidParametersError("either --app_list or --manifest_file must be provided as arguments")
 
     # Parse Log Message
     log_msg = args.log_msg
