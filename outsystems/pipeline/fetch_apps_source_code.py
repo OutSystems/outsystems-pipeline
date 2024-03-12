@@ -179,6 +179,7 @@ def process_csproj_files(module_name: str, module_folder: str, include_all_refs:
 
 
 def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, target_env: str, apps: list, trigger_manifest: dict, include_test_apps: bool, friendly_package_names: bool, include_all_refs: bool, remove_resources_files: bool):
+    print("WARNING: This script is using a platform feature that is under EAP.", flush=True)
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
