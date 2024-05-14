@@ -1,15 +1,6 @@
 # Python Modules
 import json
 import os
-import requests
-
-
-def download_oap(file_path: str, auth_token: str, oap_url: str):
-    response = requests.get(oap_url, headers={"Authorization": auth_token})
-    # Makes sure that, if a directory is in the filename, that directory exists
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    with open(file_path, "wb") as f:
-        f.write(response.content)
 
 
 def store_data(artifact_dir: str, filename: str, data: str):

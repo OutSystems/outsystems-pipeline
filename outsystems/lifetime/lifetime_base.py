@@ -71,3 +71,14 @@ def send_delete_request(lt_api: str, token: str, api_endpoint: str):
             raise InvalidJsonResponseError(
                 "DELETE {}: The JSON response could not be parsed. Response: {}".format(request_string, response.text))
     return response_obj
+
+
+# Sends a GET request to LT, with url_params
+def send_download_request(pkg_url: str, token: str):
+    # Auth token + content type json
+    headers = {'content-type': 'application/json',
+               'authorization': token}
+    # Format the request URL to include the api endpoint
+    response = requests.get(pkg_url, headers=headers, verify=get_configuration_value("LIFETIME_SSL_CERT_VERIFY", LIFETIME_SSL_CERT_VERIFY))
+    response_obj = {"http_status": response.status_code, "response": response.content}
+    return response_obj

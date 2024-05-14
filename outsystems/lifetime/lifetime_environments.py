@@ -9,7 +9,7 @@ from outsystems.exceptions.not_enough_permissions import NotEnoughPermissionsErr
 from outsystems.exceptions.app_does_not_exist import AppDoesNotExistError
 from outsystems.exceptions.server_error import ServerError
 # Functions
-from outsystems.lifetime.lifetime_base import send_get_request
+from outsystems.lifetime.lifetime_base import send_get_request, send_post_request
 from outsystems.lifetime.lifetime_applications import _get_application_info
 from outsystems.file_helpers.file import load_data, store_data, clear_cache
 # Variables
@@ -17,8 +17,11 @@ from outsystems.vars.lifetime_vars import ENVIRONMENTS_ENDPOINT, ENVIRONMENT_APP
     ENVIRONMENTS_NOT_FOUND_CODE, ENVIRONMENTS_FAILED_CODE, ENVIRONMENT_APP_SUCCESS_CODE, ENVIRONMENT_APP_NOT_STATUS_CODE, \
     ENVIRONMENT_APP_NO_PERMISSION_CODE, ENVIRONMENT_APP_NOT_FOUND, ENVIRONMENT_APP_FAILED_CODE, ENVIRONMENT_DEPLOYMENT_ZONES_ENDPOINT, \
     ENVIRONMENT_ZONES_SUCCESS_CODE, ENVIRONMENT_ZONES_NOT_STATUS_CODE, ENVIRONMENT_ZONES_NO_PERMISSION_CODE, ENVIRONMENT_ZONES_NOT_FOUND, \
-    ENVIRONMENT_ZONES_FAILED_CODE
-from outsystems.vars.file_vars import ENVIRONMENTS_FILE, ENVIRONMENT_FOLDER, ENVIRONMENT_APPLICATION_FILE, ENVIRONMENT_DEPLOYMENT_ZONES_FILE
+    ENVIRONMENT_ZONES_FAILED_CODE, ENVIRONMENT_APPLICATIONS_SOURCECODE_ENDPOINT, ENVIRONMENT_SOURCECODE_PACKAGE_SUCCESS_CODE, \
+    ENVIRONMENT_SOURCECODE_LINK_SUCCESS_CODE, ENVIRONMENT_SOURCECODE_FAILED_CODE
+from outsystems.vars.file_vars import ENVIRONMENTS_FILE, ENVIRONMENT_FOLDER, ENVIRONMENT_APPLICATION_FILE, \
+    ENVIRONMENT_DEPLOYMENT_ZONES_FILE, ENVIRONMENT_SOURCECODE_FOLDER, ENVIRONMENT_SOURCECODE_STATUS_FILE, \
+    ENVIRONMENT_SOURCECODE_LINK_FILE
 
 
 # Lists all the environments in the infrastructure.
@@ -115,6 +118,91 @@ def get_environment_deployment_zones(artifact_dir: str, endpoint: str, auth_toke
     elif status_code == ENVIRONMENT_ZONES_FAILED_CODE:
         raise ServerError(
             "Failed to access the deployment zones of environment. Details: {}".format(response["response"]))
+    else:
+        raise NotImplementedError(
+            "There was an error. Response from server: {}".format(response))
+
+
+# Returns the package key to download the source code of the specified application in a given environment.
+def get_environment_app_source_code(artifact_dir: str, endpoint: str, auth_token: str, **kwargs):
+    # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
+    app_tuple = _get_application_info(
+        artifact_dir, endpoint, auth_token, **kwargs)
+    # Tuple with (EnvName, EnvKey): env_tuple[0] = EnvName; env_tuple[1] = EnvKey
+    env_tuple = _get_environment_info(
+        artifact_dir, endpoint, auth_token, **kwargs)
+    # Builds the query and arguments for the call to the API
+    query = "{}/{}/{}/{}/{}".format(ENVIRONMENTS_ENDPOINT, env_tuple[1],
+                                    ENVIRONMENT_APPLICATIONS_ENDPOINT, app_tuple[1],
+                                    ENVIRONMENT_APPLICATIONS_SOURCECODE_ENDPOINT)
+    # Sends the request
+    response = send_post_request(endpoint, auth_token, query, None)
+    status_code = int(response["http_status"])
+    if status_code == ENVIRONMENT_SOURCECODE_PACKAGE_SUCCESS_CODE:
+        return response["response"]
+    elif status_code == ENVIRONMENT_SOURCECODE_FAILED_CODE:
+        raise ServerError("Failed to access the source code of an application. Details: {}".format(
+            response["response"]))
+    else:
+        raise NotImplementedError(
+            "There was an error. Response from server: {}".format(response))
+
+
+# Returns current status of source code package of the specified application in a given environment.
+def get_environment_app_source_code_status(artifact_dir: str, endpoint: str, auth_token: str, **kwargs):
+    # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
+    app_tuple = _get_application_info(
+        artifact_dir, endpoint, auth_token, **kwargs)
+    # Tuple with (EnvName, EnvKey): env_tuple[0] = EnvName; env_tuple[1] = EnvKey
+    env_tuple = _get_environment_info(
+        artifact_dir, endpoint, auth_token, **kwargs)
+    # Builds the query and arguments for the call to the API
+    query = "{}/{}/{}/{}/{}/{}/status".format(ENVIRONMENTS_ENDPOINT, env_tuple[1],
+                                              ENVIRONMENT_APPLICATIONS_ENDPOINT, app_tuple[1],
+                                              ENVIRONMENT_APPLICATIONS_SOURCECODE_ENDPOINT, kwargs["pkg_key"])
+    # Sends the request
+    response = send_get_request(endpoint, auth_token, query, None)
+    status_code = int(response["http_status"])
+    if status_code == ENVIRONMENT_SOURCECODE_PACKAGE_SUCCESS_CODE:
+        # Stores the result
+        filename = "{}{}".format(
+            kwargs["pkg_key"], ENVIRONMENT_SOURCECODE_STATUS_FILE)
+        filename = os.path.join(ENVIRONMENT_SOURCECODE_FOLDER, filename)
+        store_data(artifact_dir, filename, response["response"])
+        return response["response"]
+    elif status_code == ENVIRONMENT_SOURCECODE_FAILED_CODE:
+        raise ServerError("Failed to access the source code package status of an application. Details: {}".format(
+            response["response"]))
+    else:
+        raise NotImplementedError(
+            "There was an error. Response from server: {}".format(response))
+
+
+# Returns download link of source code package of the specified application in a given environment.
+def get_environment_app_source_code_link(artifact_dir: str, endpoint: str, auth_token: str, **kwargs):
+    # Tuple with (AppName, AppKey): app_tuple[0] = AppName; app_tuple[1] = AppKey
+    app_tuple = _get_application_info(
+        artifact_dir, endpoint, auth_token, **kwargs)
+    # Tuple with (EnvName, EnvKey): env_tuple[0] = EnvName; env_tuple[1] = EnvKey
+    env_tuple = _get_environment_info(
+        artifact_dir, endpoint, auth_token, **kwargs)
+    # Builds the query and arguments for the call to the API
+    query = "{}/{}/{}/{}/{}/{}/download".format(ENVIRONMENTS_ENDPOINT, env_tuple[1],
+                                                ENVIRONMENT_APPLICATIONS_ENDPOINT, app_tuple[1],
+                                                ENVIRONMENT_APPLICATIONS_SOURCECODE_ENDPOINT, kwargs["pkg_key"])
+    # Sends the request
+    response = send_get_request(endpoint, auth_token, query, None)
+    status_code = int(response["http_status"])
+    if status_code == ENVIRONMENT_SOURCECODE_LINK_SUCCESS_CODE:
+        # Stores the result
+        filename = "{}{}".format(
+            kwargs["pkg_key"], ENVIRONMENT_SOURCECODE_LINK_FILE)
+        filename = os.path.join(ENVIRONMENT_SOURCECODE_FOLDER, filename)
+        store_data(artifact_dir, filename, response["response"])
+        return response["response"]
+    elif status_code == ENVIRONMENT_SOURCECODE_FAILED_CODE:
+        raise ServerError("Failed to access the source code package link of an application. Details: {}".format(
+            response["response"]))
     else:
         raise NotImplementedError(
             "There was an error. Response from server: {}".format(response))
