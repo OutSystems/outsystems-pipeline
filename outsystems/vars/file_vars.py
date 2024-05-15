@@ -61,3 +61,10 @@ AD_FOLDER = "techdebt_data"
 
 # AirGap vars
 DEPLOYMENT_ORDER_FILE = "sorted_oap.list"
+
+# Solutions vars
+SOLUTIONS_OSP_FILE = ".osp"
+SOLUTIONS_LINK_FILE = ".link.cache"
+SOLUTIONS_STATUS_FILE = ".status.cache"
+SOLUTIONS_DEPLOY_FILE = ".deploy.cache"
+SOLUTIONS_FOLDER = "solution_data"
