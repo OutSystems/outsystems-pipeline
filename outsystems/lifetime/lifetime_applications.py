@@ -12,8 +12,9 @@ from outsystems.exceptions.not_enough_permissions import NotEnoughPermissionsErr
 from outsystems.exceptions.environment_not_found import EnvironmentNotFoundError
 from outsystems.exceptions.app_version_error import AppVersionsError
 # Functions
-from outsystems.file_helpers.file import store_data, load_data, clear_cache, download_oap
+from outsystems.file_helpers.file import store_data, load_data, clear_cache
 from outsystems.lifetime.lifetime_base import send_get_request, send_post_request
+from outsystems.lifetime.lifetime_downloads import download_package
 # Variables
 from outsystems.vars.file_vars import APPLICATION_FOLDER, APPLICATIONS_FILE, APPLICATION_FILE, APPLICATION_VERSIONS_FILE, APPLICATION_VERSION_FILE
 from outsystems.vars.lifetime_vars import APPLICATIONS_ENDPOINT, APPLICATION_VERSIONS_ENDPOINT, APPLICATIONS_SUCCESS_CODE, \
@@ -158,7 +159,8 @@ def get_running_app_version(artifact_dir: str, endpoint: str, auth_token: str, e
                 "ApplicationName": app_tuple[0],
                 "ApplicationKey": app_tuple[1],
                 "Version": app_version_data["Version"],
-                "VersionKey": status_in_env["BaseApplicationVersionKey"]
+                "VersionKey": status_in_env["BaseApplicationVersionKey"],
+                "IsModified": status_in_env["IsModified"]
             }
             # Since these 2 fields were only introduced in a minor of OS11, we check here if they exist
             # We can't just use the version
@@ -212,7 +214,7 @@ def export_app_oap(file_path: str, endpoint: str, auth_token: str, env_key: str,
         # Stores the result
         url_string = response["response"]
         url_string = url_string["url"]
-        download_oap(file_path, auth_token, url_string)
+        download_package(file_path, auth_token, url_string)
         return
     elif status_code == APPLICATION_VERSION_NO_PERMISSION_CODE:
         raise NotEnoughPermissionsError(

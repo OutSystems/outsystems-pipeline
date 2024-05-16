@@ -12,7 +12,7 @@ from outsystems.exceptions.server_error import ServerError
 from outsystems.exceptions.environment_not_found import EnvironmentNotFoundError
 from outsystems.exceptions.impossible_action_deployment import ImpossibleApplyActionDeploymentError
 # Functions
-from outsystems.lifetime.lifetime_base import send_get_request, send_post_request, send_delete_request
+from outsystems.lifetime.lifetime_base import send_get_request, send_post_request, send_delete_request, send_binary_post_request
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.file_helpers.file import store_data
 # Variables
@@ -24,7 +24,8 @@ from outsystems.vars.lifetime_vars import DEPLOYMENTS_ENDPOINT, DEPLOYMENT_STATU
     DEPLOYMENT_SUCCESS_CODE, DEPLOYMENT_INVALID_CODE, DEPLOYMENT_NO_PERMISSION_CODE, DEPLOYMENT_NO_ENVIRONMENT_CODE, DEPLOYMENT_FAILED_CODE, \
     DEPLOYMENT_DELETE_SUCCESS_CODE, DEPLOYMENT_DELETE_IMPOSSIBLE_CODE, DEPLOYMENT_DELETE_NO_PERMISSION_CODE, DEPLOYMENT_DELETE_NO_DEPLOYMENT_CODE, \
     DEPLOYMENT_DELETE_FAILED_CODE, DEPLOYMENT_ACTION_SUCCESS_CODE, DEPLOYMENT_ACTION_IMPOSSIBLE_CODE, DEPLOYMENT_ACTION_NO_PERMISSION_CODE, \
-    DEPLOYMENT_ACTION_NO_DEPLOYMENT_CODE, DEPLOYMENT_ACTION_FAILED_CODE, DEPLOYMENT_PLAN_V1_API_OPS, DEPLOYMENT_PLAN_V2_API_OPS
+    DEPLOYMENT_ACTION_NO_DEPLOYMENT_CODE, DEPLOYMENT_ACTION_FAILED_CODE, DEPLOYMENT_PLAN_V1_API_OPS, DEPLOYMENT_PLAN_V2_API_OPS, \
+    ENVIRONMENTS_ENDPOINT, DEPLOYMENT_ENDPOINT
 from outsystems.vars.file_vars import DEPLOYMENTS_FILE, DEPLOYMENT_FILE, DEPLOYMENT_FOLDER, DEPLOYMENT_STATUS_FILE
 from outsystems.vars.pipeline_vars import DEPLOYMENT_STATUS_LIST, DEPLOYMENT_SAVED_STATUS
 
@@ -179,6 +180,32 @@ def send_deployment(artifact_dir: str, endpoint: str, auth_token: str, lt_api_ve
     elif status_code == DEPLOYMENT_INVALID_CODE:
         raise InvalidParametersError("The request is invalid. Check the body of the request for errors. Body: {}. Details: {}.".format(
             deployment_request, response["response"]))
+    elif status_code == DEPLOYMENT_NO_PERMISSION_CODE:
+        raise NotEnoughPermissionsError(
+            "You don't have enough permissions to create the deployment. Details: {}".format(response["response"]))
+    elif status_code == DEPLOYMENT_NO_ENVIRONMENT_CODE:
+        raise EnvironmentNotFoundError(
+            "Can't find the source or target environment. Details: {}.".format(response["response"]))
+    elif status_code == DEPLOYMENT_FAILED_CODE:
+        raise ServerError(
+            "Failed to create the deployment. Details: {}".format(response["response"]))
+    else:
+        raise NotImplementedError(
+            "There was an error. Response from server: {}".format(response))
+
+
+# Creates a deployment to a target environment.
+# The input is a binary file.
+def send_binary_deployment(artifact_dir: str, endpoint: str, auth_token: str, lt_api_version: int, dest_env: str, binary_path: str):
+    # Sends the request
+    response = send_binary_post_request(
+        endpoint, auth_token, ENVIRONMENTS_ENDPOINT, dest_env, DEPLOYMENT_ENDPOINT, binary_path)
+    status_code = int(response["http_status"])
+    if status_code == DEPLOYMENT_SUCCESS_CODE:
+        return response["response"]
+    elif status_code == DEPLOYMENT_INVALID_CODE:
+        raise InvalidParametersError("The request is invalid. Check the body of the request for errors. Details: {}.".format(
+            response["response"]))
     elif status_code == DEPLOYMENT_NO_PERMISSION_CODE:
         raise NotEnoughPermissionsError(
             "You don't have enough permissions to create the deployment. Details: {}".format(response["response"]))

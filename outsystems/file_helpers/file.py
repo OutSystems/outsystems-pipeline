@@ -1,15 +1,6 @@
 # Python Modules
 import json
 import os
-import requests
-
-
-def download_oap(file_path: str, auth_token: str, oap_url: str):
-    response = requests.get(oap_url, headers={"Authorization": auth_token})
-    # Makes sure that, if a directory is in the filename, that directory exists
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    with open(file_path, "wb") as f:
-        f.write(response.content)
 
 
 def store_data(artifact_dir: str, filename: str, data: str):
@@ -43,3 +34,12 @@ def clear_cache(artifact_dir: str, filename: str):
         return
     filename = os.path.join(artifact_dir, filename)
     os.remove(filename)
+
+
+# Returns a human readable string representation of bytes
+def bytes_human_readable_size(bytes, units=[' bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB']):
+    return str(bytes) + units[0] if bytes < 1024 else bytes_human_readable_size(bytes >> 10, units[1:])
+
+
+def is_valid_os_package(filename: str):
+    return filename.lower().split('.')[-1] in ("osp", "oap")
