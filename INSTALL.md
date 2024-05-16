@@ -5,7 +5,7 @@ In order to be able to test locally, there's a few things you'll have to install
 ## Install Python
 
 * Go to <https://www.python.org/downloads/>
-* Install Python v3.7.x (the code was tested with v3.7.1)
+* Install Python v3.11.x (the code was tested with v3.11.3)
 
 ## Install Python dependencies
 

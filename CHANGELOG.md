@@ -7,6 +7,37 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## May 16th, 2024
+
+### Download Application Source Code
+
+A new script was added to download platform-generated source code:
+
+* `fetch_apps_source_code.py`
+
+Use the following parameters to generate more human-readable outputs and facilitate the compilation of the source code:
+
+* --friendly_package_names: source code packages with user-friendly names.
+* --include_all_refs: adds to .csproj file all assemblies in the bin folder as references.
+* --remove_resources_files: removes references to embedded resources files from the.csproj file.
+
+### Solution Download and Deploy
+
+Added new functions to leverage the recently released/improved APIs to download and deploy outsystems packages:
+
+* `fetch_lifetime_solution_from_manifest.py` - downloads a solution file based on manifest data.
+* `deploy_package_to_target_env.py` - deploys an outsystems package (solution or application) to a target environment.
+* `deploy_package_to_target_env_with_osptool.py` - deploys an outsystems package (solution or application) using OSP Tool.
+
+### Improved OSPTool Operations
+
+OSP Tool command line calls now have live output callback and catalog mapping support.
+
+### Updated Package Dependencies
+
+* Updated python-dateutil dependency to version 2.9.0.post0
+* Updated python-dotenv dependency to version 1.0.1
+
 ## November 15th, 2023
 
 ### Config File Support

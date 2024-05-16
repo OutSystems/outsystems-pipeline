@@ -11,32 +11,34 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Config File Support**
- Load configuration values from a custom file to override default values. To use this feature, use the new `--config_file` parameter to specify the configuration file path.
- This enhancement is available in the following scripts:
+**Download Application Source Code**
 
- * `apply_configuration_values_to_target_env.py`
- * `continue_deployment_to_target_env.py`
- * `deploy_apps_to_target_env_with_airgap.py`
- * `deploy_latest_tags_to_target_env.py`
- * `deploy_tags_to_target_env_with_manifest.py`
- * `evaluate_test_results.py`
- * `fetch_apps_packages.py`
- * `fetch_lifetime_data.py`
- * `scan_test_endpoints.py`
- * `start_deployment_to_target_env.py`
- * `tag_apps_based_on_manifest_data.py`
- * `tag_modified_apps.py`
+ A new script was added to download platform-generated source code:
 
-**SSL Certificate Verification**
- The Python `requests` module verifies SSL certificates for HTTPS requests.
- Now there's a flag to enable (default value) or disable SSL certificate verification.
+ * `fetch_apps_source_code.py`
 
-**Fetch Technical Debt**
- Enhanced the `fetch_tech_debt` script to prevent failures when all modules of an app are marked as 'ignored' in AI Mentor Studio and when an app has no security findings.
+ Use the following parameters to generate more human-readable outputs and facilitate the compilation of the source code:
 
-**Tag Modified Applications**
- Updated `tag_modified_apps` script to tag applications based on a app_list parameter or from the trigger_manifest artifact
+ * --friendly_package_names: source code packages with user-friendly names.
+ * --include_all_refs: adds to .csproj file all assemblies in the bin folder as references.
+ * --remove_resources_files: removes references to embedded resources files from the.csproj file.
+
+**Solution Download and Deploy**
+
+ Added new functions to leverage the recently released/improved APIs to download and deploy outsystems packages:
+
+ * `fetch_lifetime_solution_from_manifest.py` - downloads a solution file based on manifest data.
+ * `deploy_package_to_target_env.py` - deploys an outsystems package (solution or application) to a target environment.
+ * `deploy_package_to_target_env_with_osptool.py` - deploys an outsystems package (solution or application) using OSP Tool.
+
+**Improved OSPTool Operations**
+
+ OSPTool command line calls now have live output callback and catalog mapping support.
+
+**Updated Package Dependencies**
+
+ * Updated python-dateutil dependency to version 2.9.0.post0
+ * Updated python-dotenv dependency to version 1.0.1
 
 Installing and upgrading
 ========================
@@ -72,12 +74,12 @@ CLASSIFIERS = [
 ]
 
 REQUIREMENTS = [
-    'python-dateutil==2.8.2',
+    'python-dateutil==2.9.0.post0',
     'requests==2.31.0',
     'unittest-xml-reporting==3.2.0',
     'xunitparser==1.3.4',
     'toposort==1.10',
-    'python-dotenv==1.0.0'
+    'python-dotenv==1.0.1'
 ]
 
 PACKAGES = [
