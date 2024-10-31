@@ -32,7 +32,7 @@ from outsystems.exceptions.invalid_os_package import InvalidOutSystemsPackage
 
 
 # ############################################################# SCRIPT ##############################################################
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env_label: str, force_two_step_deployment: bool, package_path: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env_label: str, force_two_step_deployment: bool, package_path: str, allow_parallel_deployments: bool):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -40,17 +40,18 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Gets the environment key for the destination environment
     dest_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, dest_env_label)
 
-    wait_counter = 0
-    deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
-    while len(deployments) > 0:
-        if wait_counter >= get_configuration_value("QUEUE_TIMEOUT_IN_SECS", QUEUE_TIMEOUT_IN_SECS):
-            print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
-            sys.exit(1)
-        sleep_value = get_configuration_value("SLEEP_PERIOD_IN_SECS", SLEEP_PERIOD_IN_SECS)
-        sleep(sleep_value)
-        wait_counter += sleep_value
-        print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
+    if not allow_parallel_deployments:
+        wait_counter = 0
         deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
+        while len(deployments) > 0:
+            if wait_counter >= get_configuration_value("QUEUE_TIMEOUT_IN_SECS", QUEUE_TIMEOUT_IN_SECS):
+                print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
+                sys.exit(1)
+            sleep_value = get_configuration_value("SLEEP_PERIOD_IN_SECS", SLEEP_PERIOD_IN_SECS)
+            sleep(sleep_value)
+            wait_counter += sleep_value
+            print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
+            deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
 
     # LT is free to deploy
     # Validate if file has OutSystems package extension
@@ -156,6 +157,8 @@ if __name__ == "__main__":
                         help="Force the execution of the 2-Step deployment.")
     parser.add_argument("-cf", "--config_file", type=str,
                         help="Config file path. Contains configuration values to override the default ones.")
+    parser.add_argument("-p", "--allow_parallel_deployments", action='store_true',
+                        help="Skip LifeTime validation for active deployment plans.")
 
     args = parser.parse_args()
 
@@ -187,6 +190,8 @@ if __name__ == "__main__":
     package_path = args.package_path
     # Parse Force Two-step Deployment flag
     force_two_step_deployment = args.force_two_step_deployment
+    # Parse Allow Parallel Deployments
+    allow_parallel_deployments = args.allow_parallel_deployments
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env_label, force_two_step_deployment, package_path)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env_label, force_two_step_deployment, package_path, allow_parallel_deployments)

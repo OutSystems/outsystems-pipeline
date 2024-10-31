@@ -122,7 +122,7 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
     return app_keys
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, dep_note: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, dep_note: str, allow_parallel_deployments: bool):
 
     app_data_list = []  # will contain the applications to deploy details from LT
     to_deploy_app_keys = []  # will contain the app keys for the apps tagged
@@ -167,17 +167,18 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 raise NotImplementedError("Please make sure the API version is compatible with the module.")
     print("Creating deployment plan from {} to {} including applications: {} ({}).".format(source_env, dest_env, to_deploy_app_names, to_deploy_app_info), flush=True)
 
-    wait_counter = 0
-    deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
-    while len(deployments) > 0:
-        if wait_counter >= get_configuration_value("QUEUE_TIMEOUT_IN_SECS", QUEUE_TIMEOUT_IN_SECS):
-            print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
-            sys.exit(1)
-        sleep_value = get_configuration_value("SLEEP_PERIOD_IN_SECS", SLEEP_PERIOD_IN_SECS)
-        sleep(sleep_value)
-        wait_counter += sleep_value
-        print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
+    if not allow_parallel_deployments:
+        wait_counter = 0
         deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
+        while len(deployments) > 0:
+            if wait_counter >= get_configuration_value("QUEUE_TIMEOUT_IN_SECS", QUEUE_TIMEOUT_IN_SECS):
+                print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
+                sys.exit(1)
+            sleep_value = get_configuration_value("SLEEP_PERIOD_IN_SECS", SLEEP_PERIOD_IN_SECS)
+            sleep(sleep_value)
+            wait_counter += sleep_value
+            print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
+            deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
 
     # LT is free to deploy
     # Send the deployment plan and grab the key
@@ -262,7 +263,8 @@ if __name__ == "__main__":
                         help="(optional) Manifest file path, used to promote the same application versions throughout the pipeline execution.")
     parser.add_argument("-cf", "--config_file", type=str,
                         help="Config file path. Contains configuration values to override the default ones.")
-
+    parser.add_argument("-p", "--allow_parallel_deployments", action='store_true',
+                        help="Skip LifeTime validation for active deployment plans.")
     args = parser.parse_args()
 
     # Load config file if exists
@@ -302,6 +304,8 @@ if __name__ == "__main__":
         manifest_file = None
     # Parse Deployment Message
     dep_note = args.deploy_msg
+    # Parse Allow Parallel Deployments
+    allow_parallel_deployments = args.allow_parallel_deployments
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note, allow_parallel_deployments)
