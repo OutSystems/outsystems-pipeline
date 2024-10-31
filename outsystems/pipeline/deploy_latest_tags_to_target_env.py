@@ -2,7 +2,7 @@
 import sys
 import os
 import argparse
-from pkg_resources import parse_version
+from packaging.version import Version
 from time import sleep
 
 # Workaround for Jenkins:
@@ -105,10 +105,10 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
                         # The version is not the one deployed -> need to compare the version tag
                         app_in_env_data = get_application_version(artifact_dir, lt_endpoint, lt_token, False, app_in_env["BaseApplicationVersionKey"], app_key=app["Key"])
                         # If the version in the environment is bigger than the one in the manifest -> stale pipeline -> abort
-                        if parse_version(app_in_env_data["Version"]) > parse_version(app["Version"]):
+                        if Version(app_in_env_data["Version"]) > Version(app["Version"]):
                             print("The deployment manifest is stale. The Application {} needs to be deployed with version {} but then environment {} has the version {}.\nReason: VersionTag is inferior to the VersionTag already deployed.\nAborting the pipeline.".format(app["Name"], app["Version"], env_name, app_in_env_data["Version"]), flush=True)
                             sys.exit(1)
-                        elif parse_version(app_in_env_data["Version"]) == parse_version(app["Version"]):
+                        elif Version(app_in_env_data["Version"]) == Version(app["Version"]):
                             print("Skipping application {} with version {}, since it's already deployed in {} environment.\nReason: VersionTag is equal.".format(app["Name"], app["Version"], env_name), flush=True)
                         else:
                             # Generated app_keys for deployment plan based on the running version

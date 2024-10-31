@@ -2,7 +2,7 @@
 import sys
 import os
 import argparse
-from pkg_resources import parse_version
+from packaging.version import Version
 from time import sleep
 import json
 
@@ -97,7 +97,7 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
                         # The version is not the one deployed -> need to compare the version tag
                         app_in_env_data = get_application_version(artifact_dir, lt_endpoint, lt_token, False, app_in_env["BaseApplicationVersionKey"], app_key=app["Key"])
                         # If the version in the target environment has the same version number -> skip deployment
-                        if parse_version(app_in_env_data["Version"]) == parse_version(app["Version"]):
+                        if Version(app_in_env_data["Version"]) == Version(app["Version"]):
                             print("Skipping application {} with version {}, since it's already deployed in {} environment.\nReason: VersionTag is equal.".format(app["Name"], app["Version"], env_name), flush=True)
                         else:
                             # Generated app_keys for deployment plan based on the target version

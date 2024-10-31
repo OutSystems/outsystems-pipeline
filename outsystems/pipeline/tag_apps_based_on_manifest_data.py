@@ -2,7 +2,7 @@
 import sys
 import os
 import argparse
-from pkg_resources import parse_version
+from packaging.version import Version
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -32,7 +32,7 @@ def valid_tag_number(artifact_dir: str, lt_endpoint: str, lt_token: str, env_nam
     # Get the app running version on the source environment. It will only retrieve tagged applications
     running_app = get_running_app_version(artifact_dir, lt_endpoint, lt_token, env_key, app_name=app["ApplicationName"])
 
-    if parse_version(running_app["Version"]) < parse_version(app["VersionNumber"]):
+    if Version(running_app["Version"]) < Version(app["VersionNumber"]):
         return True
 
     print("Skipping tag! Application '{}' current tag ({}) on {} is greater than or equal to the manifest data ({}). ".format(app["ApplicationName"], running_app["Version"], env_name, app["VersionNumber"]), flush=True)
