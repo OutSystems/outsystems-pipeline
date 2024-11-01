@@ -18,3 +18,4 @@ To install all the dependencies you'll need:
 * **Dependencies**
   * To install the dependencies needed, you just need to install the requirements with pip.
   * On the root dir run: `pip install -q -I -r cd_pipelines/requirements.txt`
+  
