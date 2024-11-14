@@ -26,3 +26,7 @@ MANIFEST_ENVIRONMENT_LABEL = "EnvironmentLabel"
 
 # Manifest attributes
 MANIFEST_DEPLOYMENT_NOTES = "DeploymentNotes"
+
+# AutoGen Manifest
+MANIFEST_FOLDER = "trigger_manifest"
+MANIFEST_FILE = "auto_gen_trigger_manifest.json"

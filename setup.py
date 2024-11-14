@@ -11,34 +11,29 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Download Application Source Code**
+**Parallel Deployments**
 
- A new script was added to download platform-generated source code:
+ The following scripts have been updated to enable creating and running parallel deployment plans:
 
- * `fetch_apps_source_code.py`
+ * `deploy_latest_tags_to_target_env.py`
+ * `deploy_package_to_target_env.py`
+ * `deploy_tags_to_target_env_with_manifest.py`
 
- Use the following parameters to generate more human-readable outputs and facilitate the compilation of the source code:
+ To enable this feature, use the following parameter:
 
- * --friendly_package_names: source code packages with user-friendly names.
- * --include_all_refs: adds to .csproj file all assemblies in the bin folder as references.
- * --remove_resources_files: removes references to embedded resources files from the.csproj file.
+ * `--allow_parallel_deployments`: Skips LifeTime validation for active deployment plans.
 
-**Solution Download and Deploy**
+**Enhanced Pipeline Operations**
 
- Added new functions to leverage the recently released/improved APIs to download and deploy outsystems packages:
+ New pipeline scripts have been added to streamline operations related to manifest files:
 
- * `fetch_lifetime_solution_from_manifest.py` - downloads a solution file based on manifest data.
- * `deploy_package_to_target_env.py` - deploys an outsystems package (solution or application) to a target environment.
- * `deploy_package_to_target_env_with_osptool.py` - deploys an outsystems package (solution or application) using OSP Tool.
-
-**Improved OSPTool Operations**
-
- OSPTool command line calls now have live output callback and catalog mapping support.
+ * `generate_manifest_file.py`: Generates a trigger manifest file.
+ * `validate_manifest_apps_exist_in_target_env.py`: Verifies that manifest applications exist in the target environment.
 
 **Updated Package Dependencies**
 
- * Updated python-dateutil dependency to version 2.9.0.post0
- * Updated python-dotenv dependency to version 1.0.1
+ * Updated `requests` dependency to version 2.32.2
+ * Added `packaging` dependency, version 24.1
 
 Installing and upgrading
 ========================
@@ -75,11 +70,12 @@ CLASSIFIERS = [
 
 REQUIREMENTS = [
     'python-dateutil==2.9.0.post0',
-    'requests==2.31.0',
+    'requests==2.32.2',
     'unittest-xml-reporting==3.2.0',
     'xunitparser==1.3.4',
     'toposort==1.10',
-    'python-dotenv==1.0.1'
+    'python-dotenv==1.0.1',
+    'packaging==24.1'
 ]
 
 PACKAGES = [

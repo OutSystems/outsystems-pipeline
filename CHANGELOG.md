@@ -7,6 +7,32 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## Nov 14th, 2024
+
+### Parallel Deployments
+
+The following scripts have been updated to enable creating and running parallel deployment plans:
+
+* `deploy_latest_tags_to_target_env.py`
+* `deploy_package_to_target_env.py`
+* `deploy_tags_to_target_env_with_manifest.py`
+
+To enable this feature, use the following parameter:
+
+* `--allow_parallel_deployments`: Skips LifeTime validation for active deployment plans.
+
+### Enhanced Pipeline Operations
+
+New pipeline scripts have been added to streamline operations related to manifest files:
+
+* `generate_manifest_file.py`: Generates a trigger manifest file.
+* `validate_manifest_apps_exist_in_target_env.py`: Verifies that manifest applications exist in the target environment.
+
+### Updated Package Dependencies
+
+* Updated `requests` dependency to version 2.32.2
+* Added `packaging` dependency, version 24.1
+
 ## May 16th, 2024
 
 ### Download Application Source Code

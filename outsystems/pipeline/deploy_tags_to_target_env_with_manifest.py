@@ -2,7 +2,7 @@
 import sys
 import os
 import argparse
-from pkg_resources import parse_version
+from packaging.version import Version
 from time import sleep
 import json
 
@@ -97,7 +97,7 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
                         # The version is not the one deployed -> need to compare the version tag
                         app_in_env_data = get_application_version(artifact_dir, lt_endpoint, lt_token, False, app_in_env["BaseApplicationVersionKey"], app_key=app["Key"])
                         # If the version in the target environment has the same version number -> skip deployment
-                        if parse_version(app_in_env_data["Version"]) == parse_version(app["Version"]):
+                        if Version(app_in_env_data["Version"]) == Version(app["Version"]):
                             print("Skipping application {} with version {}, since it's already deployed in {} environment.\nReason: VersionTag is equal.".format(app["Name"], app["Version"], env_name), flush=True)
                         else:
                             # Generated app_keys for deployment plan based on the target version
@@ -127,7 +127,7 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
     return app_keys
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env_label: str, dest_env_label: str, include_test_apps: bool, trigger_manifest: dict, force_two_step_deployment: bool, include_deployment_zones: bool):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env_label: str, dest_env_label: str, include_test_apps: bool, trigger_manifest: dict, force_two_step_deployment: bool, include_deployment_zones: bool, allow_parallel_deployments: bool):
 
     app_data_list = []  # will contain the applications to deploy details from LT
     to_deploy_app_keys = []  # will contain the app keys for the apps tagged
@@ -168,17 +168,18 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 raise NotImplementedError("Please make sure the API version is compatible with the module.")
     print("Creating deployment plan from {} (Label: {}) to {} (Label: {}) including applications: {} ({}).".format(src_env_tuple[0], source_env_label, dest_env_tuple[0], dest_env_label, to_deploy_app_names, to_deploy_app_info), flush=True)
 
-    wait_counter = 0
-    deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_tuple[1])
-    while len(deployments) > 0:
-        if wait_counter >= get_configuration_value("QUEUE_TIMEOUT_IN_SECS", QUEUE_TIMEOUT_IN_SECS):
-            print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
-            sys.exit(1)
-        sleep_value = get_configuration_value("SLEEP_PERIOD_IN_SECS", SLEEP_PERIOD_IN_SECS)
-        sleep(sleep_value)
-        wait_counter += sleep_value
-        print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
+    if not allow_parallel_deployments:
+        wait_counter = 0
         deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_tuple[1])
+        while len(deployments) > 0:
+            if wait_counter >= get_configuration_value("QUEUE_TIMEOUT_IN_SECS", QUEUE_TIMEOUT_IN_SECS):
+                print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
+                sys.exit(1)
+            sleep_value = get_configuration_value("SLEEP_PERIOD_IN_SECS", SLEEP_PERIOD_IN_SECS)
+            sleep(sleep_value)
+            wait_counter += sleep_value
+            print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
+            deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_tuple[1])
 
     # LT is free to deploy
     # Send the deployment plan and grab the key
@@ -288,6 +289,8 @@ if __name__ == "__main__":
                         help="Flag that indicates if deployment zone selection is included in the deployment plan. Applicable to self-managed environments only.")
     parser.add_argument("-cf", "--config_file", type=str,
                         help="Config file path. Contains configuration values to override the default ones.")
+    parser.add_argument("-p", "--allow_parallel_deployments", action='store_true',
+                        help="Skip LifeTime validation for active deployment plans.")
 
     args = parser.parse_args()
 
@@ -336,5 +339,8 @@ if __name__ == "__main__":
     # Parse Include Deployment Zones flag
     include_deployment_zones = args.include_deployment_zones
 
+    # Parse Allow Parallel Deployments
+    allow_parallel_deployments = args.allow_parallel_deployments
+
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env_label, dest_env_label, include_test_apps, trigger_manifest, force_two_step_deployment, include_deployment_zones)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env_label, dest_env_label, include_test_apps, trigger_manifest, force_two_step_deployment, include_deployment_zones, allow_parallel_deployments)
