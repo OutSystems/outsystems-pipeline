@@ -9,7 +9,7 @@ if __name__ == "__main__":
     parser.add_argument("--major", help="Toggle if you're doing a major version.", action="store_true")
     args = parser.parse_args()
 
-    url = f"https://pypi.org/pypi/outsystems-pipeline/json"
+    url = "https://pypi.org/pypi/outsystems-pipeline/json"
     response = requests.get(url)
     response.raise_for_status()  # Raise an error if the request failed
     version = response.json()['info']['version']
