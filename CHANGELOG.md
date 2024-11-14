@@ -7,7 +7,7 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
-## Nov 1st, 2024
+## Nov 14th, 2024
 
 ### Parallel Deployments
 
