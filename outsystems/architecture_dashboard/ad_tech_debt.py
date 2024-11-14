@@ -1,5 +1,6 @@
 # Python Modules
 import os
+from icecream import ic
 
 # Custom Modules
 # Exceptions
@@ -51,6 +52,12 @@ def get_app_techdebt(artifact_dir: str, ad_api_host: str, activation_code: str, 
     base_url = build_ad_endpoint(AD_HTTP_PROTO, ad_api_host, AD_API_ENDPOINT, AD_API_VERSION)
     request_string = "{}/{}".format(base_url, AD_APP_ENDPOINT)
     params = {"ApplicationGUID": app["ApplicationKey"]}
+
+    ic(base_url)
+    ic(request_string)
+    ic(params)
+    ic(activation_code)
+    ic(api_key)
 
     # Sends the request
     response = send_get_request(request_string, activation_code, api_key, params)

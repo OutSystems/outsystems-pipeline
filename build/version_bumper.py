@@ -1,6 +1,6 @@
 import argparse
 import fileinput
-import xmlrpc.client
+import requests
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -9,8 +9,10 @@ if __name__ == "__main__":
     parser.add_argument("--major", help="Toggle if you're doing a major version.", action="store_true")
     args = parser.parse_args()
 
-    client = xmlrpc.client.ServerProxy('https://pypi.org/pypi')
-    version = client.package_releases('outsystems-pipeline')[0]
+    url = f"https://pypi.org/pypi/outsystems-pipeline/json"
+    response = requests.get(url)
+    response.raise_for_status()  # Raise an error if the request failed
+    version = response.json()['info']['version']
     version_array = version.split('.')
 
     if args.revision:
