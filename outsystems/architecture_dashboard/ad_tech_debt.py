@@ -52,7 +52,6 @@ def get_app_techdebt(artifact_dir: str, ad_api_host: str, activation_code: str, 
     request_string = "{}/{}".format(base_url, AD_APP_ENDPOINT)
     params = {"ApplicationGUID": app["ApplicationKey"]}
 
-
     # Sends the request
     response = send_get_request(request_string, activation_code, api_key, params)
     status_code = int(response["http_status"])
