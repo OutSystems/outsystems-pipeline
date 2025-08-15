@@ -24,7 +24,7 @@ from outsystems.vars.pipeline_vars import QUEUE_TIMEOUT_IN_SECS, SLEEP_PERIOD_IN
 from outsystems.lifetime.lifetime_environments import get_environment_app_version, get_environment_key
 from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_version
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, get_deployment_info, \
-    send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployment
+    send_deployment, delete_deployment, start_deployment, continue_deployment, get_running_deployments
 from outsystems.file_helpers.file import store_data, load_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.vars.vars_base import get_configuration_value, load_configuration_file
@@ -169,7 +169,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     if not allow_parallel_deployments:
         wait_counter = 0
-        deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
+        deployments = get_running_deployments(artifact_dir, lt_endpoint, lt_token, dest_env_key)
         while len(deployments) > 0:
             if wait_counter >= get_configuration_value("QUEUE_TIMEOUT_IN_SECS", QUEUE_TIMEOUT_IN_SECS):
                 print("Timeout occurred while waiting for LifeTime to be free, to create the new deployment plan.", flush=True)
@@ -178,12 +178,15 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
             sleep(sleep_value)
             wait_counter += sleep_value
             print("Waiting for LifeTime to be free. Elapsed time: {} seconds...".format(wait_counter), flush=True)
-            deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
+            deployments = get_running_deployments(artifact_dir, lt_endpoint, lt_token, dest_env_key)
 
     # LT is free to deploy
     # Send the deployment plan and grab the key
     dep_plan_key = send_deployment(artifact_dir, lt_endpoint, lt_token, lt_api_version, to_deploy_app_keys, dep_note, source_env, dest_env)
     print("Deployment plan {} created successfully.".format(dep_plan_key), flush=True)
+
+    # Write dep_plan_key to Azure DevOps variable
+    print(f"##vso[task.setvariable variable=DEPLOYMENT_PLAN_KEY;isOutput=true]{dep_plan_key}", flush=True)
 
     # Check if created deployment plan has conflicts
     dep_details = get_deployment_info(artifact_dir, lt_endpoint, lt_token, dep_plan_key)

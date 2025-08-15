@@ -1,0 +1,88 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Github\\outsystems-pipeline\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\deploy_tags_to_target_env_with_manifest.py||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:outsystems\\pipeline\\deploy_tags_to_target_env_with_manifest.py||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:outsystems\\pipeline\\deploy_latest_tags_to_target_env.py||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\deploy_package_to_target_env.py||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:outsystems\\pipeline\\deploy_package_to_target_env.py||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\continue_deployment_to_target_env.py||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:outsystems\\pipeline\\continue_deployment_to_target_env.py||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "deploy_latest_tags_to_target_env.py",
+              "DocumentMoniker": "C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py",
+              "RelativeDocumentMoniker": "outsystems\\pipeline\\deploy_latest_tags_to_target_env.py",
+              "ToolTip": "C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\deploy_latest_tags_to_target_env.py",
+              "RelativeToolTip": "outsystems\\pipeline\\deploy_latest_tags_to_target_env.py",
+              "ViewState": "AgIAAKIAAAAAAAAAAAAWwLwAAABbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-08-15T14:21:33.139Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "deploy_tags_to_target_env_with_manifest.py",
+              "DocumentMoniker": "C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\deploy_tags_to_target_env_with_manifest.py",
+              "RelativeDocumentMoniker": "outsystems\\pipeline\\deploy_tags_to_target_env_with_manifest.py",
+              "ToolTip": "C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\deploy_tags_to_target_env_with_manifest.py",
+              "RelativeToolTip": "outsystems\\pipeline\\deploy_tags_to_target_env_with_manifest.py",
+              "ViewState": "AgIAAKMAAAAAAAAAAAAWwL0AAABqAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-08-15T14:21:23.505Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "deploy_package_to_target_env.py",
+              "DocumentMoniker": "C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\deploy_package_to_target_env.py",
+              "RelativeDocumentMoniker": "outsystems\\pipeline\\deploy_package_to_target_env.py",
+              "ToolTip": "C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\deploy_package_to_target_env.py",
+              "RelativeToolTip": "outsystems\\pipeline\\deploy_package_to_target_env.py",
+              "ViewState": "AgIAACcAAAAAAAAAAAD4v0EAAABbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-08-15T14:21:08.606Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "continue_deployment_to_target_env.py",
+              "DocumentMoniker": "C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\continue_deployment_to_target_env.py",
+              "RelativeDocumentMoniker": "outsystems\\pipeline\\continue_deployment_to_target_env.py",
+              "ToolTip": "C:\\Github\\outsystems-pipeline\\outsystems\\pipeline\\continue_deployment_to_target_env.py",
+              "RelativeToolTip": "outsystems\\pipeline\\continue_deployment_to_target_env.py",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAmwI4AAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002457|",
+              "WhenOpened": "2025-08-15T14:20:03.174Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

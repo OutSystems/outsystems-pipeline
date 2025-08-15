@@ -7,6 +7,22 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## August 15th, 2025
+
+### Parallel deployment improvements
+
+The following scripts have been updated to write the deployment plan key of the created deployment to an output variable called DEPLOYMENT_PLAN_KEY for use in subsequent pipeline tasks and jobs.
+
+* `deploy_latest_tags_to_target_env.py`
+* `deploy_package_to_target_env.py`
+* `deploy_tags_to_target_env_with_manifest.py`
+
+This can be used to fill a new optional parameter `--deployment_plan_key` in the following script:
+
+* `continue_deployment_to_target_env.py`
+
+This ensures you can continue a specific deployment plan for a running deployment, instead of the first one returned by the LifeTime API.
+
 ## Nov 14th, 2024
 
 ### Parallel Deployments

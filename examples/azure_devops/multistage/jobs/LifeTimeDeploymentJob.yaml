@@ -58,6 +58,7 @@ jobs:
               --include_test_apps
               --manifest_file "$(Pipeline.Workspace)/$(Manifest.Folder)/$(Manifest.File)"
             displayName: 'Deploy to ${{ parameters.DestinationEnvironmentLabel }} environment'
+            name: deploy_tags_to_target_step
 
         - ${{ if eq(parameters.IncludeTestApplications, false) }}:
           - script: >
@@ -70,6 +71,7 @@ jobs:
               --destination_env_label "${{ parameters.DestinationEnvironmentLabel }}"
               --manifest_file "$(Pipeline.Workspace)/$(Manifest.Folder)/$(Manifest.File)"
             displayName: 'Deploy to ${{ parameters.DestinationEnvironmentLabel }} environment'
+            name: deploy_tags_to_target_step
 
         # ******************************************************************
         # Step: Apply configuration values
@@ -128,6 +130,8 @@ jobs:
   - job: finalize_deployment
     displayName: Finalize Deployment
     dependsOn: wait_confirmation
+    variables:
+      DEPLOYMENT_PLAN_KEY: $[ dependencies.lifetime_deployment.outputs.DEPLOYMENT_PLAN_KEY ]
     steps:
     - checkout: none # Avoid repository checkout
     - download: current # Download current pipeline artifacts
@@ -146,7 +150,8 @@ jobs:
         --lt_url $(LifeTime.Hostname) 
         --lt_token $(LifeTime.ServiceAccountToken) 
         --lt_api_version $(LifeTime.APIVersion)
-        --destination_env "${{ parameters.DestinationEnvironmentLabel }}"
+        --destination_env "${{ parameters.DestinationEnvironmentLabel }}"        
+        --deployment_plan_key $(DEPLOYMENT_PLAN_KEY)
       displayName: 'Continue deployment to ${{ parameters.DestinationEnvironmentLabel }} environment'
 
     # ******************************************************************

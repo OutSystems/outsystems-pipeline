@@ -117,7 +117,7 @@ def get_deployment_status(artifact_dir: str, endpoint: str, auth_token: str, dep
 
 
 # Returns the details of the running deployment plan to a specific target environment or empty if nothing is running
-def get_running_deployment(artifact_dir: str, endpoint: str, auth_token: str, dest_env_key: str):
+def get_running_deployments(artifact_dir: str, endpoint: str, auth_token: str, dest_env_key: str):
     # List of running deployments
     running_deployments = []
     # Date 24h prior to now
@@ -125,11 +125,11 @@ def get_running_deployment(artifact_dir: str, endpoint: str, auth_token: str, de
     date = date.date()
     try:
         latest_deployments = get_deployments(artifact_dir, endpoint, auth_token, date)
-        for deplyoment in latest_deployments:
-            if deplyoment["TargetEnvironmentKey"] == dest_env_key:
-                deployment_status = get_deployment_status(artifact_dir, endpoint, auth_token, deplyoment["Key"])
+        for deployment in latest_deployments:
+            if deployment["TargetEnvironmentKey"] == dest_env_key:
+                deployment_status = get_deployment_status(artifact_dir, endpoint, auth_token, deployment["Key"])
                 if deployment_status["DeploymentStatus"] in DEPLOYMENT_STATUS_LIST:
-                    running_deployments.append(deplyoment)
+                    running_deployments.append(deployment)
 
         return running_deployments
 

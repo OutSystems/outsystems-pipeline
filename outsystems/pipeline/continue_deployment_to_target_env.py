@@ -22,7 +22,7 @@ from outsystems.vars.pipeline_vars import SLEEP_PERIOD_IN_SECS, \
 # Functions
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.lifetime.lifetime_deployments import get_deployment_status, check_deployment_two_step_deploy_status, \
-    continue_deployment, get_running_deployment
+    continue_deployment, get_running_deployments
 from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
 from outsystems.vars.vars_base import get_configuration_value, load_configuration_file
@@ -31,7 +31,7 @@ from outsystems.vars.vars_base import get_configuration_value, load_configuratio
 # ############################################################# SCRIPT ##############################################################
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, dep_plan_key: str = None):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -39,15 +39,18 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Gets the environment key for the destination environment
     dest_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, dest_env)
 
-    # Find running deployment plan in destination environment
-    deployment = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
-    if len(deployment) == 0:
-        print("Continue skipped because no running deployment plan was found on {} environment.".format(dest_env))
-        sys.exit(0)
-
-    # Grab the key from the deployment plan found
-    dep_plan_key = deployment[0]["Key"]
-    print("Deployment plan {} was found.".format(dep_plan_key), flush=True)
+    # Use dep_plan_key if provided, otherwise find running deployment plan in destination environment
+    if dep_plan_key is None:
+        deployment = get_running_deployments(artifact_dir, lt_endpoint, lt_token, dest_env_key)
+        if len(deployment) == 0:
+            print("Continue skipped because no running deployment plan was found on {} environment.".format(dest_env))
+            sys.exit(0)
+        
+        # Grab the key from the deployment plan found
+        dep_plan_key = deployment[0]["Key"]
+        print("Deployment plan {} was found.".format(dep_plan_key), flush=True)
+    else:
+        print("Using provided deployment plan key: {}".format(dep_plan_key), flush=True)
 
     # Check deployment plan status
     dep_status = get_deployment_status(
@@ -111,6 +114,8 @@ if __name__ == "__main__":
                         help="Name, as displayed in LifeTime, of the destination environment where you want to continue the deployment plan.")
     parser.add_argument("-cf", "--config_file", type=str,
                         help="Config file path. Contains configuration values to override the default ones.")
+    parser.add_argument("-dpk", "--deployment_plan_key", type=str,
+                        help="An optional deployment key for resuming a specific deployment, otherwise the first deployment plan in running state is used.")
 
     args = parser.parse_args()
 
@@ -138,6 +143,8 @@ if __name__ == "__main__":
     lt_token = args.lt_token
     # Parse Destination Environment
     dest_env = args.destination_env
+    # Parse the optionally provided deployment plan key
+    dep_plan_key = args.deployment_plan_key
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, dep_plan_key)
