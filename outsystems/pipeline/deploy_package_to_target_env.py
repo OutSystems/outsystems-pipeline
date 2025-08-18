@@ -116,6 +116,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
                 elif not alert_user:
                     alert_user = True
                     print("A manual intervention is required to continue the execution of the deployment plan {}.".format(dep_plan_key), flush=True)
+                    print(f"##vso[task.logissue type=warning;]A manual intervention is required to continue the execution of the deployment plan {dep_plan_key}.", flush=True)
             elif dep_status["DeploymentStatus"] in DEPLOYMENT_ERROR_STATUS_LIST:
                 print("Deployment plan finished with status {}.".format(dep_status["DeploymentStatus"]), flush=True)
                 store_data(artifact_dir, DEPLOY_ERROR_FILE, dep_status)
