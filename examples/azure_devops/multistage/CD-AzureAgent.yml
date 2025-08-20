@@ -82,6 +82,7 @@ stages:
 # Stage: Regression Testing
 # ******************************************************************
 - stage: regression_testing
+  environment: $(Environment.Regression.Key)
   displayName: Regression Testing  
   jobs:
 
@@ -93,7 +94,6 @@ stages:
   # ******************************************************************
   - template: ./jobs/LifeTimeDeploymentJob.yaml
     parameters:
-      EnvironmentKey: $(Environment.Regression.Key)
       SourceEnvironmentLabel: $(Environment.Development.Label)
       DestinationEnvironmentLabel: $(Environment.Regression.Label)
       IncludeTestApplications: true
@@ -109,6 +109,7 @@ stages:
 # Stage: Release Acceptance
 # ******************************************************************
 - stage: release_acceptance
+  environment: $(Environment.Acceptance.Key)
   displayName: Release Acceptance
   jobs:
 
@@ -119,7 +120,6 @@ stages:
   # ******************************************************************
   - template: ./jobs/LifeTimeDeploymentJob.yaml
     parameters:
-      EnvironmentKey: $(Environment.Acceptance.Key)
       SourceEnvironmentLabel: $(Environment.Regression.Label)
       DestinationEnvironmentLabel: $(Environment.Acceptance.Label)
 
@@ -134,6 +134,7 @@ stages:
 # Stage: Dry-Run
 # ******************************************************************
 - stage: dry_run
+  environment: $(Environment.PreProduction.Key)
   displayName: Dry-Run
   jobs:
 
@@ -144,7 +145,6 @@ stages:
   # ******************************************************************
   - template: ./jobs/LifeTimeDeploymentJob.yaml
     parameters:
-      EnvironmentKey: $(Environment.PreProduction.Key)
       SourceEnvironmentLabel: $(Environment.Acceptance.Label)
       DestinationEnvironmentLabel: $(Environment.PreProduction.Label)
 
@@ -152,6 +152,7 @@ stages:
 # Stage: Go-Live
 # ******************************************************************
 - stage: go_live
+  environment: $(Environment.Production.Key)
   displayName: Go-Live
   jobs:
 
@@ -162,7 +163,6 @@ stages:
   # ******************************************************************
   - template: ./jobs/LifeTimeDeploymentJob.yaml
     parameters:
-      EnvironmentKey: $(Environment.Production.Key)
       SourceEnvironmentLabel: $(Environment.PreProduction.Label)
       DestinationEnvironmentLabel: $(Environment.Production.Label)
     # To enable 2stage-deploy on this environment uncomment the line below 
