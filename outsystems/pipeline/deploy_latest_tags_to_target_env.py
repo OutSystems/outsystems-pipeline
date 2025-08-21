@@ -147,6 +147,7 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Check if there are apps to be deployed
     if len(to_deploy_app_keys) == 0:
+        print("##vso[task.setvariable variable=DEPLOYMENT_PLAN_KEY;isOutput=true]no_deployment_required", flush=True)
         print("Deployment skipped because {} environment already has the target application deployed with the same tags.".format(dest_env), flush=True)
         sys.exit(0)
 

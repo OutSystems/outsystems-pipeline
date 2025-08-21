@@ -49,6 +49,10 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
         # Grab the key from the deployment plan found
         dep_plan_key = deployment[0]["Key"]
         print("Deployment plan {} was found.".format(dep_plan_key), flush=True)
+    # Cases where no deployment plan is created are handled by setting the deployment plan key to no_deployment_required.
+    elif dep_plan_key == "no_deployment_required":
+        print("Continue skipped because no running deployment plan was found on {} environment.".format(dest_env))
+        sys.exit(0)
     else:
         print("Using provided deployment plan key: {}".format(dep_plan_key), flush=True)
 
