@@ -3,6 +3,7 @@ import sys
 import os
 import argparse
 from time import sleep
+from typing import Optional
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -31,7 +32,7 @@ from outsystems.vars.vars_base import get_configuration_value, load_configuratio
 # ############################################################# SCRIPT ##############################################################
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, deployment_key: Optional[str] = None):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)
@@ -39,15 +40,26 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
     # Gets the environment key for the destination environment
     dest_env_key = get_environment_key(artifact_dir, lt_endpoint, lt_token, dest_env)
 
-    # Find running deployment plan in destination environment
-    deployment = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
-    if len(deployment) == 0:
-        print("Continue skipped because no running deployment plan was found on {} environment.".format(dest_env))
-        sys.exit(0)
+    # Find running deployment plans in destination environment
+    running_deployments = get_running_deployment(artifact_dir, lt_endpoint, lt_token, dest_env_key)
 
-    # Grab the key from the deployment plan found
-    dep_plan_key = deployment[0]["Key"]
-    print("Deployment plan {} was found.".format(dep_plan_key), flush=True)
+    if deployment_key:
+        # Validate provided deployment key belongs to the running deployments in the destination environment
+        provided_key_is_running = any(deployment["Key"] == deployment_key for deployment in running_deployments)
+        if not provided_key_is_running:
+            print("Provided deployment plan key {} is not running on {} environment.".format(deployment_key, dest_env), flush=True)
+            sys.exit(1)
+
+        dep_plan_key = deployment_key
+        print("Using provided deployment plan key {}.".format(dep_plan_key), flush=True)
+    else:
+        if len(running_deployments) == 0:
+            print("Continue skipped because no running deployment plan was found on {} environment.".format(dest_env))
+            sys.exit(0)
+
+        # Grab the key from the deployment plan found
+        dep_plan_key = running_deployments[0]["Key"]
+        print("Deployment plan {} was found.".format(dep_plan_key), flush=True)
 
     # Check deployment plan status
     dep_status = get_deployment_status(
@@ -109,6 +121,8 @@ if __name__ == "__main__":
                         help="(optional) Used to set the API endpoint for LifeTime, without the version. Default: \"lifetimeapi/rest\"")
     parser.add_argument("-d", "--destination_env", type=str, required=True,
                         help="Name, as displayed in LifeTime, of the destination environment where you want to continue the deployment plan.")
+    parser.add_argument("-k", "--deployment_key", type=str,
+                        help="(Optional) Specify deployment plan key to continue. If not provided, the script will try to find any running deployment plan in the target environment.")
     parser.add_argument("-cf", "--config_file", type=str,
                         help="Config file path. Contains configuration values to override the default ones.")
 
@@ -138,6 +152,8 @@ if __name__ == "__main__":
     lt_token = args.lt_token
     # Parse Destination Environment
     dest_env = args.destination_env
+    # Parse optional deployment key
+    deployment_key = args.deployment_key
 
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, dest_env, deployment_key)
