@@ -25,9 +25,9 @@ jobs:
   strategy:
     matrix:
       Python38:
-        python.version: '3.8'
+        python.version: '3.9'
       Python312:
-        python.version: '3.12'
+        python.version: '3.13'
     maxParallel: 2
 
   steps:

@@ -18,6 +18,7 @@ Fixed input parameter conflict on the following script:
 ### Updated Package Dependencies
 
 * Updated `requests` dependency to version 2.32.5
+* Updated python version requirement (>=3.9)
 
 
 ## Nov 14th, 2024
