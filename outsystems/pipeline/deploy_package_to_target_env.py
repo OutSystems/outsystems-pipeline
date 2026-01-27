@@ -157,7 +157,7 @@ if __name__ == "__main__":
                         help="Force the execution of the 2-Step deployment.")
     parser.add_argument("-cf", "--config_file", type=str,
                         help="Config file path. Contains configuration values to override the default ones.")
-    parser.add_argument("-p", "--allow_parallel_deployments", action='store_true',
+    parser.add_argument("-pd", "--allow_parallel_deployments", action='store_true',
                         help="Skip LifeTime validation for active deployment plans.")
 
     args = parser.parse_args()
