@@ -7,6 +7,19 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## Jan 27th, 2026
+
+### Solution Package Deployments
+
+Fixed input parameter conflict on the following script:
+
+* `deploy_package_to_target_env.py`
+
+### Updated Package Dependencies
+
+* Updated `requests` dependency to version 2.32.5
+
+
 ## Nov 14th, 2024
 
 ### Parallel Deployments
