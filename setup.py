@@ -11,29 +11,16 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Parallel Deployments**
+**Solution Package Deployments**
 
- The following scripts have been updated to enable creating and running parallel deployment plans:
+ Fixed input parameter conflict on the following script:
 
- * `deploy_latest_tags_to_target_env.py`
  * `deploy_package_to_target_env.py`
- * `deploy_tags_to_target_env_with_manifest.py`
-
- To enable this feature, use the following parameter:
-
- * `--allow_parallel_deployments`: Skips LifeTime validation for active deployment plans.
-
-**Enhanced Pipeline Operations**
-
- New pipeline scripts have been added to streamline operations related to manifest files:
-
- * `generate_manifest_file.py`: Generates a trigger manifest file.
- * `validate_manifest_apps_exist_in_target_env.py`: Verifies that manifest applications exist in the target environment.
 
 **Updated Package Dependencies**
 
- * Updated `requests` dependency to version 2.32.2
- * Added `packaging` dependency, version 24.1
+ * Updated `requests` dependency to version 2.32.5
+ * Updated python version requirement (>=3.9)
 
 Installing and upgrading
 ========================
@@ -48,7 +35,7 @@ AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
 LICENSE = 'Apache License 2.0'
-PYTHON_REQUIRES = '>=3.8'
+PYTHON_REQUIRES = '>=3.9'
 KEYWORDS = [
     '',
 ]
@@ -70,7 +57,7 @@ CLASSIFIERS = [
 
 REQUIREMENTS = [
     'python-dateutil==2.9.0.post0',
-    'requests==2.32.2',
+    'requests==2.32.5',
     'unittest-xml-reporting==3.2.0',
     'xunitparser==1.3.4',
     'toposort==1.10',
