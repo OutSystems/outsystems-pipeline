@@ -176,6 +176,10 @@ def send_deployment(artifact_dir: str, endpoint: str, auth_token: str, lt_api_ve
         endpoint, auth_token, DEPLOYMENTS_ENDPOINT, deployment_request)
     status_code = int(response["http_status"])
     if status_code == DEPLOYMENT_SUCCESS_CODE:
+        # Stores the result
+        filename = "{}{}{}".format(dest_env, "_deployment_key", DEPLOYMENT_FILE)
+        filename = os.path.join(DEPLOYMENT_FOLDER, filename)
+        store_data(artifact_dir, filename, response["response"])
         return response["response"]
     elif status_code == DEPLOYMENT_INVALID_CODE:
         raise InvalidParametersError("The request is invalid. Check the body of the request for errors. Body: {}. Details: {}.".format(
