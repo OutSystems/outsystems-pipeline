@@ -20,7 +20,7 @@ What's new
 **Pipeline Cache Information**
 
  Every time a script creates a new deployment plan, it generates a cache file containing the deployment key.
- This file is stored in the artifact folder and named `deployment_key_<environment_name>.cache`, where `<environment_name>` is the name of the target environment as defined in LifeTime.
+ This file is stored in the artifact folder and named `<environment_name>_deployment_key.cache`, where `<environment_name>` is the name of the target environment as defined in LifeTime.
 
 Installing and upgrading
 ========================
