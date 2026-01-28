@@ -13,7 +13,7 @@ What's new
 
 **Continue Deployment (Two Stage)**
 
- The following script has been updated with a new parameter to specify a deployment plan key:
+ The following script has a new optional parameter to specify a deployment plan key to continue:
 
  * `continue_deployment_to_target_env.py`
 
