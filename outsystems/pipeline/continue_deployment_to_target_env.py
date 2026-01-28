@@ -3,7 +3,6 @@ import sys
 import os
 import argparse
 from time import sleep
-from typing import Optional
 
 # Workaround for Jenkins:
 # Set the path to include the outsystems module
@@ -32,7 +31,7 @@ from outsystems.vars.vars_base import get_configuration_value, load_configuratio
 # ############################################################# SCRIPT ##############################################################
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, deployment_key: Optional[str] = None):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, dest_env: str, deployment_key: str):
 
     # Builds the LifeTime endpoint
     lt_endpoint = build_lt_endpoint(lt_http_proto, lt_url, lt_api_endpoint, lt_api_version)

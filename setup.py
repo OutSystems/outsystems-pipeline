@@ -11,16 +11,16 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Solution Package Deployments**
+**Continue Deployment (Two Stage)**
 
- Fixed input parameter conflict on the following script:
+ The following script has been updated with a new parameter to specify a deployment plan key:
 
- * `deploy_package_to_target_env.py`
+ * `continue_deployment_to_target_env.py`
 
-**Updated Package Dependencies**
+**Pipeline Cache Information**
 
- * Updated `requests` dependency to version 2.32.5
- * Updated python version requirement (>=3.9)
+ Every time a script creates a new deployment plan, it generates a cache file containing the deployment key.
+ This file is stored in the artifact folder and named `deployment_key_<environment_name>.cache`, where `<environment_name>` is the name of the target environment as defined in LifeTime.
 
 Installing and upgrading
 ========================

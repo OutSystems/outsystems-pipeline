@@ -7,6 +7,22 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+
+## Jan 28th, 2026
+
+### Continue Deployment (Two Stage)
+
+The following script has been updated with a new parameter to specify a deployment plan key:
+
+* `continue_deployment_to_target_env.py`
+
+### Pipeline Cache Information
+
+Every time a script creates a new deployment plan, it generates a cache file containing the deployment key.
+ This file is stored in the artifact folder and named `deployment_key_<environment_name>.cache`, where `<environment_name>` is the name of the target environment as defined in LifeTime.
+
+
+
 ## Jan 27th, 2026
 
 ### Solution Package Deployments
