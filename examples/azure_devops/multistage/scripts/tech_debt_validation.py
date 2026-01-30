@@ -69,7 +69,7 @@ for manifest_app in trigger_manifest["ApplicationVersions"]:
         for module in app["Modules"]:
             sec_findings_only = filter(lambda x: x.get("CategoryGUID") == cat_security_guid, module.get("Findings", []))
             for finding in sec_findings_only:
-                sec_findings_count += finding["Count"]
+                sec_findings_count += finding.get("Count", 0)
         if sec_findings_count > max_sec_findings_count:
             raise TechDebtAnalysisException("Security findings count of application {} is above defined threshold ({}).".format(app["Name"], sec_findings_count))
 

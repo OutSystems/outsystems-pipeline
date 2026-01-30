@@ -36,8 +36,12 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        mkdir $(Manifest.Folder)
-        ('${{ parameters.TriggerManifest }}') | Out-File -FilePath "$(Manifest.Folder)\$(Manifest.File)" -Encoding default
+        $manifestRoot = "$(System.DefaultWorkingDirectory)"
+        $manifestDir = Join-Path $manifestRoot "$(Manifest.Folder)"
+        $manifestFile = Join-Path $manifestDir "$(Manifest.File)"
+
+        New-Item -ItemType Directory -Path $manifestDir -Force | Out-Null
+        ('${{ parameters.TriggerManifest }}') | Set-Content -Path $manifestFile -Encoding utf8 -Force
       workingDirectory: $(System.DefaultWorkingDirectory)
     displayName: 'Create trigger manifest file'
 

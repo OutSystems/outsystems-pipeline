@@ -40,7 +40,7 @@ jobs:
         steps:
         - download: current # Download current pipeline artifacts
         - template: ../tasks/InstallPythonPackage.yaml # Install python package
-        
+
         # ******************************************************************
         # Step: Deploy to target environment (using manifest)
         # ******************************************************************
@@ -72,6 +72,71 @@ jobs:
             displayName: 'Deploy to ${{ parameters.DestinationEnvironmentLabel }} environment'
 
         # ******************************************************************
+        # Step: Capture deployment key (2-step only)
+        # ******************************************************************
+        # Extract the deployment key from the generated files and expose it
+        # as an output variable for the finalize job.
+        # ******************************************************************
+        - ${{ if eq(parameters.Use2StepDeployment, true) }}:
+          - task: PowerShell@2
+            name: set_deployment_key
+            displayName: 'Capture deployment key'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $deploymentDataDir = Join-Path "$(Artifacts.Folder)" "deployment_data"
+                if (-not (Test-Path $deploymentDataDir)) {
+                  Write-Error "Deployment data directory not found: $deploymentDataDir"
+                  exit 1
+                }
+
+                $label = "${{ parameters.DestinationEnvironmentLabel }}"
+                $labelNormalized = $label -replace ' ', '_'
+                $deploymentKeyFile = Join-Path $deploymentDataDir "${labelNormalized}_deployment_key.cache"
+
+                $deploymentKey = $null
+                if (Test-Path $deploymentKeyFile) {
+                  # The deployment key file is JSON-encoded.
+                  $deploymentKey = Get-Content -Path $deploymentKeyFile -Raw | ConvertFrom-Json
+                } else {
+                  Write-Warning "Deployment key file not found: $deploymentKeyFile"
+                  Write-Host "Attempting to infer deployment key from status files..."
+
+                  $statusFiles = Get-ChildItem -Path $deploymentDataDir -Filter "*.status.cache" -File | Sort-Object LastWriteTime -Descending
+                  if (-not $statusFiles) {
+                    Write-Error "No deployment status files were found under: $deploymentDataDir"
+                    exit 1
+                  }
+
+                  foreach ($statusFile in $statusFiles) {
+                    $keyFromName = $statusFile.Name -replace '\.status\.cache$', ''
+                    try {
+                      $status = Get-Content -Path $statusFile.FullName -Raw | ConvertFrom-Json
+                    } catch {
+                      continue
+                    }
+
+                    if ($status.Info -eq "deployment_prepared" -or $status.DeploymentStatus -eq "Waiting" -or $status.DeploymentStatus -eq "Running") {
+                      $deploymentKey = $keyFromName
+                      break
+                    }
+                  }
+
+                  if (-not $deploymentKey) {
+                    # Fallback to the most recent status file's key.
+                    $deploymentKey = $statusFiles[0].Name -replace '\.status\.cache$', ''
+                  }
+                }
+
+                if ([string]::IsNullOrWhiteSpace($deploymentKey)) {
+                  Write-Error "Could not determine deployment key from: $deploymentDataDir"
+                  exit 1
+                }
+
+                Write-Host "Deployment key: $deploymentKey"
+                Write-Host "##vso[task.setvariable variable=LifeTimeDeploymentKey;isOutput=true]$deploymentKey"
+
+        # ******************************************************************
         # Step: Apply configuration values
         # ******************************************************************
         # Apply configuration values (if any) to target environment
@@ -88,11 +153,29 @@ jobs:
         # console log
         # ******************************************************************
         - task: PowerShell@2
+          displayName: 'Check DeploymentConflicts file exists'
+          condition: succeededOrFailed()
+          inputs:
+            targetType: 'inline'
+            script: |
+              $conflictsFile = "$(Artifacts.Folder)\DeploymentConflicts"
+              $exists = Test-Path $conflictsFile
+              Write-Host "DeploymentConflicts exists: $exists"
+              Write-Host "##vso[task.setvariable variable=DeploymentConflictsExists]$exists"
+
+        - task: PowerShell@2
           inputs:
             targetType: 'inline'
             script:  Get-Content -Path "$(Artifacts.Folder)\DeploymentConflicts" | Write-Host
-          condition: failed()
+          condition: and(failed(), eq(variables['DeploymentConflictsExists'], 'True'))
           displayName: 'Show content of DeploymentConflicts file'
+
+        - task: PublishBuildArtifacts@1
+          displayName: 'Publish DeploymentConflicts artifact'
+          inputs:
+            PathtoPublish: '$(Artifacts.Folder)/DeploymentConflicts'
+            ArtifactName: 'DeploymentConflicts'
+          condition: and(failed(), eq(variables['DeploymentConflictsExists'], 'True'))
 
 # ******************************************************************
 # Job: Wait for confirmation 
@@ -127,7 +210,11 @@ jobs:
 - ${{ if eq(parameters.Use2StepDeployment, true) }}:
   - job: finalize_deployment
     displayName: Finalize Deployment
-    dependsOn: wait_confirmation
+    dependsOn:
+    - wait_confirmation
+    - lifetime_deployment
+    variables:
+      LifeTimeDeploymentKey: $[ dependencies.lifetime_deployment.outputs['set_deployment_key.LifeTimeDeploymentKey'] ]
     steps:
     - checkout: none # Avoid repository checkout
     - download: current # Download current pipeline artifacts
@@ -147,6 +234,7 @@ jobs:
         --lt_token $(LifeTime.ServiceAccountToken) 
         --lt_api_version $(LifeTime.APIVersion)
         --destination_env "${{ parameters.DestinationEnvironmentLabel }}"
+        --deployment_key "$(LifeTimeDeploymentKey)"
       displayName: 'Continue deployment to ${{ parameters.DestinationEnvironmentLabel }} environment'
 
     # ******************************************************************
