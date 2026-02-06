@@ -122,7 +122,7 @@ def check_if_can_deploy(artifact_dir: str, lt_endpoint: str, lt_api_version: str
     return app_keys
 
 
-def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, dep_note: str, allow_parallel_deployments: bool):
+def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: str, lt_api_version: int, lt_token: str, source_env: str, dest_env: str, apps: list, dep_manifest: list, dep_note: str, allow_parallel_deployments: bool, remove_on_timeout: bool):
 
     app_data_list = []  # will contain the applications to deploy details from LT
     to_deploy_app_keys = []  # will contain the app keys for the apps tagged
@@ -232,6 +232,11 @@ def main(artifact_dir: str, lt_http_proto: str, lt_url: str, lt_api_endpoint: st
 
     # Deployment timeout reached. Exit script with error
     print("Timeout occurred while deployment plan is still in {} status.".format(DEPLOYMENT_RUNNING_STATUS), flush=True)
+
+    if remove_on_timeout:
+        print("Timeout occurred. Removing deployment as per --remove_on_timeout flag...", flush=True)
+        delete_deployment(lt_endpoint, lt_token, dep_plan_key)
+
     sys.exit(1)
 
 
@@ -265,6 +270,11 @@ if __name__ == "__main__":
                         help="Config file path. Contains configuration values to override the default ones.")
     parser.add_argument("-p", "--allow_parallel_deployments", action='store_true',
                         help="Skip LifeTime validation for active deployment plans.")
+
+    parser.add_argument("-rt", "--remove_on_timeout", action="store_true", default=False,
+                        help="(optional) If set, the pipeline will remove the deployment on timeout.")
+
+
     args = parser.parse_args()
 
     # Load config file if exists
@@ -307,5 +317,8 @@ if __name__ == "__main__":
     # Parse Allow Parallel Deployments
     allow_parallel_deployments = args.allow_parallel_deployments
 
+    # Parse Remove On Timeout
+    remove_on_timeout = args.remove_on_timeout
+
     # Calls the main script
-    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note, allow_parallel_deployments)
+    main(artifact_dir, lt_http_proto, lt_url, lt_api_endpoint, lt_version, lt_token, source_env, dest_env, apps, manifest_file, dep_note, allow_parallel_deployments, remove_on_timeout)
