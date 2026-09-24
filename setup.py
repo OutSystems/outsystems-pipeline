@@ -11,16 +11,23 @@ Visit the `project repository <https://github.com/OutSystems/outsystems-pipeline
 What's new
 ==========
 
-**Continue Deployment (Two Stage)**
+**Config File Support**
 
- The following script has a new optional parameter to specify a deployment plan key to continue:
+ Added support for loading configuration values from a custom configuration file to the `generate_manifest_file.py` script, completing the configuration file support across the pipeline scripts.
 
- * `continue_deployment_to_target_env.py`
+ To use this feature, use the `--config_file` parameter to specify the configuration file path.
 
-**Pipeline Cache Information**
+**Updated Package Dependencies**
 
- Every time a script creates a new deployment plan, it generates a cache file containing the deployment key.
- This file is stored in the artifact folder and named `<environment_name>_deployment_key.cache`, where `<environment_name>` is the name of the target environment as defined in LifeTime.
+The package dependencies have been updated to their latest supported versions:
+
+ * `requests` to version 2.34.2
+ * `python-dotenv` to version 1.2.3
+ * `unittest-xml-reporting` to version 4.0.0
+ * `packaging` to version 26.3
+
+ The minimum supported Python version is now 3.10.
+
 
 Installing and upgrading
 ========================
@@ -35,7 +42,7 @@ AUTHOR = u'OutSystems'
 EMAIL = u'cicd.integrations@outsystems.com'
 URL = 'https://github.com/OutSystems/outsystems-pipeline'
 LICENSE = 'Apache License 2.0'
-PYTHON_REQUIRES = '>=3.9'
+PYTHON_REQUIRES = '>=3.10'
 KEYWORDS = [
     '',
 ]
@@ -57,12 +64,12 @@ CLASSIFIERS = [
 
 REQUIREMENTS = [
     'python-dateutil==2.9.0.post0',
-    'requests==2.32.5',
-    'unittest-xml-reporting==3.2.0',
+    'requests==2.34.2',
+    'unittest-xml-reporting==4.0.0',
     'xunitparser==1.3.4',
     'toposort==1.10',
-    'python-dotenv==1.0.1',
-    'packaging==24.1'
+    'python-dotenv==1.2.3',
+    'packaging==26.3'
 ]
 
 PACKAGES = [
