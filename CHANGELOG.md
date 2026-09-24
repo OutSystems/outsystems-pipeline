@@ -7,6 +7,22 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## Sep 24th, 2026
+
+### Config File Support
+
+Added support for loading configuration values from a custom configuration file to the `generate_manifest_file.py` script. This completes the configuration file support previously available in the other pipeline scripts.
+
+To use this feature, use the `--config_file` parameter to specify the configuration file path.
+
+### Updated Package Dependencies
+
+* Updated `requests` dependency to version 2.34.2
+* Updated `python-dotenv` dependency to version 1.2.3
+* Updated `unittest-xml-reporting` dependency to version 4.0.0
+* Updated `packaging` dependency to version 26.3
+* Updated minimum supported Python version to 3.10
+
 
 ## Jan 28th, 2026
 
