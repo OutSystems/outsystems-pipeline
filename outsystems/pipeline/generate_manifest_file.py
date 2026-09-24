@@ -25,6 +25,7 @@ from outsystems.lifetime.lifetime_environments import get_environments, get_envi
 from outsystems.lifetime.lifetime_applications import get_running_app_version, get_application_data
 from outsystems.file_helpers.file import store_data
 from outsystems.lifetime.lifetime_base import build_lt_endpoint
+from outsystems.vars.vars_base import load_configuration_file
 
 
 # Function that will build the info required for the environments
@@ -121,8 +122,13 @@ if __name__ == "__main__":
                         help="Comma separated list of apps you want to deploy. Example: \"App1,App2 With Spaces,App3_With_Underscores\"")
     parser.add_argument("-m", "--deploy_msg", type=str, default=DEPLOYMENT_MESSAGE,
                         help="Message you want to show on the deployment plans in LifeTime. Default: \"Automated deploy using OS Pipelines\".")
+    parser.add_argument("-cf", "--config_file", type=str,
+                        help="Config file path. Contains configuration values to override the default ones.")
     args = parser.parse_args()
 
+    # Load config file if exists
+    if args.config_file:
+        load_configuration_file(args.config_file)
     # Parse the artifact directory
     artifact_dir = args.artifacts
     # Parse the API endpoint
