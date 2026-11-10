@@ -15,6 +15,7 @@ from outsystems.exceptions.impossible_action_deployment import ImpossibleApplyAc
 from outsystems.lifetime.lifetime_base import send_get_request, send_post_request, send_delete_request, send_binary_post_request
 from outsystems.lifetime.lifetime_environments import get_environment_key
 from outsystems.file_helpers.file import store_data
+from outsystems.vars.vars_base import get_configuration_value
 # Variables
 from outsystems.vars.lifetime_vars import DEPLOYMENTS_ENDPOINT, DEPLOYMENT_STATUS_ENDPOINT, \
     DEPLOYMENT_START_ENDPOINT, DEPLOYMENT_CONTINUE_ENDPOINT, DEPLOYMENTS_SUCCESS_CODE, DEPLOYMENTS_EMPTY_CODE, \
@@ -27,7 +28,7 @@ from outsystems.vars.lifetime_vars import DEPLOYMENTS_ENDPOINT, DEPLOYMENT_STATU
     DEPLOYMENT_ACTION_NO_DEPLOYMENT_CODE, DEPLOYMENT_ACTION_FAILED_CODE, DEPLOYMENT_PLAN_V1_API_OPS, DEPLOYMENT_PLAN_V2_API_OPS, \
     ENVIRONMENTS_ENDPOINT, DEPLOYMENT_ENDPOINT
 from outsystems.vars.file_vars import DEPLOYMENTS_FILE, DEPLOYMENT_FILE, DEPLOYMENT_FOLDER, DEPLOYMENT_STATUS_FILE
-from outsystems.vars.pipeline_vars import DEPLOYMENT_STATUS_LIST, DEPLOYMENT_SAVED_STATUS
+from outsystems.vars.pipeline_vars import DEPLOYMENT_STATUS_LIST, DEPLOYMENT_SAVED_STATUS, DEPLOYMENT_LOOKBACK_DAYS
 
 
 # Returns a list of deployments ordered by creation date, from newest to oldest.
@@ -116,13 +117,22 @@ def get_deployment_status(artifact_dir: str, endpoint: str, auth_token: str, dep
             "There was an error. Response from server: {}".format(response))
 
 
+# Returns the minimum creation date used when searching for existing deployment plans.
+# Defaults to DEPLOYMENT_LOOKBACK_DAYS, which can be overridden through the configuration file.
+def get_deployments_min_date():
+    lookback_days = get_configuration_value("DEPLOYMENT_LOOKBACK_DAYS", DEPLOYMENT_LOOKBACK_DAYS)
+    if isinstance(lookback_days, bool) or not isinstance(lookback_days, int) or lookback_days < 1:
+        raise InvalidParametersError(
+            "DEPLOYMENT_LOOKBACK_DAYS must be a positive integer. Value provided: {}".format(lookback_days))
+    date = datetime.datetime.now() - datetime.timedelta(days=lookback_days)
+    return date.date()
+
+
 # Returns the details of the running deployment plan to a specific target environment or empty if nothing is running
 def get_running_deployment(artifact_dir: str, endpoint: str, auth_token: str, dest_env_key: str):
     # List of running deployments
     running_deployments = []
-    # Date 24h prior to now
-    date = datetime.datetime.now() - datetime.timedelta(days=1)
-    date = date.date()
+    date = get_deployments_min_date()
     try:
         latest_deployments = get_deployments(artifact_dir, endpoint, auth_token, date)
         for deplyoment in latest_deployments:
@@ -143,9 +153,7 @@ def get_running_deployment(artifact_dir: str, endpoint: str, auth_token: str, de
 
 # Returns the details of the saved deployment plan to a specific target environment or None if nothing is found
 def get_saved_deployment(artifact_dir: str, endpoint: str, auth_token: str, dest_env_key: str):
-    # Date 24h prior to now
-    date = datetime.datetime.now() - datetime.timedelta(days=1)
-    date = date.date()
+    date = get_deployments_min_date()
     try:
         latest_deployments = get_deployments(artifact_dir, endpoint, auth_token, date)
         for deployment in latest_deployments:

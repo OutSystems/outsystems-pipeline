@@ -2,6 +2,8 @@
 QUEUE_TIMEOUT_IN_SECS = 1800
 DEPLOYMENT_TIMEOUT_IN_SECS = 3600
 SLEEP_PERIOD_IN_SECS = 20
+# Number of days to look back when searching LifeTime for existing deployment plans
+DEPLOYMENT_LOOKBACK_DAYS = 1
 REDEPLOY_OUTDATED_APPS = True
 ALLOW_CONTINUE_WITH_ERRORS = False
 DEPLOYMENT_STATUS_LIST = ["saved", "running", "needs_user_intervention", "aborting"]
