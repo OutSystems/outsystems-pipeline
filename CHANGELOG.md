@@ -7,6 +7,20 @@
 [//]: # (Features)
 [//]: # (BREAKING CHANGES)
 
+## Nov 10th, 2026
+
+### Configurable Deployment Search Window
+
+The search for existing deployment plans in the target environment used a hard-coded window of one day, so a two-stage deployment prepared before a weekend could not be continued or started afterwards.
+
+The window is now set by the `DEPLOYMENT_LOOKBACK_DAYS` configuration value (default: `1`), which can be overridden through the configuration file (`--config_file` parameter). It applies to the following scripts:
+
+* `continue_deployment_to_target_env.py`
+* `start_deployment_to_target_env.py`
+* `deploy_latest_tags_to_target_env.py`
+* `deploy_package_to_target_env.py`
+* `deploy_tags_to_target_env_with_manifest.py`
+
 ## Sep 24th, 2026
 
 ### Config File Support
